@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center min-h-screen">
+    <div class="text-center max-w-md">
+        <!-- Logo -->
+        <div class="mb-8">
+            <div class="text-4xl font-bold text-blue-600 mb-2">🍽️</div>
+            <h1 class="text-2xl font-bold text-gray-900">MICE CATERING</h1>
+        </div>
+        
+        <!-- Status -->
+        <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+            <div class="mb-6">
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6 text-blue-600 animate-pulse-soft" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-2">Propuesta en edición</h2>
+                <p class="text-gray-600">El comercial está personalizando tu propuesta. Te avisaremos cuando esté lista para revisar.</p>
+            </div>
+            
+            <!-- Loading Indicator -->
+            <div class="flex items-center justify-center gap-1 my-6">
+                <div class="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0s"></div>
+                <div class="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+        </div>
+        
+        <!-- Information -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p class="text-sm text-blue-900">
+                Esta página se actualizará automáticamente cuando la propuesta esté lista. 
+                <br><br>
+                <strong>No cierres esta pestaña.</strong>
+            </p>
+        </div>
+        
+        <!-- Refresh Script -->
+        <script>
+            // Recargar la página cada 5 segundos
+            setInterval(() => {
+                location.reload();
+            }, 5000);
+        </script>
+        
+        <!-- Manual Refresh Button -->
+        <button 
+            onclick="location.reload()" 
+            class="text-blue-600 hover:text-blue-700 font-medium text-sm"
+        >
+            Actualizar ahora
+        </button>
+    </div>
+</body>
+</html>

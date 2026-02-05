@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propuesta Tech Summit - Mice Catering</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Configuración de Branding Simulada
+        tailwind.config = {
+            theme: { extend: { colors: { brand: '#232F3E' } } }
+        }
+    </script>
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Brand Header -->
+    <div class="bg-brand text-white py-4 px-6 shadow-lg sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1024px-Amazon_Web_Services_Logo.svg.png" class="h-8 bg-white p-1 rounded">
+            <div class="h-8 w-px bg-white/20"></div>
+            <span class="font-light tracking-wide">MICE CATERING</span>
+        </div>
+        <div class="hidden md:block text-sm opacity-80">Propuesta válida hasta 30/06/2025</div>
+    </div>
+
+    <!-- Hero -->
+    <header class="relative h-96 bg-cover bg-center flex items-end" style="background-image: url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop');">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+        <div class="relative z-10 p-8 max-w-5xl mx-auto w-full text-white">
+            <h1 class="text-4xl md:text-5xl font-bold mb-2">Tech Summit 2025</h1>
+            <p class="text-xl opacity-90">Hola Juan, hemos diseñado esta experiencia exclusiva para Amazon.</p>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-6 space-y-12 -mt-10 relative z-20">
+
+        <!-- Venue Section -->
+        <section class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="grid md:grid-cols-2">
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-brand mb-4">El Espacio: Espacio Ventas</h2>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Un icono arquitectónico en el corazón de Madrid. Sus techos de 12 metros de altura y su cúpula central ofrecen la grandiosidad que vuestro evento tecnológico necesita.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                            <span class="block font-bold text-brand text-lg">300</span>
+                            <span class="text-xs text-gray-500 uppercase">Capacidad</span>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                            <span class="block font-bold text-brand text-lg">Si</span>
+                            <span class="text-xs text-gray-500 uppercase">Luz Natural</span>
+                        </div>
+                    </div>
+                    <button class="text-brand font-bold underline text-sm">Ver ficha técnica completa</button>
+                </div>
+                <div class="bg-gray-200 h-64 md:h-auto relative">
+                    <!-- Mapa Simulado -->
+                    <div class="absolute inset-0 flex items-center justify-center text-gray-500 bg-gray-300">
+                        [ Mapa Google Maps Incrustado ]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline -->
+        <section class="space-y-8">
+            <h3 class="text-2xl font-bold text-center text-gray-900">La Experiencia Gastronómica</h3>
+            <div class="absolute left-1/2 w-px h-full bg-gray-200 -z-10 hidden md:block"></div>
+
+            <!-- Service: Coffee -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-brand">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-xl font-bold text-gray-800">09:00h - Welcome Coffee</h4>
+                    <span class="text-xs font-bold bg-gray-100 px-2 py-1 rounded">INCLUIDO</span>
+                </div>
+                <p class="text-gray-600">Café de especialidad, zumos naturales y selección de mini bollería.</p>
+            </div>
+
+            <!-- Service: Lunch (Selection) -->
+            <div class="relative">
+                <div class="text-center mb-6">
+                    <span class="bg-brand text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">TU ELECCIÓN REQUERIDA</span>
+                    <h4 class="text-xl font-bold text-gray-800 mt-2">14:00h - Almuerzo de Trabajo</h4>
+                    <p class="text-gray-500 text-sm">Por favor, selecciona una de las dos propuestas.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Option A (Selected) -->
+                    <div class="bg-white rounded-xl shadow-lg border-2 border-brand p-6 relative transform scale-105 transition-all cursor-pointer">
+                        <div class="absolute top-0 right-0 bg-brand text-white text-xs font-bold px-3 py-1 rounded-bl-lg">SELECCIONADO</div>
+                        <h5 class="text-lg font-bold text-brand mb-1">Opción A: Ejecutivo</h5>
+                        <p class="text-2xl font-bold text-gray-900 mb-4">45€ <span class="text-sm font-normal text-gray-500">/ pax</span></p>
+                        
+                        <ul class="space-y-3 text-sm text-gray-600">
+                            <li class="flex items-start gap-2">
+                                <img src="https://dummyimage.com/40x40/ccc/fff" class="w-10 h-10 rounded object-cover">
+                                <div>
+                                    <span class="font-bold text-gray-800">Ensalada César</span>
+                                    <p class="text-xs">Con lascas de parmesano 24 meses.</p>
+                                    <div class="flex gap-1 mt-1 opacity-50"><span title="Gluten">🌾</span><span title="Lácteos">🥛</span></div>
+                                </div>
+                            </li>
+                            <!-- More items... -->
+                        </ul>
+                    </div>
+
+                    <!-- Option B (Unselected) -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 opacity-60 hover:opacity-100 transition-all cursor-pointer grayscale hover:grayscale-0">
+                        <h5 class="text-lg font-bold text-gray-700 mb-1">Opción B: Premium</h5>
+                        <p class="text-2xl font-bold text-gray-900 mb-4">55€ <span class="text-sm font-normal text-gray-500">/ pax</span></p>
+                        <p class="text-sm text-gray-500 mb-4">Incluye Tartar de Atún y Solomillo.</p>
+                        <button class="w-full py-2 border border-brand text-brand rounded font-bold text-sm">Seleccionar esta opción</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service: Station -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col md:flex-row">
+                <img src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=1000&auto=format&fit=crop" class="w-full md:w-1/3 object-cover h-48 md:h-auto">
+                <div class="p-6 flex-1">
+                    <h4 class="text-xl font-bold text-gray-800 mb-2">Refuerzo: Estación Mexicana</h4>
+                    <p class="text-gray-600 text-sm mb-4">Un showcooking en vivo con nuestros chefs preparando tacos al momento.</p>
+                    <div class="flex gap-2">
+                        <span class="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded font-bold">PICANTE SUAVE</span>
+                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold">SIN GLUTEN</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Footer Economic -->
+        <section class="bg-gray-900 text-white rounded-2xl p-8 mt-12">
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Resumen de tu Propuesta</h3>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <div class="flex justify-between"><span>Gastronomía (200 pax)</span> <span>9.000,00 €</span></div>
+                        <div class="flex justify-between"><span>Estación Mexicana</span> <span>700,00 €</span></div>
+                        <div class="flex justify-between pt-2 border-t border-gray-700"><span>Subtotal</span> <span>9.700,00 €</span></div>
+                        <div class="flex justify-between"><span>IVA (10%)</span> <span>970,00 €</span></div>
+                    </div>
+                </div>
+                <div class="text-center md:text-right">
+                    <div class="text-sm text-gray-400 mb-1">Total Presupuesto</div>
+                    <div class="text-4xl font-bold text-white mb-6">10.670,00 €</div>
+                    <button class="bg-brand border-2 border-white text-white w-full md:w-auto px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-brand transition-colors shadow-lg shadow-blue-900/50">
+                        ACEPTAR PROPUESTA
+                    </button>
+                    <p class="text-xs text-gray-500 mt-4">Al aceptar, recibirás el contrato vía Zoho Sign.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Chat Floating Panel -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <!-- Chat Open State (Simplified for mockup) -->
+        <div class="bg-white w-80 rounded-xl shadow-2xl border border-gray-200 overflow-hidden mb-4 hidden" id="chatWindow">
+            <div class="bg-brand text-white p-4 font-bold flex justify-between">
+                <span>Tu Gestor: Juan Pérez</span>
+                <button onclick="document.getElementById('chatWindow').classList.add('hidden')">✕</button>
+            </div>
+            <div class="h-64 bg-gray-50 p-4 overflow-y-auto space-y-3">
+                <div class="bg-blue-100 p-2 rounded-lg rounded-tl-none text-sm text-gray-800 max-w-[80%]">Hola, ¿podemos cambiar el horario del coffee?</div>
+                <div class="bg-white border p-2 rounded-lg rounded-tr-none text-sm text-gray-800 max-w-[80%] ml-auto shadow-sm">¡Claro! Lo ajusto ahora mismo a las 09:30h.</div>
+            </div>
+            <div class="p-3 border-t bg-white">
+                <input type="text" placeholder="Escribe un mensaje..." class="w-full border rounded-lg px-3 py-2 text-sm">
+            </div>
+        </div>
+        
+        <!-- Chat Button -->
+        <button onclick="document.getElementById('chatWindow').classList.toggle('hidden')" class="bg-brand text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl hover:scale-110 transition-transform relative">
+            💬
+            <span class="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></span>
+        </button>
+    </div>
+
+</body>
+</html>

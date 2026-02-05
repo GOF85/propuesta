@@ -1,0 +1,43 @@
+{
+  "name": "mice-catering-proposals",
+  "version": "1.0.0",
+  "description": "Commercial catering proposal management system",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "NODE_ENV=production node src/server.js",
+    "prod": "pm2 start src/server.js --name 'catering-proposals' --env production",
+    "stop": "pm2 stop catering-proposals",
+    "restart": "pm2 restart catering-proposals",
+    "logs": "pm2 logs catering-proposals",
+    "seed": "node scripts/seed-test-data.js"
+  },
+  "keywords": [
+    "catering",
+    "proposals",
+    "events",
+    "MICE"
+  ],
+  "author": "MICE Catering Team",
+  "license": "ISC",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mariadb": "^3.2.0",
+    "ejs": "^3.1.8",
+    "express-validator": "^7.0.0",
+    "uuid": "^9.0.0",
+    "dayjs": "^1.11.10",
+    "sharp": "^0.33.0",
+    "puppeteer": "^21.6.0",
+    "nodemailer": "^6.9.7",
+    "connect-flash": "^0.1.1",
+    "express-session": "^1.17.3",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "pm2": "^5.3.0"
+  }
+}

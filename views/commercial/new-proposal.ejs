@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Propuesta - MICE CATERING</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<%- include('../partials/header') %>
+
+<main class="max-w-4xl mx-auto px-6 py-8">
+    
+    <%- include('../partials/flash-messages') %>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="/dashboard" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-4 inline-block">
+            ← Volver al Dashboard
+        </a>
+        <h1 class="text-3xl font-bold text-gray-900">Nueva Propuesta</h1>
+        <p class="text-gray-500 text-sm mt-1">Rellena los datos básicos para crear una nueva propuesta</p>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <form method="POST" action="/proposal">
+            <!-- Cliente -->
+            <div class="mb-6">
+                <label for="client_name" class="block text-sm font-semibold text-gray-900 mb-2">
+                    Nombre del Cliente *
+                </label>
+                <input 
+                    type="text" 
+                    id="client_name" 
+                    name="client_name"
+                    placeholder="Ej: Amazon Web Services"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                <p class="text-gray-500 text-xs mt-1">Requerido</p>
+            </div>
+
+            <!-- Evento -->
+            <div class="mb-6">
+                <label for="event_name" class="block text-sm font-semibold text-gray-900 mb-2">
+                    Nombre del Evento
+                </label>
+                <input 
+                    type="text" 
+                    id="event_name" 
+                    name="event_name"
+                    placeholder="Ej: Tech Summit 2026"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+            </div>
+
+            <!-- Grid: Fecha + Pax -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Fecha -->
+                <div>
+                    <label for="event_date" class="block text-sm font-semibold text-gray-900 mb-2">
+                        Fecha del Evento
+                    </label>
+                    <input 
+                        type="date" 
+                        id="event_date" 
+                        name="event_date"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    >
+                </div>
+
+                <!-- Pax -->
+                <div>
+                    <label for="pax" class="block text-sm font-semibold text-gray-900 mb-2">
+                        Número de Personas (Pax)
+                    </label>
+                    <input 
+                        type="number" 
+                        id="pax" 
+                        name="pax"
+                        placeholder="100"
+                        min="0"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    >
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 pt-6 border-t border-gray-200">
+                <a href="/dashboard" class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center">
+                    Cancelar
+                </a>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                    Crear Propuesta
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Información -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p class="text-sm text-blue-900">
+            <strong>Nota:</strong> Después de crear la propuesta podrás añadir venues, servicios y platos desde el editor.
+        </p>
+    </div>
+
+</main>
+
+<%- include('../partials/footer') %>
+
+</body>
+</html>
