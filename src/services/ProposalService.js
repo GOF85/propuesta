@@ -398,19 +398,20 @@ class ProposalService {
         // );
 
         // 9. Auditoría opcional
-        if (auditUserId) {
-          await this._auditPriceChange(
-            proposalId,
-            auditUserId,
-            'recalculation',
-            'proposal',
-            proposalId,
-            proposal.total_final || 0,
-            result.total_final,
-            'Recálculo automático de totales',
-            result
-          );
-        }
+        // ⚠️ COMENTADO: price_audit_log table no existe
+        // if (auditUserId) {
+        //   await this._auditPriceChange(
+        //     proposalId,
+        //     auditUserId,
+        //     'recalculation',
+        //     'proposal',
+        //     proposalId,
+        //     proposal.total_final || 0,
+        //     result.total_final,
+        //     'Recálculo automático de totales',
+        //     result
+        //   );
+        // }
       }
 
       return result;

@@ -6,7 +6,7 @@
  */
 
 const sharp = require('sharp');
-const Vibrant = require('node-vibrant');
+const { Vibrant } = require('node-vibrant/node');
 const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuid } = require('uuid');
