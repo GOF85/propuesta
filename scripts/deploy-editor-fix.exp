@@ -1,0 +1,59 @@
+#!/usr/bin/expect -f
+# Deploy fixes to production server
+
+set timeout 60
+set user "root"
+set host "188.95.113.225"
+set password "Kbmef9Pke9u36VHh"
+
+puts "🚀 Desplegando cambios al servidor de producción...\n"
+
+# Copiar ProposalService.js
+puts "📦 Desplegando ProposalService.js..."
+spawn scp -o StrictHostKeyChecking=no src/services/ProposalService.js $user@$host:/var/www/propuesta/src/services/
+expect {
+    "*password:" { send "$password\r" }
+    "assword:" { send "$password\r" }
+    timeout { puts "❌ Timeout"; exit 1 }
+}
+expect eof
+
+# Copiar editorController.js
+puts "📦 Desplegando editorController.js..."
+spawn scp -o StrictHostKeyChecking=no src/controllers/editorController.js $user@$host:/var/www/propuesta/src/controllers/
+expect {
+    "*password:" { send "$password\r" }
+    "assword:" { send "$password\r" }
+    timeout { puts "❌ Timeout"; exit 1 }
+}
+expect eof
+
+# Copiar script de test
+puts "📦 Desplegando create-test-proposals.js..."
+spawn scp -o StrictHostKeyChecking=no scripts/create-test-proposals.js $user@$host:/var/www/propuesta/scripts/
+expect {
+    "*password:" { send "$password\r" }
+    "assword:" { send "$password\r" }
+    timeout { puts "❌ Timeout"; exit 1 }
+}
+expect eof
+
+puts "\n✅ Archivos desplegados"
+puts "🔄 Reiniciando aplicación...\n"
+
+# Reiniciar PM2
+spawn ssh -o StrictHostKeyChecking=no $user@$host "cd /var/www/propuesta && pm2 restart propuesta-app"
+expect {
+    "*password:" { 
+        send "$password\r"
+        expect eof
+    }
+    "assword:" { 
+        send "$password\r"
+        expect eof
+    }
+    timeout { puts "❌ Timeout reiniciando"; exit 1 }
+}
+
+puts "\n✨ ¡Deployment completado!"
+puts "📍 Verifica: https://propuesta.micecatering.eu/dashboard\n"

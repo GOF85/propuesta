@@ -425,6 +425,74 @@ router.post('/api/admin/venues/scrape', authenticateUser, async (req, res, next)
 });
 
 /**
+ * POST /api/admin/venues/scrape-url
+ * ADMIN ONLY: Scrapear venue desde URL personalizada
+ * Body: {url: "https://ejemplo.com/venue/nombre"}
+ * Timeout: 45s (Puppeteer tarda)
+ */
+router.post(
+  '/api/admin/venues/scrape-url',
+  authenticateUser,
+  body('url').trim().isURL().withMessage('URL inválida'),
+  async (req, res, next) => {
+    try {
+      // Validar rol admin
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Solo admin puede ejecutar scraping'
+        });
+      }
+
+      // Validar entrada
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          error: 'URL inválida',
+          details: errors.array()
+        });
+      }
+
+      const { url } = req.body;
+      console.log(`🚀 Admin solicitando scraping de URL: ${url}`);
+
+      const VenueService = require('../services/VenueService');
+
+      // Scrapear desde URL personalizada
+      const venueData = await VenueService.scrapeFromCustomUrl(url);
+
+      if (!venueData) {
+        return res.status(400).json({
+          success: false,
+          error: 'No se pudo extraer información del venue desde la URL proporcionada'
+        });
+      }
+
+      // Persistir en BD
+      const venueId = await VenueService.insertOrUpdateVenue(venueData);
+
+      // Obtener venue completo
+      const venue = await VenueService.getById(venueId);
+
+      res.json({
+        success: true,
+        message: `✅ Venue "${venue.name}" importado correctamente`,
+        venue,
+        venueId
+      });
+
+    } catch (err) {
+      console.error('Error en scrape-url:', err);
+      res.status(500).json({
+        success: false,
+        error: err.message || 'Error al scrapear venue desde URL'
+      });
+    }
+  }
+);
+
+/**
  * POST /api/admin/venues/manual
  * ADMIN ONLY: Crear venue manualmente (fallback sin scraping)
  * Body: {name, description, capacity_cocktail, capacity_banquet, capacity_theater, features[], address, external_url}

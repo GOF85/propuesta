@@ -24,7 +24,168 @@ class VenueService {
   }
 
   /**
-   * 🌐 SCRAPING PRINCIPAL
+   * 🌐 SCRAPING DESDE URL PERSONALIZADA
+   * Extrae venue desde URL específica proporcionada por usuario
+   * Soporta páginas individuales de venues (no listados)
+   * 
+   * @param {String} targetUrl - URL completa del venue a scrapear
+   * @returns {Promise<Object|null>} Datos del venue o null si falla
+   * 
+   * Ejemplo:
+   *   const venue = await VenueService.scrapeFromCustomUrl('https://www.micecatering.com/venues/salon-madrid');
+   *   // Retorna: {name, description, capacity_*, features, images: [...], external_url}
+   */
+  async scrapeFromCustomUrl(targetUrl) {
+    let browser;
+    try {
+      console.log(`🚀 Scrapeando venue desde: ${targetUrl}`);
+
+      // Validar URL
+      if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
+        throw new Error('URL inválida. Debe comenzar con http:// o https://');
+      }
+
+      // Lanzar navegador
+      browser = await puppeteer.launch({
+        headless: 'new',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage'
+        ],
+        timeout: this.scraperTimeout
+      });
+
+      const page = await browser.newPage();
+      await page.setViewport({ width: 1920, height: 1080 });
+      await page.setUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+      );
+
+      console.log(`📍 Navegando a: ${targetUrl}`);
+      await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: this.scraperTimeout });
+
+      // Esperar un segundo para que cargue completamente
+      await page.waitForTimeout(2000);
+
+      // Extraer datos del venue (selectores genéricos adaptables)
+      const venueData = await page.evaluate(() => {
+        // Función helper para limpiar texto
+        const cleanText = (text) => {
+          if (!text) return '';
+          return text.trim().replace(/\s+/g, ' ');
+        };
+
+        // Extraer nombre (selectores comunes)
+        let name = document.querySelector('h1')?.textContent ||
+                   document.querySelector('.venue-name, .title, [class*="title"]')?.textContent ||
+                   document.title;
+        name = cleanText(name);
+
+        // Extraer descripción
+        let description = document.querySelector('.venue-description, .description, [class*="description"], p')?.textContent ||
+                         document.querySelector('meta[name="description"]')?.content ||
+                         '';
+        description = cleanText(description);
+
+        // Extraer capacidades (buscar números cerca de palabras clave)
+        const textContent = document.body.textContent;
+        let capacityCocktail = null;
+        let capacityBanquet = null;
+        let capacityTheater = null;
+
+        // Regex patterns para capacidades
+        const cocktailMatch = textContent.match(/cocktail.*?(\d+)/i) || textContent.match(/(\d+).*?cocktail/i);
+        const banquetMatch = textContent.match(/banquet.*?(\d+)/i) || textContent.match(/(\d+).*?banquet/i);
+        const theaterMatch = textContent.match(/theater.*?(\d+)/i) || textContent.match(/(\d+).*?theater/i);
+
+        if (cocktailMatch) capacityCocktail = parseInt(cocktailMatch[1]);
+        if (banquetMatch) capacityBanquet = parseInt(banquetMatch[1]);
+        if (theaterMatch) capacityTheater = parseInt(theaterMatch[1]);
+
+        // Extraer características (features)
+        const features = [];
+        const featureElements = document.querySelectorAll('.feature, .amenity, [class*="feature"], [class*="amenity"], li');
+        featureElements.forEach(el => {
+          const text = cleanText(el.textContent);
+          if (text && text.length < 50 && text.length > 2) {
+            features.push(text);
+          }
+        });
+
+        // Extraer dirección
+        let address = document.querySelector('.address, [class*="address"]')?.textContent || '';
+        address = cleanText(address);
+
+        // Extraer imágenes (todas las que parezcan del venue)
+        const images = [];
+        const imgElements = document.querySelectorAll('img');
+        imgElements.forEach(img => {
+          const src = img.src || img.dataset.src;
+          if (src && !src.includes('logo') && !src.includes('icon') && src.length > 10) {
+            images.push(src);
+          }
+        });
+
+        return {
+          name,
+          description,
+          capacityCocktail,
+          capacityBanquet,
+          capacityTheater,
+          features: [...new Set(features)].slice(0, 10), // Eliminar duplicados, max 10
+          address,
+          images: [...new Set(images)].slice(0, 5) // Max 5 imágenes
+        };
+      });
+
+      console.log(`✅ Datos extraídos: ${venueData.name}`);
+
+      // Procesar imágenes
+      const processedImages = [];
+      if (venueData.images && venueData.images.length > 0) {
+        for (const imageUrl of venueData.images) {
+          try {
+            const processed = await this.downloadAndOptimizeImage(imageUrl, venueData.name);
+            if (processed) {
+              processedImages.push(processed.path);
+              console.log(`   📸 Imagen procesada: ${processed.path}`);
+            }
+          } catch (imgErr) {
+            console.warn(`   ⚠️  Error con imagen: ${imageUrl}`);
+          }
+        }
+      }
+
+      // Construir venue final
+      const venue = {
+        name: venueData.name || 'Venue sin nombre',
+        description: venueData.description || '',
+        capacity_cocktail: venueData.capacityCocktail,
+        capacity_banquet: venueData.capacityBanquet,
+        capacity_theater: venueData.capacityTheater,
+        features: venueData.features.filter(Boolean),
+        address: venueData.address,
+        external_url: targetUrl,
+        images: processedImages,
+        map_iframe: venueData.address ? this.generateMapIframe(venueData.address) : null
+      };
+
+      await page.close();
+      await browser.close();
+
+      console.log(`✅ Scraping completado exitosamente`);
+      return venue;
+
+    } catch (err) {
+      console.error(`❌ Error en scrapeFromCustomUrl: ${err.message}`);
+      if (browser) await browser.close();
+      throw err;
+    }
+  }
+
+  /**
+   * 🌐 SCRAPING PRINCIPAL (LISTA DE VENUES)
    * Extrae venues de micecatering.com usando Puppeteer
    * Incluye: nombre, descripción, capacidades, características, imágenes
    * 

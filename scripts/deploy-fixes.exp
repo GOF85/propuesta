@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+# Script para desplegar archivos con SSH usando expect
+# Uso: ./scripts/deploy-fixes.exp
+
+set timeout 30
+set password "HnQ6Lb@PgcKjZ5A2"
+
+# Desplegar ProposalService.js
+spawn rsync -avz src/services/ProposalService.js root@propuesta.micecatering.eu:/var/www/propuesta/src/services/
+expect "password:"
+send "$password\r"
+expect eof
+
+# Desplegar editorController.js
+spawn rsync -avz src/controllers/editorController.js root@propuesta.micecatering.eu:/var/www/propuesta/src/controllers/
+expect "password:"
+send "$password\r"
+expect eof
+
+# Desplegar script de test
+spawn rsync -avz scripts/create-test-proposals.js root@propuesta.micecatering.eu:/var/www/propuesta/scripts/
+expect "password:"
+send "$password\r"
+expect eof
+
+puts "\n✅ Archivos desplegados exitosamente"
+puts "🔄 Reiniciando servidor..."
+
+# Reiniciar PM2
+spawn ssh root@propuesta.micecatering.eu "cd /var/www/propuesta && pm2 restart propuesta-app"
+expect "password:"
+send "$password\r"
+expect eof
+
+puts "✨ Deployment completado!"
