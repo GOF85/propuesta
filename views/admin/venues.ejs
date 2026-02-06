@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración - Venues</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50" style="font-family: 'Inter', sans-serif;">
+
+<%- include('../partials/header') %>
+
+<main class="max-w-6xl mx-auto px-6 py-8">
+
+    <%- include('../partials/flash-messages') %>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">⚙️ Administración - Venues</h1>
+        <p class="text-gray-500 mt-2">Gestiona el catálogo maestro de venues (importa, exporta, edita)</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 mb-8 flex gap-6">
+        <button class="py-2 px-0 border-b-2 border-blue-600 text-blue-600 font-medium" onclick="showTab('list')">
+            📋 Lista
+        </button>
+        <button class="py-2 px-0 border-b border-gray-200 text-gray-600 hover:text-gray-900 font-medium" onclick="showTab('import')">
+            📥 Importar JSON
+        </button>
+        <button class="py-2 px-0 border-b border-gray-200 text-gray-600 hover:text-gray-900 font-medium" onclick="showTab('template')">
+            📄 Ver Plantilla
+        </button>
+    </div>
+
+    <!-- TAB 1: LISTA DE VENUES -->
+    <div id="tab-list" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <p class="text-gray-600">Total: <strong><%= totalVenues %> venues</strong></p>
+            </div>
+            <a href="/admin/venues/export" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
+                ⬇️ Exportar JSON
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <% if (venues.length === 0) { %>
+                <div class="p-12 text-center text-gray-500">
+                    <p class="mb-4">No hay venues. Importa algunos desde la pestaña "Importar JSON".</p>
+                </div>
+            <% } else { %>
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold text-gray-700">Nombre</th>
+                            <th class="px-6 py-3 text-left font-semibold text-gray-700">Dirección</th>
+                            <th class="px-6 py-3 text-center font-semibold text-gray-700">Cocktail</th>
+                            <th class="px-6 py-3 text-center font-semibold text-gray-700">Banquete</th>
+                            <th class="px-6 py-3 text-left font-semibold text-gray-700">Features</th>
+                            <th class="px-6 py-3 text-center font-semibold text-gray-700">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <% venues.forEach(venue => { %>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-gray-900"><%= venue.name %></div>
+                                <div class="text-xs text-gray-500"><%= venue.description ? venue.description.substring(0, 50) + '...' : '' %></div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600"><%= venue.address %></td>
+                            <td class="px-6 py-4 text-center text-sm">
+                                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded"><%= venue.capacity_cocktail %></span>
+                            </td>
+                            <td class="px-6 py-4 text-center text-sm">
+                                <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded"><%= venue.capacity_banquet %></span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                <% 
+                                  const features = typeof venue.features === 'string' ? JSON.parse(venue.features) : venue.features;
+                                  const featureList = Array.isArray(features) ? features.slice(0, 2).join(', ') : '';
+                                %>
+                                <%= featureList %><%= featureList.length > 30 ? '...' : '' %>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <form method="POST" action="/admin/venues/<%= venue.id %>/delete" style="display: inline;">
+                                    <button type="submit" class="text-red-600 hover:text-red-700 font-medium text-sm"
+                                            onclick="return confirm('¿Eliminar <%= venue.name %>?')">
+                                        🗑️ Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- TAB 2: IMPORTAR JSON -->
+    <div id="tab-import" class="tab-content hidden">
+        <div class="bg-white rounded-lg border border-gray-200 p-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Importar Venues desde JSON</h2>
+            
+            <form id="import-form" method="POST" action="/admin/venues/import">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">JSON de Venues</label>
+                    <textarea 
+                        id="json-input" 
+                        name="jsonData" 
+                        rows="12"
+                        placeholder='[
+  {
+    "name": "Sala Modernista Barcelona",
+    "description": "Espacio diáfano...",
+    "capacity_cocktail": 200,
+    "capacity_banquet": 120,
+    "address": "Passeig de Gràcia 85, Barcelona",
+    "features": ["Wifi", "Proyector 4K"]
+  }
+]'
+                        class="w-full border border-gray-300 rounded-lg p-3 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    ></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                        ✅ Importar
+                    </button>
+                    <button type="button" id="clear-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium">
+                        Limpiar
+                    </button>
+                </div>
+
+                <div id="import-result" class="mt-6 hidden"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TAB 3: PLANTILLA -->
+    <div id="tab-template" class="tab-content hidden">
+        <div class="bg-white rounded-lg border border-gray-200 p-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Plantilla JSON de Venues</h2>
+            <p class="text-gray-600 mb-4">Copia y modifica este template:</p>
+
+            <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-x-auto text-sm"><code id="template-code">[
+  {
+    "name": "Sala Modernista Barcelona",
+    "description": "Espacio diáfano con techos altos y luz natural",
+    "capacity_cocktail": 200,
+    "capacity_banquet": 120,
+    "capacity_theater": 150,
+    "features": ["Luz natural", "Wifi", "Proyector 4K", "Aire acondicionado"],
+    "address": "Passeig de Gràcia, 85, Barcelona",
+    "map_iframe": "https://maps.google.com/?q=Barcelona",
+    "external_url": "https://ejemplo.com/venues/barcelona",
+    "images": ["/uploads/venues/barcelona-1.webp"]
+  },
+  {
+    "name": "Hotel Boutique Madrid",
+    "description": "Terraza panorámica con vistas espectaculares",
+    "capacity_cocktail": 150,
+    "capacity_banquet": 80,
+    "capacity_theater": 100,
+    "features": ["Vista panorámica", "Wifi", "Toldo retráctil"],
+    "address": "Gran Vía, 32, Madrid",
+    "map_iframe": "https://maps.google.com/?q=Madrid",
+    "external_url": "https://ejemplo.com/venues/madrid",
+    "images": ["/uploads/venues/madrid-1.webp"]
+  }
+]</code></pre>
+
+            <div class="mt-6 flex gap-3">
+                <button id="copy-template" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                    📋 Copiar Plantilla
+                </button>
+                <button id="paste-to-import" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium">
+                    📍 Pegar a Importar
+                </button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<%- include('../partials/footer') %>
+
+<script>
+// Cambiar tabs
+function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+    document.getElementById(`tab-${tab}`).classList.remove('hidden');
+    
+    // Actualizar botones
+    document.querySelectorAll('[onclick^="showTab"]').forEach(b => {
+        b.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600');
+        b.classList.add('border-b', 'border-gray-200', 'text-gray-600');
+    });
+    event.target.classList.remove('border-b', 'border-gray-200', 'text-gray-600');
+    event.target.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
+}
+
+// Limpiar textarea
+document.getElementById('clear-btn')?.addEventListener('click', () => {
+    document.getElementById('json-input').value = '';
+});
+
+// Copiar plantilla
+document.getElementById('copy-template')?.addEventListener('click', () => {
+    const code = document.getElementById('template-code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        alert('✅ Plantilla copiada al portapapeles');
+    });
+});
+
+// Pegar a importar
+document.getElementById('paste-to-import')?.addEventListener('click', () => {
+    navigator.clipboard.readText().then(text => {
+        document.getElementById('json-input').value = text;
+        showTab('import');
+    });
+});
+
+// Procesar importación
+document.getElementById('import-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const jsonData = document.getElementById('json-input').value;
+    
+    try {
+        const response = await fetch('/admin/venues/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `jsonData=${encodeURIComponent(jsonData)}`
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            showResult(`
+                <div class="bg-green-50 border border-green-200 rounded p-4">
+                    <h3 class="font-bold text-green-900 mb-2">✅ Importación exitosa</h3>
+                    <p class="text-green-700 text-sm mb-1"><strong>${result.inserted}</strong> nuevos venues</p>
+                    <p class="text-green-700 text-sm"><strong>${result.updated}</strong> actualizados</p>
+                </div>
+                <button type="button" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded" onclick="location.reload()">
+                    Recargar página
+                </button>
+            `);
+        } else {
+            showResult(`
+                <div class="bg-red-50 border border-red-200 rounded p-4">
+                    <h3 class="font-bold text-red-900">❌ Error</h3>
+                    <p class="text-red-700 text-sm">${result.error}</p>
+                </div>
+            `);
+        }
+    } catch (err) {
+        showResult(`
+            <div class="bg-red-50 border border-red-200 rounded p-4">
+                <h3 class="font-bold text-red-900">❌ Error</h3>
+                <p class="text-red-700 text-sm">${err.message}</p>
+            </div>
+        `);
+    }
+});
+
+function showResult(html) {
+    const resultDiv = document.getElementById('import-result');
+    resultDiv.innerHTML = html;
+    resultDiv.classList.remove('hidden');
+}
+</script>
+
+</body>
+</html>

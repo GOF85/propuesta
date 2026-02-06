@@ -17,8 +17,6 @@ router.get('/health', (req, res) => {
 });
 
 // ============ ROOT REDIRECT ============
-// Redirige / al dashboard si está autenticado, a /login si no
-// Pero no redirige si ya está en /login o rutas públicas
 router.get('/', (req, res) => {
   if (req.session.user) {
     return res.redirect('/dashboard');
@@ -27,11 +25,7 @@ router.get('/', (req, res) => {
 });
 
 // ============ RUTAS PROTEGIDAS (Requieren login) ============
-// Se irán añadiendo en las próximas fases:
-// - GET /dashboard - Dashboard comercial
-// - GET /editor/:id - Editor de propuestas
-// - GET /p/:hash - Vista cliente (magic link)
-// - POST /api/... - Endpoints de API
+// Se irán añadiendo en las próximas fases
 
 // ============ EXPORTAR ============
 module.exports = router;

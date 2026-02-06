@@ -189,7 +189,6 @@ function updateSaveButton() {
 document.getElementById('btn-save-proposal')?.addEventListener('click', async () => {
   const formData = {
     client_name: document.querySelector('[name="client_name"]')?.value,
-    event_name: document.querySelector('[name="event_name"]')?.value,
     event_date: document.querySelector('[name="event_date"]')?.value,
     pax: document.querySelector('[name="pax"]')?.value,
     legal_conditions: document.querySelector('[name="legal_conditions"]')?.value

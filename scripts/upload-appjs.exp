@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "Micecatering2025"
+
+spawn scp -o StrictHostKeyChecking=no ../src/app.js root@188.95.113.225:/var/www/vhosts/micecatering.eu/propuesta.micecatering.eu/src/
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "100%" {
+        puts "\n✅ app.js subido exitosamente"
+    }
+    timeout {
+        puts "\n❌ Timeout en la subida"
+        exit 1
+    }
+}
+
+expect eof

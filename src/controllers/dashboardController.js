@@ -86,11 +86,10 @@ class DashboardController {
       }
 
       const userId = req.session.user.id;
-      const { client_name, event_name, event_date, pax } = req.body;
+      const { client_name, event_date, pax } = req.body;
 
       const newProposal = await ProposalService.createProposal(userId, {
         client_name,
-        event_name,
         event_date,
         pax: parseInt(pax)
       });

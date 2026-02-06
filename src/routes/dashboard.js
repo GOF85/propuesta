@@ -62,10 +62,6 @@ router.post('/proposal', [
     .withMessage('Nombre del cliente requerido')
     .isLength({ max: 255 })
     .withMessage('Nombre muy largo'),
-  body('event_name')
-    .optional()
-    .trim()
-    .isLength({ max: 255 }),
   body('event_date')
     .optional()
     .isISO8601()

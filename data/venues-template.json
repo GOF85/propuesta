@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Sala Modernista Barcelona",
+    "description": "Espacio diáfano con techos altos y luz natural. Perfecto para eventos corporativos y presentaciones.",
+    "capacity_cocktail": 200,
+    "capacity_banquet": 120,
+    "capacity_theater": 150,
+    "features": ["Luz natural", "Wifi 1Gbps", "Proyector 4K", "Aire acondicionado", "Acceso discapacitados"],
+    "address": "Passeig de Gràcia, 85, Barcelona",
+    "map_iframe": "https://maps.google.com/?q=Passeig+de+Gracia+85+Barcelona",
+    "external_url": "https://micecatering.com/venues/sala-modernista",
+    "images": ["/uploads/venues/sala-modernista-1.webp", "/uploads/venues/sala-modernista-2.webp"]
+  },
+  {
+    "name": "Hotel Boutique Terraza Madrid",
+    "description": "Terraza panorámica con vistas espectaculares. Ideal para cocktails y eventos al aire libre.",
+    "capacity_cocktail": 150,
+    "capacity_banquet": 80,
+    "capacity_theater": 100,
+    "features": ["Vista panorámica", "Wifi", "Toldo retráctil", "Calefacción exterior", "Bar integrado"],
+    "address": "Gran Vía, 32, Madrid",
+    "map_iframe": "https://maps.google.com/?q=Gran+Via+32+Madrid",
+    "external_url": "https://micecatering.com/venues/hotel-boutique",
+    "images": ["/uploads/venues/terraza-madrid-1.webp"]
+  },
+  {
+    "name": "Centro de Convenciones Valencia",
+    "description": "Espacios versátiles con capacidad modular. Perfecto para grandes eventos corporativos.",
+    "capacity_cocktail": 500,
+    "capacity_banquet": 300,
+    "capacity_theater": 400,
+    "features": ["Wifi", "Proyección múltiple", "Catering integrado", "Parking 200 plazas", "Acceso VIP"],
+    "address": "Avenida de las Ciencias, 1, Valencia",
+    "map_iframe": "https://maps.google.com/?q=Avenida+Ciencias+Valencia",
+    "external_url": "https://micecatering.com/venues/centro-convenciones",
+    "images": ["/uploads/venues/centro-convenciones-1.webp"]
+  }
+]

@@ -65,7 +65,7 @@ class EditorController {
   async updateProposal(req, res, next) {
     try {
       const { id } = req.params;
-      const { client_name, event_name, event_date, pax, legal_conditions } = req.body;
+      const { client_name, event_date, pax, legal_conditions } = req.body;
 
       // Validar cambios
       const errors = validationResult(req);
@@ -96,7 +96,6 @@ class EditorController {
       // Actualizar
       const changes = {
         client_name: client_name || proposal.client_name,
-        event_name: event_name || proposal.event_name,
         event_date: event_date || proposal.event_date,
         pax: pax || proposal.pax,
         legal_conditions: legal_conditions || proposal.legal_conditions,

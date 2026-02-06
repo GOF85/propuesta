@@ -38,8 +38,8 @@ class ProposalService {
       }
 
       if (search) {
-        whereConditions.push('(p.client_name LIKE ? OR p.event_name LIKE ?)');
-        params.push(search, search);
+        whereConditions.push('(p.client_name LIKE ?)');
+        params.push(search);
       }
 
       const whereClause = whereConditions.join(' AND ');
@@ -50,7 +50,6 @@ class ProposalService {
           p.id,
           p.unique_hash,
           p.client_name,
-          p.event_name,
           p.event_date,
           p.pax,
           p.status,
@@ -140,7 +139,7 @@ class ProposalService {
   /**
    * Crea una nueva propuesta
    * @param {number} userId
-   * @param {object} data - { client_name, event_name, event_date, pax }
+   * @param {object} data - { client_name, event_date, pax }
    * @returns {Promise<object>}
    */
   async createProposal(userId, data) {
@@ -151,13 +150,12 @@ class ProposalService {
       const unique_hash = uuidv4().replace(/-/g, '').substring(0, 32);
 
       const result = await conn.query(
-        `INSERT INTO proposals (user_id, unique_hash, client_name, event_name, event_date, pax, status, is_editing)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO proposals (user_id, unique_hash, client_name, event_date, pax, status, is_editing)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           userId,
           unique_hash,
           data.client_name || 'Sin nombre',
-          data.event_name || '',
           data.event_date || null,
           data.pax || 0,
           'draft',
@@ -193,7 +191,7 @@ class ProposalService {
     try {
       await conn.query('START TRANSACTION');
 
-      const allowed = ['client_name', 'event_name', 'event_date', 'pax', 'status', 'brand_color', 'logo_url', 'legal_conditions'];
+      const allowed = ['client_name', 'event_date', 'pax', 'status', 'brand_color', 'logo_url', 'legal_conditions'];
       const updates = [];
       const values = [];
 
@@ -298,13 +296,12 @@ class ProposalService {
       // 2. Copiar propuesta
       const newHash = uuidv4().replace(/-/g, '').substring(0, 32);
       const newProposal = await conn.query(
-        `INSERT INTO proposals (user_id, unique_hash, client_name, event_name, event_date, pax, brand_color, logo_url, legal_conditions, status, is_editing)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO proposals (user_id, unique_hash, client_name, event_date, pax, brand_color, logo_url, legal_conditions, status, is_editing)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           orig.user_id,
           newHash,
           `${orig.client_name} (Copia)`,
-          orig.event_name,
           orig.event_date,
           orig.pax,
           orig.brand_color,

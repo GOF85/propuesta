@@ -4,28 +4,34 @@
 
 Before running tests, ensure:
 
+
 1. **Environment Setup**
-   ```bash
-   # Copy environment file
-   cp .env.example .env.local
+
+  ```bash
+  # Copy environment file
+  cp .env.example .env.local
    
-   # Edit .env.local with your MariaDB credentials
-   nano .env.local
-   ```
+  # Edit .env.local with your MariaDB credentials
+  nano .env.local
+  ```
+
 
 2. **Database Ready**
-   ```bash
-   # Import schema
-   mysql -u root -p < database.sql
+
+  ```bash
+  # Import schema
+  mysql -u root -p < database.sql
    
-   # Verify tables exist
-   mysql -u catering_user -p catering_proposals -e "SHOW TABLES;"
-   ```
+  # Verify tables exist
+  mysql -u catering_user -p catering_proposals -e "SHOW TABLES;"
+  ```
+
 
 3. **Dependencies Installed**
-   ```bash
-   npm install
-   ```
+
+  ```bash
+  npm install
+  ```
 
 ---
 
@@ -103,7 +109,9 @@ Presiona Ctrl+C para detener el servidor
   - ✅ Stats cards showing: count by status + total revenue
   - ✅ Footer visible
 
+
 **Table Content Check:**
+
 | Client | Event | Date | Pax | Venue | Total | Status | Actions |
 |--------|-------|------|-----|-------|-------|--------|---------|
 | Amazon Web Services | Tech Summit 2026 | 15/03/2026 | 250 | Sin venue | 15.000,50 € | 📌 Borrador | ✏️ 📋 💬 🗑️ |
@@ -164,6 +172,7 @@ Presiona Ctrl+C para detener el servidor
   - ✅ New proposal appears in list with same data but new ID
   - ✅ Status is "draft"
 - **Verify DB:** 
+
   ```bash
   mysql -u catering_user -p catering_proposals -e "SELECT id, client_name, status FROM proposals ORDER BY created_at DESC LIMIT 2;"
   ```
@@ -174,6 +183,7 @@ Presiona Ctrl+C para detener el servidor
 - **Expected:** Confirmation message
 - **Verify:** Proposal removed from list
 - **DB Check:** 
+
   ```bash
   mysql -u catering_user -p catering_proposals -e "SELECT COUNT(*) FROM proposals WHERE status = 'draft';"
   ```
@@ -235,12 +245,14 @@ curl -X POST http://localhost:3000/proposal/PROPOSAL_ID/status \
 ## 📊 Database Verification
 
 ### Check Users
+
 ```sql
 SELECT * FROM users;
 -- Should show: test-user-001 | test@example.com | commercial
 ```
 
 ### Check Proposals
+
 ```sql
 SELECT 
   id, 
@@ -256,6 +268,7 @@ ORDER BY created_at DESC;
 **Expected:** 4+ proposals with correct status distribution
 
 ### Check Stats
+
 ```sql
 -- Count by status
 SELECT status, COUNT(*) as count FROM proposals GROUP BY status;

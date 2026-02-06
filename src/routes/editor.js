@@ -40,7 +40,6 @@ router.post(
   authenticateUser,
   param('id').isInt().toInt(),
   body('client_name').trim().isLength({ min: 2, max: 255 }),
-  body('event_name').optional().trim().isLength({ max: 255 }),
   body('event_date').optional().isISO8601(),
   body('pax').optional().isInt({ min: 0 }),
   body('legal_conditions').optional().trim(),

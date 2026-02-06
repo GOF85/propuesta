@@ -1,29 +1,38 @@
-# ⚡ QUICK START - 5 MINUTOS
 
-## 🚀 Start Here
+# 🚀 QUICK START (5 MIN)
 
-### 1. Install Dependencies
+## 1. Instala dependencias
+
 ```bash
 npm install
 ```
 
-### 2. Setup Environment
+## 2. Copia `.env.example` a `.env` y edítalo
+
 ```bash
 cp .env.example .env
-# Edit .env with your values (minimal: DB credentials)
+# Edita .env con tu editor favorito
 ```
 
-### 3. Create Database
+## 3. Arranca la app en modo desarrollo
+
 ```bash
-mysql < database.sql
+npm run dev
 ```
 
-### 4. Load Test Data
+## 4. Accede al dashboard
+
+http://localhost:3000/dashboard
+
+## 5. (Opcional) Carga datos de prueba
+
 ```bash
-npm run seed
+node scripts/seed-test-data.js
 ```
 
-### 5. Start Server
+## 6. ¡Listo!
+
+Consulta [README.md](README.md) para más detalles.
 ```bash
 npm run dev
 ```
