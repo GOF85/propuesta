@@ -11,7 +11,15 @@ const DashboardController = require('../controllers/dashboardController');
 const router = express.Router();
 
 // Todas las rutas requieren autenticación y rol de comercial/admin
-router.use(authenticateUser);
+// EXCEPTO las rutas de magic link /p/:hash que son públicas
+router.use((req, res, next) => {
+  // Permitir rutas públicas (magic links)
+  if (req.path.startsWith('/p/')) {
+    return next();
+  }
+  // Aplicar autenticación a todas las demás
+  authenticateUser(req, res, next);
+});
 
 // ============ DASHBOARD - GET ============
 
