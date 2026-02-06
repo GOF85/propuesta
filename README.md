@@ -1,36 +1,3 @@
-# 🍽️ MICE CATERING PROPOSALS - Setup & Development
-
-## Quick Start
-
-### 1. Install Dependencies
-```bash
-npm install
-```
-
-### 2. Configure Environment
-```bash
-cp .env.example .env
-# Edit .env with your MariaDB credentials, email, etc.
-```
-
-### 3. Initialize Database
-```bash
-# Import the schema
-mysql -u catering_user -p catering_proposals < database.sql
-```
-
-### 4. Start Development Server
-```bash
-npm run dev
-```
-
-Server will be available at `http://localhost:3000`
-
----
-
-## 📁 Project Structure
-
-```
 src/
   ├── config/           # DB Pool + Constants
   ├── controllers/      # HTTP Request Handlers
@@ -53,28 +20,6 @@ public/
   └── uploads/         # User Images
 ```
 
----
-
-## 🏗️ Architecture: SERVICE PATTERN
-
-```
-Route → Controller → Service → Database
-         (validate)  (logic)    (SQL)
-```
-
-- **Routes:** Define endpoints only (no business logic)
-- **Controllers:** Validate input, call services, handle errors, return responses
-- **Services:** All business logic + SQL queries (with prepared statements)
-- **Middleware:** Authentication, authorization, error handling, maintenance mode
-- **Views:** EJS templates with Tailwind CSS (via CDN for MVP) + Partials
-
-**Key File:**
-- `src/config/db.js` - MariaDB pool with prepared statements
-- `src/config/constants.js` - Application-wide constants
-- `src/config/utils.js` - Helper functions (dates, currency, VAT)
-- `src/middleware/auth.js` - Auth & authorization middleware
-- `src/middleware/maintenance.js` - Maintenance mode check
-- `public/js/utils.js` - Client-side utilities
 
 ---
 
@@ -107,7 +52,6 @@ Route → Controller → Service → Database
 
 **Status:** Ready for testing. Run: `npm run seed && npm run dev`
 
-### Phase 3: Editor 📝 FUTURE
 
 - [ ] EditorController - Load/save proposal editing
 - [ ] editor.ejs - Full editor form (venues, services, items, pricing)
@@ -134,7 +78,6 @@ Route → Controller → Service → Database
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Code patterns & commands
 - **[docs/PHASE2_COMPLETION.md](docs/PHASE2_COMPLETION.md)** - What was built in Phase 2
 - **[docs/PHASE2_TESTING.md](docs/PHASE2_TESTING.md)** - 16 test cases for Phase 2
-- **[PROJECT.md](PROJECT.md)** - Business requirements + database schema
 - **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - AI agent instructions
 
 ---
@@ -143,18 +86,7 @@ Route → Controller → Service → Database
 
 ```bash
 # 1. Setup
-npm install
-cp .env.example .env.local
-# Edit .env.local with MariaDB credentials
-
-# 2. Database
 mysql -u root -p < database.sql
-
-# 3. Seed test data
-npm run seed
-
-# 4. Start server
-npm run dev
 
 # 5. Visit dashboard
 # http://localhost:3000/dashboard
