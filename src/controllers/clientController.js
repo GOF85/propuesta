@@ -360,3 +360,62 @@ exports.requestModifications = async (req, res, next) => {
     next(err);
   }
 };
+
+// ════════════════════════════════════════════════════════════════
+// DASHBOARD DE CLIENTE (Client View)
+// ════════════════════════════════════════════════════════════════
+
+exports.getClientDashboard = async (req, res) => {
+  try {
+    // Si no hay usuario autenticado, redirigir a login
+    if (!req.session.user || !req.session.user.email) {
+      return res.redirect('/login');
+    }
+
+    const clientEmail = req.session.user.email;
+
+    // Obtener propuestas del cliente por email
+    const proposals = await ProposalService.getProposalsByClientEmail(clientEmail);
+
+    // Calcular estadísticas
+    let totalProposals = proposals.length;
+    let activeProposals = 0;
+    let acceptedProposals = 0;
+    let totalAmount = 0;
+
+    for (const proposal of proposals) {
+      if (proposal.status === 'accepted') {
+        acceptedProposals++;
+      } else if (proposal.status === 'sent' || proposal.status === 'draft') {
+        // Verificar si está dentro de valid_until
+        const validUntil = new Date(proposal.valid_until);
+        if (validUntil > new Date()) {
+          activeProposals++;
+        }
+      }
+      
+      const totals = await ProposalService.calculateTotals(proposal.id);
+      totalAmount += totals.total || 0;
+    }
+
+    res.render('client/dashboard', {
+      title: 'Mis Propuestas - MICE Catering',
+      proposals,
+      totalProposals,
+      activeProposals,
+      acceptedProposals,
+      totalAmount,
+      formatCurrency: (amount) => {
+        if (!amount) return '0,00 €';
+        return amount.toLocaleString('es-ES', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) + ' €';
+      }
+    });
+  } catch (err) {
+    console.error('Error en getClientDashboard:', err);
+    req.flash('error', 'Error al cargar tus propuestas');
+    res.redirect('/login');
+  }
+};

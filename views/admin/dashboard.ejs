@@ -11,34 +11,133 @@
 
 <%- include('../partials/header') %>
 
-<main class="max-w-6xl mx-auto px-6 py-12">
+<main class="max-w-7xl mx-auto px-6 py-12">
+    <style>
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: center;
+            border-radius: 0.5rem;
+            padding: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid #374151;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
 
     <%- include('../partials/flash-messages') %>
 
-    <!-- Header -->
-    <div class="mb-12">
-        <div class="flex items-center gap-3 mb-4">
-            <span class="text-4xl">⚙️</span>
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900">Panel Administrativo</h1>
-                <p class="text-gray-500 mt-2">Gestión centralizada de datos maestros y configuración</p>
+    <!-- Header Principal -->
+    <div class="mb-8">
+        <div class="bg-gradient-to-r from-gray-900 to-gray-800 rounded-lg p-8 text-white">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-4xl">⚙️</span>
+                        <h1 class="text-4xl font-bold">Panel Administrativo</h1>
+                    </div>
+                    <p class="text-gray-300 text-lg">Gestión centralizada de datos maestros y configuración</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-300">Última actualización</div>
+                    <div class="text-xl font-semibold text-amber-300"><%= new Date().toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'}) %></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Stats Row -->
-    <div class="grid grid-cols-3 gap-4 mb-12 md:flex md:justify-start md:gap-6 md:mb-12">
-        <div class="bg-white rounded-lg border border-gray-200 p-6 text-center">
-            <div class="text-3xl font-bold text-blue-600"><%= totalVenues || 0 %></div>
-            <div class="text-sm text-gray-600 mt-1">Venues</div>
+    <!-- Stats Dashboard -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
+        <!-- Venues Stat -->
+        <div class="bg-white rounded-lg border border-blue-200 p-6 hover:shadow-lg transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="text-gray-600 text-sm font-medium mb-1">Catálogo de Venues</div>
+                    <div class="text-4xl font-bold text-blue-600"><%= totalVenues %></div>
+                    <p class="text-gray-500 text-xs mt-2">espacios disponibles</p>
+                </div>
+                <div class="text-4xl bg-blue-100 p-3 rounded-lg">🏢</div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-blue-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span class="text-xs text-gray-600">Listo para usar en propuestas</span>
+                </div>
+            </div>
         </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-6 text-center">
-            <div class="text-3xl font-bold text-green-600"><%= totalDishes || 0 %></div>
-            <div class="text-sm text-gray-600 mt-1">Platos</div>
+
+        <!-- Dishes Stat -->
+        <div class="bg-white rounded-lg border border-green-200 p-6 hover:shadow-lg transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="text-gray-600 text-sm font-medium mb-1">Menú de Platos</div>
+                    <div class="text-4xl font-bold text-green-600"><%= totalDishes %></div>
+                    <p class="text-gray-500 text-xs mt-2">platos catalogados</p>
+                </div>
+                <div class="text-4xl bg-green-100 p-3 rounded-lg">🍽️</div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-green-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span class="text-xs text-gray-600">Usar en menús personalizados</span>
+                </div>
+            </div>
         </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-6 text-center">
-            <div class="text-3xl font-bold text-purple-600"><%= totalServices || 0 %></div>
-            <div class="text-sm text-gray-600 mt-1">Servicios</div>
+
+        <!-- Services Stat -->
+        <div class="bg-white rounded-lg border border-purple-200 p-6 hover:shadow-lg transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="text-gray-600 text-sm font-medium mb-1">Servicios Oferecidos</div>
+                    <div class="text-4xl font-bold text-purple-600"><%= totalServices %></div>
+                    <p class="text-gray-500 text-xs mt-2">servicios adicionales</p>
+                </div>
+                <div class="text-4xl bg-purple-100 p-3 rounded-lg">🎯</div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-purple-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span class="text-xs text-gray-600">Añadir a propuestas</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sistema Stat -->
+        <div class="bg-white rounded-lg border border-orange-200 p-6 hover:shadow-lg transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="text-gray-600 text-sm font-medium mb-1">Estado del Sistema</div>
+                    <div class="text-2xl font-bold text-green-600 flex items-center gap-2">
+                        ✓ Operativo
+                    </div>
+                    <p class="text-gray-500 text-xs mt-2">Todos servicios activos</p>
+                </div>
+                <div class="text-4xl bg-orange-100 p-3 rounded-lg">⚡</div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-orange-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-xs text-gray-600">Base de datos activa</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -46,137 +145,177 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
         <!-- VENUES MANAGEMENT -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-blue-300 transition hover:shadow-lg">
+        <div class="bg-white rounded-lg border border-blue-200 overflow-hidden hover:border-blue-400 hover:shadow-xl transition-all">
             <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
                 <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <span>🏢</span> Gestión de Venues
+                    <span>🏢</span> 
+                    Gestión de Venues
+                    <div class="tooltip ml-2">
+                        <span class="text-xs text-gray-500 bg-gray-200 rounded-full w-5 h-5 flex items-center justify-center cursor-help">?</span>
+                        <span class="tooltiptext">Administra todos los espacios y ubicaciones disponibles para tus eventos</span>
+                    </div>
                 </h2>
             </div>
 
             <div class="p-6">
-                <p class="text-gray-600 mb-6 text-sm">
-                    Administra tu catálogo de espacios, capacidades, ubicaciones y características de cada venue para incluir en propuestas.
+                <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                    <strong><%= totalVenues %> venues</strong> en tu catálogo. Importa, edita y gestiona espacios con capacidades, características y ubicaciones.
                 </p>
 
                 <div class="space-y-3">
-                    <a href="/admin/venues" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition group">
+                    <a href="/admin/venues" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition group">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">📋</span>
                             <div>
-                                <div class="font-semibold text-gray-900">Ver Lista</div>
-                                <div class="text-xs text-gray-600">Visualiza todos los venues</div>
+                                <div class="font-semibold text-gray-900">Ver Lista Completa</div>
+                                <div class="text-xs text-gray-600">Visualiza, edita y elimina venues</div>
                             </div>
                         </div>
-                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                        <span class="text-gray-400 group-hover:text-blue-600 text-xl">→</span>
                     </a>
 
-                    <a href="/admin/venues#tab-import" class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition group">
+                    <a href="/admin/venues#tab-import" class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 hover:border-green-300 transition group">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">📥</span>
                             <div>
                                 <div class="font-semibold text-gray-900">Importar CSV</div>
-                                <div class="text-xs text-gray-600">Sube datos desde archivo</div>
+                                <div class="text-xs text-gray-600">Uploads masivo desde Excel/Sheets</div>
                             </div>
                         </div>
-                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                        <span class="text-gray-400 group-hover:text-green-600 text-xl">→</span>
                     </a>
 
-                    <a href="/admin/venues#tab-template" class="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition group">
+                    <a href="/admin/venues#tab-template" class="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition group">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">📄</span>
                             <div>
                                 <div class="font-semibold text-gray-900">Descargar Plantilla</div>
-                                <div class="text-xs text-gray-600">Obtén archivo CSV de ejemplo</div>
+                                <div class="text-xs text-gray-600">Archivo CSV de ejemplo</div>
                             </div>
                         </div>
-                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                        <span class="text-gray-400 group-hover:text-purple-600 text-xl">→</span>
+                    </a>
+
+                    <a href="/admin/venues" class="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 hover:border-amber-300 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">⬇️</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Exportar CSV</div>
+                                <div class="text-xs text-gray-600">Descarga tu catálogo actual</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-amber-600 text-xl">→</span>
                     </a>
                 </div>
             </div>
         </div>
 
         <!-- DISHES MANAGEMENT -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-green-300 transition hover:shadow-lg">
+        <div class="bg-white rounded-lg border border-green-200 overflow-hidden hover:border-green-400 hover:shadow-xl transition-all">
             <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
                 <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <span>🍽️</span> Gestión de Platos
+                    <span>🍽️</span> 
+                    Gestión de Platos
+                    <div class="tooltip ml-2">
+                        <span class="text-xs text-gray-500 bg-gray-200 rounded-full w-5 h-5 flex items-center justify-center cursor-help">?</span>
+                        <span class="tooltiptext">Administra tu menú: platos, precios, alérgenos y características</span>
+                    </div>
                 </h2>
             </div>
 
             <div class="p-6">
-                <p class="text-gray-600 mb-6 text-sm">
-                    Administra tu menú de platos con descripción, categoría, alérgenos, precios y otros atributos para propuestas culinarias.
+                <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                    <strong><%= totalDishes %> platos</strong> disponibles. Gestiona descripciones, categorías, alérgenos, precios y badges.
                 </p>
 
                 <div class="space-y-3">
-                    <a href="/admin/dishes" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition group">
+                    <a href="/admin/dishes" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition group">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">📋</span>
                             <div>
-                                <div class="font-semibold text-gray-900">Ver Lista</div>
-                                <div class="text-xs text-gray-600">Visualiza todos los platos</div>
+                                <div class="font-semibold text-gray-900">Ver Lista Completa</div>
+                                <div class="text-xs text-gray-600">Visualiza, edita y elimina platos</div>
                             </div>
                         </div>
-                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                        <span class="text-gray-400 group-hover:text-blue-600 text-xl">→</span>
                     </a>
 
-                    <a href="/admin/dishes#tab-import" class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition group">
+                    <a href="/admin/dishes#tab-import" class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 hover:border-green-300 transition group">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">📥</span>
                             <div>
                                 <div class="font-semibold text-gray-900">Importar CSV</div>
-                                <div class="text-xs text-gray-600">Sube datos desde archivo</div>
+                                <div class="text-xs text-gray-600">Uploads masivo desde Excel/Sheets</div>
                             </div>
                         </div>
-                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                        <span class="text-gray-400 group-hover:text-green-600 text-xl">→</span>
                     </a>
 
-                    <a href="/admin/dishes#tab-template" class="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition group">
+                    <a href="/admin/dishes#tab-template" class="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition group">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">📄</span>
                             <div>
                                 <div class="font-semibold text-gray-900">Descargar Plantilla</div>
-                                <div class="text-xs text-gray-600">Obtén archivo CSV de ejemplo</div>
+                                <div class="text-xs text-gray-600">Archivo CSV de ejemplo</div>
                             </div>
                         </div>
-                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                        <span class="text-gray-400 group-hover:text-purple-600 text-xl">→</span>
+                    </a>
+
+                    <a href="/admin/dishes" class="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 hover:border-amber-300 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">⬇️</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Exportar CSV</div>
+                                <div class="text-xs text-gray-600">Descarga tu menú actual</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-amber-600 text-xl">→</span>
                     </a>
                 </div>
             </div>
         </div>
 
         <!-- SERVICES MANAGEMENT -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-purple-300 transition hover:shadow-lg">
+        <div class="bg-white rounded-lg border border-purple-200 overflow-hidden hover:border-purple-400 hover:shadow-xl transition-all">
             <div class="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
                 <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <span>🎯</span> Gestión de Servicios
+                    <span>🎯</span> 
+                    Gestión de Servicios
+                    <div class="tooltip ml-2">
+                        <span class="text-xs text-gray-500 bg-gray-200 rounded-full w-5 h-5 flex items-center justify-center cursor-help">?</span>
+                        <span class="tooltiptext">Servicios adicionales: bartender, animación, coordinación, etc.</span>
+                    </div>
                 </h2>
             </div>
 
             <div class="p-6">
-                <p class="text-gray-600 mb-6 text-sm">
-                    Administra los servicios adicionales que ofreces: bartender, animación, coordinación, etc.
+                <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                    <strong><%= totalServices %> servicios</strong> disponibles. Gestiona ofertas adicionales que complementan tus eventos.
                 </p>
 
                 <div class="space-y-3">
-                    <a href="/admin/services" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition group">
+                    <a href="/admin/services" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition group">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">📋</span>
                             <div>
-                                <div class="font-semibold text-gray-900">Ver Lista</div>
+                                <div class="font-semibold text-gray-900">Ver Lista Completa</div>
                                 <div class="text-xs text-gray-600">Visualiza todos los servicios</div>
                             </div>
                         </div>
-                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                        <span class="text-gray-400 group-hover:text-blue-600 text-xl">→</span>
                     </a>
 
-                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg opacity-50">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">📥</span>
-                            <div>
-                                <div class="font-semibold text-gray-600">Importar CSV</div>
-                                <div class="text-xs text-gray-500">Próximamente</div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg opacity-60 cursor-not-allowed">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">📥</span>
+                                <div>
+                                    <div class="font-semibold text-gray-600">Importar CSV</div>
+                                    <div class="text-xs text-gray-500">Próximamente en Phase 3</div>
+                                </div>
                             </div>
+                            <span class="text-2xl">🔒</span>
                         </div>
                     </div>
                 </div>
@@ -184,31 +323,47 @@
         </div>
 
         <!-- QUICK ACTIONS -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-orange-300 transition hover:shadow-lg">
+        <div class="bg-white rounded-lg border border-orange-200 overflow-hidden hover:border-orange-400 hover:shadow-xl transition-all">
             <div class="bg-gradient-to-r from-orange-50 to-orange-100 px-6 py-4 border-b border-orange-200">
                 <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <span>⚡</span> Acciones Rápidas
+                    <span>⚡</span> 
+                    Acciones Rápidas
+                    <div class="tooltip ml-2">
+                        <span class="text-xs text-gray-500 bg-gray-200 rounded-full w-5 h-5 flex items-center justify-center cursor-help">?</span>
+                        <span class="tooltiptext">Atajos a funciones importantes del sistema</span>
+                    </div>
                 </h2>
             </div>
 
             <div class="p-6">
-                <p class="text-gray-600 mb-6 text-sm">
-                    Atajos a las funciones más importantes de administración.
+                <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                    Acceso rápido a las herramientas más utilizadas de administración y navegación.
                 </p>
 
                 <div class="space-y-3">
-                    <a href="/dashboard" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition group">
+                    <a href="/dashboard" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition group">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">📊</span>
                             <div>
                                 <div class="font-semibold text-gray-900">Dashboard Comercial</div>
-                                <div class="text-xs text-gray-600">Volver al dashboard principal</div>
+                                <div class="text-xs text-gray-600">Gestión de propuestas</div>
                             </div>
                         </div>
-                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                        <span class="text-gray-400 group-hover:text-blue-600 text-xl">→</span>
                     </a>
 
-                    <a href="/logout" class="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition group">
+                    <a href="/" class="flex items-center justify-between p-4 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 hover:border-indigo-300 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🏠</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Inicio</div>
+                                <div class="text-xs text-gray-600">Volver a página principal</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-indigo-600 text-xl">→</span>
+                    </a>
+
+                    <a href="/logout" class="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition group">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">🚪</span>
                             <div>
@@ -216,7 +371,7 @@
                                 <div class="text-xs text-gray-600">Salir de la aplicación</div>
                             </div>
                         </div>
-                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                        <span class="text-gray-400 group-hover:text-red-600 text-xl">→</span>
                     </a>
                 </div>
             </div>
@@ -224,20 +379,41 @@
 
     </div>
 
-    <!-- Info Section -->
-    <div class="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-            <span>ℹ️</span> Información sobre Panel Administrativo
-        </h3>
-        <p class="text-sm text-gray-600 leading-relaxed">
-            Este panel centraliza la gestión de datos maestros de tu negocio. Desde aquí puedes:
-        </p>
-        <ul class="mt-3 text-sm text-gray-600 space-y-1 ml-4">
-            <li>✓ Importar/exportar datos en formato CSV (compatible con Excel y Google Sheets)</li>
-            <li>✓ Gestionar venues, platos y servicios de tu catálogo</li>
-            <li>✓ Acceder rápidamente a las herramientas más usadas</li>
-            <li>✓ Ver estadísticas de tus datos maestros</li>
-        </ul>
+    <!-- Info Section with Tips -->
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Info Card -->
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
+            <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span>ℹ️</span> Información del Panel
+            </h3>
+            <p class="text-sm text-gray-600 leading-relaxed mb-3">
+                Este panel centraliza la gestión de datos maestros de tu negocio. Desde aquí puedes:
+            </p>
+            <ul class="text-sm text-gray-600 space-y-2 ml-4">
+                <li>✓ Importar/exportar datos en CSV (Excel/Google Sheets compatible)</li>
+                <li>✓ Gestionar venues, platos y servicios</li>
+                <li>✓ Ver estadísticas de tus datos</li>
+                <li>✓ Acceder a herramientas administrativas</li>
+            </ul>
+        </div>
+
+        <!-- Help Card -->
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-6">
+            <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span>💡</span> Tips de Uso
+            </h3>
+            <p class="text-sm text-gray-600 leading-relaxed mb-3">
+                Para mejor experiencia:
+            </p>
+            <ul class="text-sm text-gray-600 space-y-2 ml-4">
+                <li>💾 Descarga plantillas CSV antes de importar datos</li>
+                <li>📋 Usa Excel o Google Sheets para editar datos</li>
+                <li>⬇️ Exporta regularmente tus datos como copia de seguridad</li>
+                <li>❓ Pasa el ratón sobre los ? para ver más información</li>
+            </ul>
+        </div>
+
     </div>
 
 </main>

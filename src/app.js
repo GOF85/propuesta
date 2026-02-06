@@ -13,6 +13,7 @@ require('dotenv').config();
 const { errorHandler } = require('./middleware/auth');
 const DashboardController = require('./controllers/dashboardController');
 const AdminController = require('./controllers/adminController');
+const ClientController = require('./controllers/clientController');
 
 const app = express();
 
@@ -148,6 +149,19 @@ app.get('/dashboard', async (req, res, next) => {
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/login');
+});
+
+// ============ RUTAS DE CLIENTE (Protegidas - Login requerido) ============
+app.get('/my-proposals', async (req, res, next) => {
+  if (!req.session.user) return res.redirect('/login');
+  
+  try {
+    await ClientController.getClientDashboard(req, res);
+  } catch (err) {
+    console.error('Client Dashboard Error:', err);
+    req.flash('error', 'Error al cargar tus propuestas');
+    res.redirect('/login');
+  }
 });
 
 // ============ RUTAS DE ADMINISTRACIÓN ============

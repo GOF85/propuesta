@@ -1,0 +1,93 @@
+# 🔗 Quick Deployment Commands
+
+## For Manual SFTP + SSH Deployment
+
+### Terminal Window 1: Upload Files via SFTP
+
+```bash
+cd /Users/guillermo/mc/propuesta
+
+# Start SFTP session
+sftp guiyo@188.95.113.225
+
+# Inside SFTP (sftp> prompt)
+cd /var/www/vhosts/micecatering.eu/propuesta.micecatering.eu
+put views/admin/venues.ejs
+put views/admin/dishes.ejs
+bye
+```
+
+### Terminal Window 2: Restart Server via SSH
+
+```bash
+# SSH to server
+ssh guiyo@188.95.113.225
+
+# Navigate to project
+cd /var/www/vhosts/micecatering.eu/propuesta.micecatering.eu
+
+# Stop current Node process
+pkill -f "node src/server.js"
+sleep 2
+
+# Start with PM2 (if available)
+pm2 restart propuesta
+
+# OR start manually
+node src/server.js &
+
+# Verify running
+ps aux | grep "node"
+```
+
+---
+
+## After Deployment: Test URLs
+
+Open in browser:
+
+1. **Venues Admin**: https://propuesta.micecatering.eu/admin/venues
+2. **Dishes Admin**: https://propuesta.micecatering.eu/admin/dishes
+
+---
+
+## Expected Results
+
+✅ File drag-drop areas work  
+✅ File selection works  
+✅ CSV import/export works  
+✅ No console errors  
+✅ Success messages appear  
+
+---
+
+## Files Ready to Deploy
+
+```
+📄 views/admin/venues.ejs (13K, 279 lines)
+📄 views/admin/dishes.ejs (13K, 284 lines)
+```
+
+Both files in: `/Users/guillermo/mc/propuesta/`
+
+---
+
+## Emergency Rollback
+
+If issues occur, revert to previous version:
+
+```bash
+ssh guiyo@188.95.113.225
+cd /var/www/vhosts/micecatering.eu/propuesta.micecatering.eu
+
+# Get previous commit
+git log --oneline | head -3
+git checkout <previous-commit-hash> -- views/admin/
+
+# Restart
+pm2 restart propuesta
+```
+
+---
+
+**Deployment Status**: ✅ Ready to Deploy

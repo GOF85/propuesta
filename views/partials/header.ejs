@@ -16,6 +16,14 @@
         </a>
         <% } %>
 
+        <!-- My Proposals Button (for logged in users) -->
+        <% if (user && user.role !== 'admin') { %>
+        <a href="/my-proposals" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition text-sm font-semibold flex items-center gap-2 print:hidden">
+            <span>📋</span>
+            <span class="hidden md:inline">Mis Propuestas</span>
+        </a>
+        <% } %>
+
         <!-- Search (Commercial only) -->
         <% if (user && user.role === 'commercial') { %>
         <div class="relative hidden md:block">

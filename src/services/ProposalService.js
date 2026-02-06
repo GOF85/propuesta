@@ -429,6 +429,45 @@ class ProposalService {
       conn.end();
     }
   }
+
+  /**
+   * Obtiene todas las propuestas de un cliente por su email
+   * @param {string} clientEmail - email del cliente
+   * @returns {Promise<array>}
+   */
+  async getProposalsByClientEmail(clientEmail) {
+    const conn = await pool.getConnection();
+    try {
+      const proposals = await conn.query(
+        `SELECT p.* FROM proposals p 
+         WHERE p.client_email = ? 
+         ORDER BY p.created_at DESC`,
+        [clientEmail]
+      );
+      
+      // Enriquecer con venues, servicios, etc.
+      for (const proposal of proposals) {
+        const venues = await conn.query(
+          `SELECT v.* FROM venues v 
+           JOIN proposal_venues pv ON v.id = pv.venue_id 
+           WHERE pv.proposal_id = ?`,
+          [proposal.id]
+        );
+        proposal.venues = venues;
+
+        const services = await conn.query(
+          `SELECT ps.*, ps.title FROM proposal_services ps 
+           WHERE ps.proposal_id = ?`,
+          [proposal.id]
+        );
+        proposal.services = services;
+      }
+
+      return proposals;
+    } finally {
+      conn.end();
+    }
+  }
 }
 
 module.exports = new ProposalService();
