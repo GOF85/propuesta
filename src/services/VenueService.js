@@ -712,24 +712,19 @@ class VenueService {
         throw new Error('El nombre del venue es obligatorio');
       }
 
-      // Convertir features a array si viene como string
-      let features = venueData.features;
-      if (typeof features === 'string') {
-        features = features.split(',').map((f) => f.trim()).filter(Boolean);
-      }
-
-      // Convertir capacidades a números
+      // En primer momento: solo guardar name + external_url
+      // El scraping posterior rellenará description, images, capacidades, etc.
       const processed = {
         name: venueData.name.trim(),
-        description: venueData.description?.trim() || '',
-        capacity_cocktail: parseInt(venueData.capacity_cocktail) || null,
-        capacity_banquet: parseInt(venueData.capacity_banquet) || null,
-        capacity_theater: parseInt(venueData.capacity_theater) || null,
-        features: features || [],
-        address: venueData.address?.trim() || '',
+        description: '',
+        capacity_cocktail: null,
+        capacity_banquet: null,
+        capacity_theater: null,
+        features: [],
+        address: '',
         external_url: venueData.external_url?.trim() || '',
-        images: venueData.images || [],
-        map_iframe: venueData.map_iframe || null
+        images: [],
+        map_iframe: null
       };
 
       const id = await this.insertOrUpdateVenue(processed);

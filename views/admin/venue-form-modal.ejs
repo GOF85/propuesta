@@ -65,88 +65,32 @@
     <div class="p-6">
       <form id="venue-form" onsubmit="submitVenueForm(event)">
         
-        <!-- SECCIÓN 1: Información Básica -->
-        <fieldset class="mb-6 pb-4 border-b">
-          <legend class="text-lg font-bold text-gray-800 mb-3">
-            ℹ️ Información Básica
+        <!-- SECCIÓN: Información Básica (Solo nombre y URL) -->
+        <fieldset class="mb-6">
+          <legend class="text-lg font-bold text-gray-800 mb-4">
+            Información del Venue
           </legend>
+          <p class="text-sm text-gray-600 mb-4">
+            Proporciona el nombre y URL. El resto de datos se cargarán automáticamente al scrapear.
+          </p>
 
           <div class="form-group">
             <label for="venue-name">
               Nombre <span class="text-red-500">*</span>
             </label>
             <input type="text" id="venue-name" name="name" required
-                   placeholder="Ej: Grand Hotel Ballroom">
+                   placeholder="Ej: Gran Hotel Ballroom, Madrid">
           </div>
 
           <div class="form-group">
-            <label for="venue-description">Descripción</label>
-            <textarea id="venue-description" name="description" rows="4"
-                      placeholder="Describe el espacio, ambiente, servicios disponibles..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="venue-address">Dirección</label>
-            <input type="text" id="venue-address" name="address"
-                   placeholder="Ej: Paseo de la Castellana 20, Madrid">
-          </div>
-
-          <div class="form-group">
-            <label for="venue-external-url">URL Sitio Web</label>
-            <input type="url" id="venue-external-url" name="external_url"
-                   placeholder="https://www.ejemplo.com">
-          </div>
-        </fieldset>
-
-        <!-- SECCIÓN 2: Capacidades -->
-        <fieldset class="mb-6 pb-4 border-b">
-          <legend class="text-lg font-bold text-gray-800 mb-3">
-            📊 Capacidades (personas)
-          </legend>
-
-          <div class="grid grid-cols-3 gap-4">
-            <div class="form-group">
-              <label for="venue-capacity-cocktail" class="flex items-center gap-2">
-                <i data-lucide="wine" class="w-4 h-4"></i> <span>Cóctel</span>
-              </label>
-              <input type="number" id="venue-capacity-cocktail" name="capacity_cocktail" min="0"
-                     placeholder="500">
-            </div>
-
-            <div class="form-group">
-              <label for="venue-capacity-banquet" class="flex items-center gap-2">
-                <i data-lucide="utensils" class="w-4 h-4"></i> <span>Banquete</span>
-              </label>
-              <input type="number" id="venue-capacity-banquet" name="capacity_banquet" min="0"
-                     placeholder="300">
-            </div>
-
-            <div class="form-group">
-              <label for="venue-capacity-theater" class="flex items-center gap-2">
-                <i data-lucide="theater" class="w-4 h-4"></i> <span>Teatro</span>
-              </label>
-              <input type="number" id="venue-capacity-theater" name="capacity_theater" min="0"
-                     placeholder="1000">
-            </div>
-          </div>
-        </fieldset>
-
-        <!-- SECCIÓN 3: Características (Tags) -->
-        <fieldset class="mb-6">
-          <legend class="text-lg font-bold text-gray-800 mb-3">
-            ✨ Características
-          </legend>
-
-          <div class="form-group">
-            <label for="venue-features">Características (separadas por coma)</label>
-            <div id="features-list" class="features-input"></div>
-            <input type="text" id="venue-features-input"
-                   placeholder="Ej: Wifi, Aire acondicionado, Parking, Jardín"
-                   onkeyup="updateFeaturesTags()">
-            <p class="text-xs text-gray-500 mt-2">
-              Presiona ENTER o usa comas para agregar características
+            <label for="venue-external-url">
+              URL <span class="text-red-500">*</span>
+            </label>
+            <input type="url" id="venue-external-url" name="external_url" required
+                   placeholder="https://www.ejemplo.com/venue">
+            <p class="text-xs text-gray-500 mt-1">
+              La URL será scrappeada para obtener descripción, imágenes y capacidades
             </p>
-            <input type="hidden" id="venue-features" name="features" value="[]">
           </div>
         </fieldset>
 
@@ -278,9 +222,6 @@
 
     const formData = new FormData(document.getElementById('venue-form'));
     const data = Object.fromEntries(formData);
-
-    // Parsear features como array
-    data.features = JSON.parse(data.features);
 
     const endpoint = formMode === 'edit'
       ? `/api/admin/venues/${editingVenueId}`
