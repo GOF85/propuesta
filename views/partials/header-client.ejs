@@ -9,6 +9,9 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
+  <!-- Lucide Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+  
   <!-- Professional Design System -->
   <link rel="stylesheet" href="/css/professional.css">
   
@@ -17,6 +20,34 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
       background: #f9fafb;
       color: #1f2937;
+    }
+    
+    /* Lucide Icons Styling */
+    [data-lucide] {
+      width: 1.25rem;
+      height: 1.25rem;
+      display: inline-block;
+      vertical-align: -0.25em;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    
+    .icon-sm [data-lucide] {
+      width: 1rem;
+      height: 1rem;
+    }
+    
+    .icon-md [data-lucide] {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+    
+    .icon-lg [data-lucide] {
+      width: 2rem;
+      height: 2rem;
     }
   </style>
 </head>
@@ -28,7 +59,7 @@
         
         <!-- Logo & Branding Section -->
         <div class="flex items-center space-x-3">
-          <div class="text-3xl">🍽️</div>
+          <div data-lucide="utensils" class="icon-lg text-white"></div>
           <div>
             <h1 class="text-lg font-bold tracking-tight">MICE CATERING</h1>
             <p class="text-xs opacity-80">Propuestas Profesionales</p>
@@ -41,9 +72,16 @@
             <p class="font-medium">¿Necesitas ayuda?</p>
             <p class="text-xs opacity-75">Contacta con tu comercial vía chat</p>
           </div>
-          <div class="text-xl opacity-80">💬</div>
+          <div data-lucide="message-circle" class="icon-md text-white opacity-80"></div>
         </div>
 
       </div>
     </div>
   </header>
+  
+  <!-- Initialize Lucide Icons -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script>

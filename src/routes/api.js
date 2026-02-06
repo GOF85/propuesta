@@ -204,7 +204,31 @@ router.delete(
 
 /**
  * ════════════════════════════════════════════════════════════════
- * RUTAS DE UPLOAD - ImageService
+ * RUTAS DE UPLOAD - Client Logo (Commercial Users)
+ * ════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * POST /api/proposal/upload-logo
+ * Subir logo del cliente durante creación de propuesta
+ * Accesible por: users comerciales (sin requerir admin)
+ */
+router.post(
+  '/api/proposal/upload-logo',
+  authenticateUser,
+  async (req, res, next) => {
+    try {
+      const dashboardController = require('../controllers/dashboardController');
+      await dashboardController.uploadClientLogo(req, res, next);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * ════════════════════════════════════════════════════════════════
+ * RUTAS DE UPLOAD - ImageService (Admin Only)
  * ════════════════════════════════════════════════════════════════
  */
 

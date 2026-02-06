@@ -77,7 +77,15 @@ router.post('/proposal', [
   body('pax')
     .optional()
     .isInt({ min: 0 })
-    .withMessage('Número de personas inválido')
+    .withMessage('Número de personas inválido'),
+  body('brand_color')
+    .optional()
+    .matches(/^#[0-9A-F]{6}$/i)
+    .withMessage('Color inválido'),
+  body('logo_url')
+    .optional()
+    .isString()
+    .trim()
 ], (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

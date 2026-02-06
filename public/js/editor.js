@@ -140,18 +140,28 @@ async function calculateTotals() {
     if (!response.ok) throw new Error('Error en cálculo');
 
     const data = await response.json();
-    if (data.success) {
-      // Actualizar display de total
-      const totalElement = document.querySelector('[data-total]');
-      if (totalElement) {
-        totalElement.textContent = data.formatted;
-        totalElement.dataset.amount = data.total;
+    if (data.success && data.totals) {
+      // Actualizar display de totales
+      const totalFinal = document.querySelector('[data-total-final]');
+      if (totalFinal) {
+        totalFinal.textContent = data.formatted.total_final;
       }
+      
+      // Actualizar otros campos si es necesario
+      const allTotalElements = document.querySelectorAll('[data-total]');
+      allTotalElements.forEach(el => {
+        if (el !== totalFinal) {
+          el.textContent = data.formatted.total_base || data.formatted.total_final;
+        }
+      });
     }
   } catch (err) {
     console.error('Error calculando totales:', err);
   }
 }
+
+// Botón recalcular
+document.getElementById('btn-recalculate')?.addEventListener('click', calculateTotals);
 
 // Recalcular cuando cambie cantidad de pax
 document.querySelector('[name="pax"]')?.addEventListener('change', async () => {
@@ -228,7 +238,10 @@ document.getElementById('btn-publish')?.addEventListener('click', async () => {
       method: 'POST'
     });
 
-    if (response.redirected) {
+    if (!response.ok) throw new Error('Error al enviar');
+
+    const data = await response.json();
+    if (data.success) {
       showNotification('✓ Propuesta enviada', 'success');
       setTimeout(() => {
         window.location.href = '/dashboard';
@@ -236,6 +249,31 @@ document.getElementById('btn-publish')?.addEventListener('click', async () => {
     }
   } catch (err) {
     showNotification('✗ Error: ' + err.message, 'error');
+  }
+});
+
+// Alternativa: Buscar todos los botones con la clase/id de publish
+document.querySelectorAll('[class*="btn-primary"]:not([type="submit"])').forEach(btn => {
+  if (btn.textContent.includes('Enviar') || btn.textContent.includes('📤')) {
+    btn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      if (!confirm('¿Enviar propuesta al cliente?')) return;
+
+      try {
+        const response = await fetch(`/proposal/${proposalId}/publish`, {
+          method: 'POST'
+        });
+
+        if (!response.ok) throw new Error('Error al enviar');
+
+        showNotification('✓ Propuesta enviada', 'success');
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
+      } catch (err) {
+        showNotification('✗ Error: ' + err.message, 'error');
+      }
+    });
   }
 });
 

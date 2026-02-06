@@ -258,27 +258,38 @@
           <div class="space-y-3">
             <div class="flex justify-between items-center">
               <span class="text-gray-600">Base:</span>
-              <span class="text-lg font-semibold text-gray-900" data-total>
-                <%= formatCurrency(proposal.total_base || 0) %>
+              <span class="text-lg font-semibold text-gray-900">
+                <%= formatCurrency(proposal.totals?.total_base || proposal.total_base || 0) %>
               </span>
             </div>
 
             <div class="flex justify-between items-center">
-              <span class="text-gray-600">IVA (10%):</span>
+              <span class="text-gray-600">Descuentos:</span>
+              <span class="font-medium text-red-600">
+                -<%= formatCurrency(proposal.totals?.total_discount || 0) %>
+              </span>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">IVA:</span>
               <span class="font-medium text-gray-800">
-                <%= formatCurrency((proposal.total_base || 0) * 0.10) %>
+                <%= formatCurrency(proposal.totals?.total_vat || 0) %>
               </span>
             </div>
 
             <div class="flex justify-between items-center py-3 border-t-2 border-b-2 border-gray-300">
-              <span class="font-bold text-gray-900">Total:</span>
-              <span class="text-2xl font-bold text-blue-600" data-total>
-                <%= formatCurrency(proposal.total_estimated || 0) %>
+              <span class="font-bold text-gray-900">TOTAL:</span>
+              <span class="text-2xl font-bold text-blue-600" data-total-final>
+                <%= formatCurrency(proposal.totals?.total_final || proposal.total || 0) %>
               </span>
+            </div>
+
+            <div class="text-xs text-gray-500 pt-2">
+              Margen: <%= (proposal.totals?.margin_percentage || 0).toFixed(1) %>%
             </div>
           </div>
 
-          <button type="button" class="btn btn-secondary w-full mt-6 text-sm">
+          <button type="button" id="btn-recalculate" class="btn btn-secondary w-full mt-6 text-sm">
             🔄 Recalcular
           </button>
         </div>

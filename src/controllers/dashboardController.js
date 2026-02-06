@@ -8,6 +8,7 @@
 
 const { validationResult, query } = require('express-validator');
 const ProposalService = require('../services/ProposalService');
+const ImageService = require('../services/ImageService');
 const { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_COLORS } = require('../config/constants');
 
 class DashboardController {
@@ -85,13 +86,21 @@ class DashboardController {
         return res.status(400).json({ errors: errors.array() });
       }
 
+      // Validar que existe sesión de usuario
+      if (!req.session.user || !req.session.user.id) {
+        req.flash('error', 'Debes iniciar sesión');
+        return res.redirect('/login');
+      }
+
       const userId = req.session.user.id;
-      const { client_name, event_date, pax } = req.body;
+      const { client_name, event_date, pax, brand_color, logo_url } = req.body;
 
       const newProposal = await ProposalService.createProposal(userId, {
         client_name,
         event_date,
-        pax: parseInt(pax)
+        pax: parseInt(pax),
+        brand_color: brand_color || '#000000',
+        logo_url: logo_url || null
       });
 
       req.flash('success', 'Propuesta creada correctamente');
@@ -181,6 +190,78 @@ class DashboardController {
     } catch (err) {
       console.error('Error en updateStatus:', err);
       next(err);
+    }
+  }
+
+  /**
+   * POST /api/proposal/upload-logo
+   * Subir logo del cliente durante creación de propuesta
+   * Accessible by: commercial users (no admin required)
+   */
+  async uploadClientLogo(req, res, next) {
+    try {
+      // Validar sesión
+      if (!req.session.user || !req.session.user.id) {
+        return res.status(401).json({
+          success: false,
+          error: 'Debe iniciar sesión'
+        });
+      }
+
+      // Validar que existe archivo
+      if (!req.files || !req.files.logo) {
+        return res.status(400).json({
+          success: false,
+          error: 'No se ha proporcionado archivo de logo'
+        });
+      }
+
+      const logoFile = req.files.logo;
+      const maxSizeMB = 10;
+      const maxSizeBytes = maxSizeMB * 1024 * 1024;
+
+      // Validar tamaño
+      if (logoFile.size > maxSizeBytes) {
+        return res.status(413).json({
+          success: false,
+          error: `Archivo demasiado grande (máx ${maxSizeMB}MB)`
+        });
+      }
+
+      // Validar tipo MIME
+      const allowedMimes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
+      if (!allowedMimes.includes(logoFile.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Tipo de archivo no permitido. Use PNG, JPG, WebP o SVG'
+        });
+      }
+
+      // Procesar imagen con Sharp
+      const result = await ImageService.processImage(
+        logoFile.data,
+        logoFile.name
+      );
+
+      // Si es SVG, no procesamos, solo movemos
+      let logoPath = result.path;
+      if (logoFile.mimetype === 'image/svg+xml') {
+        // Para SVG, mantener como está
+        logoPath = result.path.replace('.webp', '.svg');
+      }
+
+      return res.json({
+        success: true,
+        message: 'Logo subido correctamente',
+        logoUrl: logoPath,
+        filename: result.filename
+      });
+    } catch (err) {
+      console.error('Error subiendo logo:', err);
+      return res.status(500).json({
+        success: false,
+        error: `Error al procesar logo: ${err.message}`
+      });
     }
   }
 }

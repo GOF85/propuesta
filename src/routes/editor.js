@@ -39,9 +39,11 @@ router.post(
   '/proposal/:id/update',
   authenticateUser,
   param('id').isInt().toInt(),
-  body('client_name').trim().isLength({ min: 2, max: 255 }),
+  body('client_name').optional().trim().isLength({ min: 2, max: 255 }),
+  body('client_email').optional().isEmail(),
   body('event_date').optional().isISO8601(),
   body('pax').optional().isInt({ min: 0 }),
+  body('valid_until').optional().isISO8601(),
   body('legal_conditions').optional().trim(),
   editorController.updateProposal
 );

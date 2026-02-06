@@ -32,11 +32,16 @@ class EditorController {
       }
 
       // Verificar permisos (user_id)
-      if (proposal.user_id !== req.user.id) {
+      if (proposal.user_id !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).render('errors/403', {
           message: 'No tienes permiso para editar esta propuesta'
         });
       }
+
+      // Obtener venues disponibles desde la BD
+      const VenueService = require('../services/VenueService');
+      const venueService = new VenueService();
+      const allVenues = await venueService.getAll({ limit: 500 }) || [];
 
       // Verificar que no esté en modo mantenimiento para cliente
       if (proposal.is_editing === false) {
@@ -47,6 +52,7 @@ class EditorController {
       // Renderizar editor con datos de propuesta
       res.render('commercial/editor', {
         proposal,
+        availableVenues: allVenues || [],
         title: `Editar: ${proposal.client_name}`,
         breadcrumb: [
           { label: 'Dashboard', url: '/dashboard' },
@@ -65,7 +71,7 @@ class EditorController {
   async updateProposal(req, res, next) {
     try {
       const { id } = req.params;
-      const { client_name, event_date, pax, legal_conditions } = req.body;
+      const { client_name, client_email, event_date, pax, legal_conditions, valid_until } = req.body;
 
       // Validar cambios
       const errors = validationResult(req);
@@ -86,7 +92,7 @@ class EditorController {
       }
 
       // Verificar permisos
-      if (proposal.user_id !== req.user.id) {
+      if (proposal.user_id !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).json({
           success: false,
           message: 'No tienes permiso'
@@ -96,9 +102,11 @@ class EditorController {
       // Actualizar
       const changes = {
         client_name: client_name || proposal.client_name,
+        client_email: client_email || proposal.client_email,
         event_date: event_date || proposal.event_date,
         pax: pax || proposal.pax,
         legal_conditions: legal_conditions || proposal.legal_conditions,
+        valid_until: valid_until || proposal.valid_until,
         updated_at: new Date()
       };
 

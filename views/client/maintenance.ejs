@@ -11,7 +11,7 @@
         <div class="relative w-20 h-20 flex items-center justify-center">
           <div class="absolute inset-0 bg-blue-100 rounded-full opacity-25"></div>
           <div class="absolute inset-2 bg-blue-50 rounded-full opacity-50"></div>
-          <div class="text-5xl animate-pulse">🔄</div>
+          <i data-lucide="refresh-cw" class="icon-lg text-blue-600 animate-spin" style="animation: spin 2s linear infinite;"></i>
         </div>
       </div>
 
@@ -27,14 +27,18 @@
 
       <!-- Info Badge -->
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
-        <p class="text-sm text-blue-900 font-medium">
-          ✉️ Te enviaremos un email cuando esté lista la nueva versión.
+        <p class="text-sm text-blue-900 font-medium flex items-center justify-center gap-2">
+          <i data-lucide="mail" class="w-4 h-4"></i>
+          Te enviaremos un email cuando esté lista la nueva versión.
         </p>
       </div>
 
       <!-- Proposal Info Card -->
       <div class="bg-gray-50 rounded-lg p-6 mb-8 border border-gray-200">
-        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Tu Propuesta</p>
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center justify-center gap-2">
+          <i data-lucide="clipboard" class="w-4 h-4"></i>
+          Tu Propuesta
+        </p>
         <p class="text-3xl font-bold text-gray-900 mb-2">#<%= proposal.id %></p>
         <p class="text-sm text-gray-600">
           <span class="font-semibold"><%= proposal.client_name %></span>
@@ -43,21 +47,24 @@
 
       <!-- Progress Indicator -->
       <div class="mb-8">
-        <p class="text-xs text-gray-500 mb-3 font-medium">Progreso de cambios</p>
+        <p class="text-xs text-gray-500 mb-3 font-medium flex items-center gap-2">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+          Progreso de cambios
+        </p>
         <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
           <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full" 
                style="width: 60%; animation: progress-animation 2s ease-in-out infinite;"></div>
         </div>
       </div>
 
-      <!-- Styling for progress animation -->
+      <!-- Styling for animations -->
       <style>
         @keyframes progress-animation {
           0%, 100% { width: 40%; }
           50% { width: 80%; }
         }
         
-        @keyframes spin-smooth {
+        @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
@@ -65,14 +72,15 @@
 
       <!-- Action Button -->
       <button onclick="location.reload()" 
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg mb-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-        🔄 Verificar Cambios
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg mb-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 flex items-center justify-center gap-2">
+        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+        Verificar Cambios
       </button>
 
       <!-- Subtitle Info -->
-      <p class="text-xs text-gray-500 leading-relaxed">
-        Esta página se actualizará automáticamente cada 5 segundos. <br>
-        <strong>No necesitas hacer nada más.</strong>
+      <p class="text-xs text-gray-500 leading-relaxed flex items-start justify-center gap-2">
+        <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+        <span>Esta página se actualizará automáticamente cada 5 segundos. <strong>No necesitas hacer nada más.</strong></span>
       </p>
 
     </div>

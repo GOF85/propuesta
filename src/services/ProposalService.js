@@ -143,7 +143,7 @@ class ProposalService {
   /**
    * Crea una nueva propuesta
    * @param {number} userId
-   * @param {object} data - { client_name, event_date, pax }
+   * @param {object} data - { client_name, event_date, pax, brand_color, logo_url }
    * @returns {Promise<object>}
    */
   async createProposal(userId, data) {
@@ -154,14 +154,16 @@ class ProposalService {
       const unique_hash = uuidv4().replace(/-/g, '').substring(0, 32);
 
       const result = await conn.query(
-        `INSERT INTO proposals (user_id, unique_hash, client_name, event_date, pax, status, is_editing)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO proposals (user_id, unique_hash, client_name, event_date, pax, brand_color, logo_url, status, is_editing)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           userId,
           unique_hash,
           data.client_name || 'Sin nombre',
           data.event_date || null,
           data.pax || 0,
+          data.brand_color || '#000000',
+          data.logo_url || null,
           'draft',
           true
         ]
@@ -195,7 +197,7 @@ class ProposalService {
     try {
       await conn.query('START TRANSACTION');
 
-      const allowed = ['client_name', 'event_date', 'pax', 'status', 'brand_color', 'logo_url', 'legal_conditions'];
+      const allowed = ['client_name', 'client_email', 'event_date', 'pax', 'status', 'brand_color', 'logo_url', 'legal_conditions', 'valid_until'];
       const updates = [];
       const values = [];
 
