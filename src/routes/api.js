@@ -746,105 +746,108 @@ router.get(
 
 /**
  * GET /api/volume-discounts
+ * ⚠️ COMENTADO: Tabla volume_discount_tiers no existe
  * Obtener configuración de descuentos por volumen
  */
-router.get(
-  '/api/volume-discounts',
-  authenticateUser,
-  async (req, res, next) => {
-    try {
-      const ProposalService = require('../services/ProposalService');
-      const tiers = await ProposalService.getVolumeDiscountTiers();
-
-      res.json({
-        success: true,
-        tiers
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
+// router.get(
+//   '/api/volume-discounts',
+//   authenticateUser,
+//   async (req, res, next) => {
+//     try {
+//       const ProposalService = require('../services/ProposalService');
+//       const tiers = await ProposalService.getVolumeDiscountTiers();
+//
+//       res.json({
+//         success: true,
+//         tiers
+//       });
+//     } catch (err) {
+//       next(err);
+//     }
+//   }
+// );
 
 /**
  * PUT /api/volume-discounts/:tierId
+ * ⚠️ COMENTADO: Tabla volume_discount_tiers no existe
  * Actualizar tier de descuento por volumen (solo admin)
  */
-router.put(
-  '/api/volume-discounts/:tierId',
-  authenticateUser,
-  param('tierId').isInt().toInt(),
-  body('min_pax').optional().isInt({ min: 0 }),
-  body('max_pax').optional().isInt({ min: 0 }),
-  body('discount_percentage').optional().isFloat({ min: 0, max: 100 }),
-  body('description').optional().trim(),
-  body('is_active').optional().isBoolean(),
-  async (req, res, next) => {
-    try {
-      // Solo admin puede modificar
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Solo administradores pueden modificar descuentos'
-        });
-      }
-
-      const { tierId } = req.params;
-      const ProposalService = require('../services/ProposalService');
-      
-      const success = await ProposalService.updateVolumeDiscountTier(tierId, req.body);
-
-      if (!success) {
-        return res.status(400).json({
-          success: false,
-          message: 'No hay cambios válidos'
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'Tier actualizado correctamente'
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
+// router.put(
+//   '/api/volume-discounts/:tierId',
+//   authenticateUser,
+//   param('tierId').isInt().toInt(),
+//   body('min_pax').optional().isInt({ min: 0 }),
+//   body('max_pax').optional().isInt({ min: 0 }),
+//   body('discount_percentage').optional().isFloat({ min: 0, max: 100 }),
+//   body('description').optional().trim(),
+//   body('is_active').optional().isBoolean(),
+//   async (req, res, next) => {
+//     try {
+//       // Solo admin puede modificar
+//       if (req.user.role !== 'admin') {
+//         return res.status(403).json({
+//           success: false,
+//           message: 'Solo administradores pueden modificar descuentos'
+//         });
+//       }
+//
+//       const { tierId } = req.params;
+//       const ProposalService = require('../services/ProposalService');
+//       
+//       const success = await ProposalService.updateVolumeDiscountTier(tierId, req.body);
+//
+//       if (!success) {
+//         return res.status(400).json({
+//           success: false,
+//           message: 'No hay cambios válidos'
+//         });
+//       }
+//
+//       res.json({
+//         success: true,
+//         message: 'Tier actualizado correctamente'
+//       });
+//     } catch (err) {
+//       next(err);
+//     }
+//   }
+// );
 
 /**
  * POST /api/volume-discounts
+ * ⚠️ COMENTADO: Tabla volume_discount_tiers no existe
  * Crear nuevo tier de descuento por volumen (solo admin)
  */
-router.post(
-  '/api/volume-discounts',
-  authenticateUser,
-  body('min_pax').isInt({ min: 0 }),
-  body('max_pax').optional().isInt({ min: 0 }),
-  body('discount_percentage').isFloat({ min: 0, max: 100 }),
-  body('description').optional().trim(),
-  async (req, res, next) => {
-    try {
-      // Solo admin puede crear
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Solo administradores pueden crear descuentos'
-        });
-      }
-
-      const ProposalService = require('../services/ProposalService');
-      const tierId = await ProposalService.createVolumeDiscountTier(req.body);
-
-      res.json({
-        success: true,
-        message: 'Tier creado correctamente',
-        tier_id: tierId
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
+// router.post(
+//   '/api/volume-discounts',
+//   authenticateUser,
+//   body('min_pax').isInt({ min: 0 }),
+//   body('max_pax').optional().isInt({ min: 0 }),
+//   body('discount_percentage').isFloat({ min: 0, max: 100 }),
+//   body('description').optional().trim(),
+//   async (req, res, next) => {
+//     try {
+//       // Solo admin puede crear
+//       if (req.user.role !== 'admin') {
+//         return res.status(403).json({
+//           success: false,
+//           message: 'Solo administradores pueden crear descuentos'
+//         });
+//       }
+//
+//       const ProposalService = require('../services/ProposalService');
+//       const tierId = await ProposalService.createVolumeDiscountTier(req.body);
+//
+//       res.json({
+//         success: true,
+//         message: 'Tier creado correctamente',
+//         tier_id: tierId
+//       });
+//     } catch (err) {
+//       next(err);
+//     }
+//   }
+// );
 
 module.exports = router;
 

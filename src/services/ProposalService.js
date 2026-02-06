@@ -421,24 +421,25 @@ class ProposalService {
    * Obtiene el tier de descuento por volumen según PAX
    * @param {number} pax
    * @returns {Promise<object|null>}
+   * ⚠️ COMENTADO: Tabla volume_discount_tiers no existe en BD
    */
-  async _getVolumeDiscountTier(pax) {
-    const conn = await pool.getConnection();
-    try {
-      const result = await conn.query(
-        `SELECT * FROM volume_discount_tiers 
-         WHERE is_active = TRUE 
-           AND min_pax <= ?
-           AND (max_pax IS NULL OR max_pax >= ?)
-         ORDER BY min_pax DESC
-         LIMIT 1`,
-        [pax, pax]
-      );
-      return result[0] || null;
-    } finally {
-      conn.end();
-    }
-  }
+  // async _getVolumeDiscountTier(pax) {
+  //   const conn = await pool.getConnection();
+  //   try {
+  //     const result = await conn.query(
+  //       `SELECT * FROM volume_discount_tiers 
+  //        WHERE is_active = TRUE 
+  //          AND min_pax <= ?
+  //          AND (max_pax IS NULL OR max_pax >= ?)
+  //        ORDER BY min_pax DESC
+  //        LIMIT 1`,
+  //       [pax, pax]
+  //     );
+  //     return result[0] || null;
+  //   } finally {
+  //     conn.end();
+  //   }
+  // }
 
   /**
    * Registra un cambio de precio en la auditoría
@@ -807,74 +808,77 @@ class ProposalService {
 
   /**
    * Obtiene configuración de descuentos por volumen
+   * ⚠️ COMENTADO: Tabla volume_discount_tiers no existe
    * @returns {Promise<array>}
    */
-  async getVolumeDiscountTiers() {
-    const conn = await pool.getConnection();
-    try {
-      return await conn.query(
-        'SELECT * FROM volume_discount_tiers ORDER BY min_pax ASC'
-      );
-    } finally {
-      conn.end();
-    }
-  }
+  // async getVolumeDiscountTiers() {
+  //   const conn = await pool.getConnection();
+  //   try {
+  //     return await conn.query(
+  //       'SELECT * FROM volume_discount_tiers ORDER BY min_pax ASC'
+  //     );
+  //   } finally {
+  //     conn.end();
+  //   }
+  // }
 
   /**
    * Actualiza un tier de descuento por volumen
+   * ⚠️ COMENTADO: Tabla volume_discount_tiers no existe
    * @param {number} tierId
    * @param {object} data
    * @returns {Promise<boolean>}
    */
-  async updateVolumeDiscountTier(tierId, data) {
-    const conn = await pool.getConnection();
-    try {
-      const allowed = ['min_pax', 'max_pax', 'discount_percentage', 'description', 'is_active'];
-      const updates = [];
-      const values = [];
-
-      for (const [key, value] of Object.entries(data)) {
-        if (allowed.includes(key)) {
-          updates.push(`${key} = ?`);
-          values.push(value);
-        }
-      }
-
-      if (updates.length === 0) {
-        return false;
-      }
-
-      values.push(tierId);
-
-      await conn.query(
-        `UPDATE volume_discount_tiers SET ${updates.join(', ')} WHERE id = ?`,
-        values
-      );
-
-      return true;
-    } finally {
-      conn.end();
-    }
-  }
+  // async updateVolumeDiscountTier(tierId, data) {
+  //   const conn = await pool.getConnection();
+  //   try {
+  //     const allowed = ['min_pax', 'max_pax', 'discount_percentage', 'description', 'is_active'];
+  //     const updates = [];
+  //     const values = [];
+  //
+  //     for (const [key, value] of Object.entries(data)) {
+  //       if (allowed.includes(key)) {
+  //         updates.push(`${key} = ?`);
+  //         values.push(value);
+  //       }
+  //     }
+  //
+  //     if (updates.length === 0) {
+  //       return false;
+  //     }
+  //
+  //     values.push(tierId);
+  //
+  //     await conn.query(
+  //       `UPDATE volume_discount_tiers SET ${updates.join(', ')} WHERE id = ?`,
+  //       values
+  //     );
+  //
+  //     return true;
+  //   } finally {
+  //     conn.end();
+  //   }
+  // }
 
   /**
    * Crea un nuevo tier de descuento por volumen
+   * ⚠️ COMENTADO: Tabla volume_discount_tiers no existe
    * @param {object} data
    * @returns {Promise<number>} - ID del nuevo tier
    */
-  async createVolumeDiscountTier(data) {
-    const conn = await pool.getConnection();
-    try {
-      const result = await conn.query(
-        `INSERT INTO volume_discount_tiers (min_pax, max_pax, discount_percentage, description)
-         VALUES (?, ?, ?, ?)`,
-        [data.min_pax, data.max_pax || null, data.discount_percentage, data.description || '']
-      );
-      return result.insertId;
-    } finally {
-      conn.end();
-    }
-  }
+  // async createVolumeDiscountTier(data) {
+  //   const conn = await pool.getConnection();
+  //   try {
+  //     const result = await conn.query(
+  //       `INSERT INTO volume_discount_tiers (min_pax, max_pax, discount_percentage, description)
+  //        VALUES (?, ?, ?, ?)`,
+  //       [data.min_pax, data.max_pax || null, data.discount_percentage, data.description || '']
+  //     );
+  //     return result.insertId;
+  //   } finally {
+  //     conn.end();
+  //   }
+  // }
 }
 
 module.exports = new ProposalService();
