@@ -29,7 +29,10 @@ exports.viewProposal = async (req, res, next) => {
     const details = await ProposalService.getProposalById(proposal.id);
 
     // Si propuesta está en modo edición, mostrar pantalla de espera
-    if (proposal.is_editing) {
+    // Convertir is_editing a boolean explícitamente (MySQL retorna 0/1)
+    const isEditing = Boolean(proposal.is_editing) && proposal.is_editing !== 0 && proposal.is_editing !== '0';
+    
+    if (isEditing) {
       return res.render('client/maintenance', {
         title: 'Propuesta en revisión',
         proposal: proposal

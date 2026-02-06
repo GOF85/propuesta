@@ -7,7 +7,7 @@
 const mariadb = require('mariadb');
 
 const pool = mariadb.createPool({
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || '127.0.0.1',
   port: process.env.DB_PORT || 3306,
   user: process.env.DB_USER || 'catering_user',
   password: process.env.DB_PASS || 'secure_password',
@@ -17,6 +17,7 @@ const pool = mariadb.createPool({
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInterval: 30000,
+  connectTimeout: 10000,
 });
 
 /**

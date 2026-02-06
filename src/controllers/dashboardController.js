@@ -184,7 +184,18 @@ class DashboardController {
         return res.status(403).json({ error: 'No permitido' });
       }
 
-      await ProposalService.updateProposal(id, { status });
+      // Cambiar is_editing según el status
+      // - 'sent': Cliente puede ver → is_editing = false
+      // - 'draft': Solo comercial → is_editing = true (puede editar más)
+      // - 'accepted': Cliente aceptó → is_editing = false
+      const updateData = { status };
+      if (status === 'sent' || status === 'accepted') {
+        updateData.is_editing = false;
+      } else if (status === 'draft') {
+        updateData.is_editing = true;
+      }
+
+      await ProposalService.updateProposal(id, updateData);
 
       res.json({ success: true, status });
     } catch (err) {

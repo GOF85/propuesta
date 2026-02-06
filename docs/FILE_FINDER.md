@@ -39,7 +39,7 @@
 ### Architecture & Design
 
 | File | Purpose | Audience |
-|------|---------|----------|
+| ------ | --------- | ---------- |
 | [docs/PHASE2_COMPLETION.md](PHASE2_COMPLETION.md) | Full architecture summary | Developers |
 | [docs/MANIFEST.md](MANIFEST.md) | Complete file inventory | Developers |
 | [docs/RELEASE_NOTES.md](RELEASE_NOTES.md) | Version information | Everyone |
@@ -54,14 +54,14 @@
 ### Navigation & Reference
 
 | File | Purpose | Need |
-|------|---------|------|
+| ------ | --------- | ------ |
 | [docs/INDEX.md](INDEX.md) | Master index (links to all docs) | Confused about what to read |
 | [docs/FILE_FINDER.md](FILE_FINDER.md) | This file | Finding specific information |
 
 ### Root Level Documentation
 
 | File | Purpose | When to Read |
-|------|---------|--------------|
+| ------ | --------- | -------------- |
 | [README.md](../README.md) | Project overview & quick start | First time setup |
 | [QUICK_START.md](../QUICK_START.md) | 5-minute setup | Want to get running fast |
 | [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) | Code patterns cheatsheet | Writing code |
