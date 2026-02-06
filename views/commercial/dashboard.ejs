@@ -26,11 +26,32 @@
     <div class="flex justify-between items-end mb-6">
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Mis Propuestas</h1>
-            <p class="text-gray-500 text-sm mt-1">Gestiona tus eventos y estados</p>
+            <p class="text-gray-500 text-sm mt-1">Gestiona tus eventos y comparte con clientes</p>
         </div>
         <a href="/proposal/new" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow-sm font-medium flex items-center gap-2 transition-colors print-hidden">
             <span>+</span> Nueva Propuesta
         </a>
+    </div>
+
+    <!-- 💡 Tip: Cómo compartir propuestas -->
+    <div class="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-4 print-hidden">
+        <div class="flex items-start gap-3">
+            <div class="text-2xl">💡</div>
+            <div class="flex-1">
+                <h3 class="font-semibold text-emerald-900 mb-1">Comparte propuestas con clientes</h3>
+                <p class="text-sm text-emerald-800 mb-2">
+                    Usa el botón <span class="font-mono bg-white px-2 py-0.5 rounded border border-emerald-300">👁️ Ver</span> 
+                    para visualizar la propuesta como cliente y 
+                    <span class="font-mono bg-white px-2 py-0.5 rounded border border-emerald-300">🔗 Copiar enlace</span> 
+                    para compartirla por email o WhatsApp. El cliente puede aceptar, rechazar o solicitar cambios directamente.
+                </p>
+                <div class="flex gap-3 text-xs">
+                    <span class="bg-white px-2 py-1 rounded border border-emerald-200">📧 Sin login requerido</span>
+                    <span class="bg-white px-2 py-1 rounded border border-emerald-200">🔐 Enlace seguro</span>
+                    <span class="bg-white px-2 py-1 rounded border border-emerald-200">💬 Chat integrado</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Filtros -->
@@ -160,41 +181,63 @@
 
                             <!-- Acciones -->
                             <td class="px-6 py-4 text-right">
-                                <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity print-hidden">
-                                    <!-- Editar -->
-                                    <a href="/proposal/<%= p.id %>/edit" 
-                                       class="text-gray-400 hover:text-blue-600 transition-colors" 
-                                       title="Editar propuesta">
-                                        ✏️
+                                <div class="flex justify-end gap-2 items-center opacity-0 group-hover:opacity-100 transition-opacity print-hidden">
+                                    <!-- Ver como Cliente (PRIMARY ACTION) -->
+                                    <a href="/p/<%= p.unique_hash %>" 
+                                       target="_blank"
+                                       class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200 inline-flex items-center gap-1.5" 
+                                       title="Ver propuesta como cliente (nueva ventana)">
+                                        👁️ Ver
                                     </a>
 
-                                    <!-- Duplicar -->
-                                    <form method="POST" action="/proposal/<%= p.id %>/duplicate" style="display: inline;">
-                                        <button type="submit" 
-                                                class="text-gray-400 hover:text-green-600 transition-colors" 
-                                                title="Duplicar propuesta"
-                                                onclick="return confirm('¿Duplicar esta propuesta?')">
-                                            📋
+                                    <!-- Menú de acciones adicionales -->
+                                    <div class="relative group/menu">
+                                        <button class="text-gray-400 hover:text-gray-600 transition-colors text-lg" title="Más opciones">
+                                            ⋮
                                         </button>
-                                    </form>
+                                        <div class="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg hidden group-hover/menu:block opacity-0 group-hover/menu:opacity-100 transition-opacity z-50">
+                                            <!-- Editar -->
+                                            <a href="/proposal/<%= p.id %>/edit" 
+                                               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 first:rounded-t-lg" 
+                                               title="Editar propuesta">
+                                                ✏️ Editar
+                                            </a>
 
-                                    <!-- Chat -->
-                                    <a href="/proposal/<%= p.id %>/chat" 
-                                       class="text-gray-400 hover:text-purple-600 transition-colors relative" 
-                                       title="Chat con cliente">
-                                        💬
-                                        <!-- Badge de mensajes no leídos (future) -->
-                                    </a>
+                                            <!-- Copiar hash -->
+                                            <button onclick="copyToClipboard('/p/<%= p.unique_hash %>')"
+                                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50" 
+                                                    title="Copiar enlace para compartir">
+                                                🔗 Copiar enlace
+                                            </button>
 
-                                    <!-- Eliminar -->
-                                    <form method="POST" action="/proposal/<%= p.id %>/delete" style="display: inline;">
-                                        <button type="submit" 
-                                                class="text-gray-400 hover:text-red-600 transition-colors" 
-                                                title="Eliminar propuesta"
-                                                onclick="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
-                                            🗑️
-                                        </button>
-                                    </form>
+                                            <!-- Chat -->
+                                            <a href="/proposal/<%= p.id %>/chat" 
+                                               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50" 
+                                               title="Chat con cliente">
+                                                💬 Chat
+                                            </a>
+
+                                            <!-- Duplicar -->
+                                            <form method="POST" action="/proposal/<%= p.id %>/duplicate" style="display: contents;">
+                                                <button type="submit" 
+                                                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50" 
+                                                        title="Duplicar propuesta"
+                                                        onclick="return confirm('¿Duplicar esta propuesta?')">
+                                                    📋 Duplicar
+                                                </button>
+                                            </form>
+
+                                            <!-- Eliminar -->
+                                            <form method="POST" action="/proposal/<%= p.id %>/delete" style="display: contents;">
+                                                <button type="submit" 
+                                                        class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-lg" 
+                                                        title="Eliminar propuesta"
+                                                        onclick="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
+                                                    🗑️ Eliminar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -258,6 +301,27 @@
 
 <script src="/js/utils.js"></script>
 <script>
+// Copiar a portapapeles
+function copyToClipboard(text) {
+  const baseUrl = '<%= user?.domain || 'https://propuesta.micecatering.eu' %>';
+  const fullUrl = baseUrl + text;
+  
+  navigator.clipboard.writeText(fullUrl).then(() => {
+    // Show toast notification
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    toast.textContent = '✅ Enlace copiado: ' + fullUrl;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }).catch(err => {
+    console.error('Error al copiar:', err);
+    alert('No se pudo copiar el enlace. Intenta nuevamente.');
+  });
+}
+
 // Manejo de formularios inline (duplicar, eliminar)
 document.querySelectorAll('form').forEach(form => {
     if (form.method === 'POST') {
