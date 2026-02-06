@@ -11,10 +11,13 @@ const fileUpload = require('express-fileupload');
 const path = require('path');
 require('dotenv').config();
 
-const { errorHandler } = require('./middleware/auth');
+const { errorHandler, authorizeRole } = require('./middleware/auth');
 const DashboardController = require('./controllers/dashboardController');
 const AdminController = require('./controllers/adminController');
 const ClientController = require('./controllers/clientController');
+
+// Helper: Admin-only middleware
+const requireAdmin = authorizeRole('admin');
 
 const app = express();
 
