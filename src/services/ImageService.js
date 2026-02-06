@@ -23,16 +23,21 @@ class ImageService {
    * Procesar imagen: Resize → WebP → Save
    * @param {Buffer} imageBuffer - Buffer de imagen original
    * @param {String} originalName - Nombre original del archivo (metadata)
+   * @param {String} customFolder - (Opcional) Carpeta personalizada en lugar de hash aleatorio
    * @returns {Promise<{path: String, filename: String, hash: String}>}
    * 
    * Ejemplo uso:
    *   const result = await ImageService.processImage(buffer, 'logo.png');
    *   // result.path = '/uploads/abc123def/image.webp'
+   *   
+   *   // O con carpeta personalizada:
+   *   const result = await ImageService.processImage(buffer, 'logo.png', 'venue-123');
+   *   // result.path = '/uploads/venue-123/image.webp'
    */
-  async processImage(imageBuffer, originalName = 'image') {
+  async processImage(imageBuffer, originalName = 'image', customFolder = null) {
     try {
-      // Generar hash único para la carpeta
-      const imageHash = uuid().substring(0, 12);
+      // Usar carpeta personalizada o generar hash único
+      const imageHash = customFolder || uuid().substring(0, 12);
       const imageDir = path.join(this.uploadsDir, imageHash);
 
       // Crear directorio si no existe

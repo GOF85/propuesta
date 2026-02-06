@@ -10,7 +10,8 @@
     "stop": "pm2 stop catering-proposals",
     "restart": "pm2 restart catering-proposals",
     "logs": "pm2 logs catering-proposals",
-    "seed": "node scripts/seed-test-data.js"
+    "seed": "node scripts/seed-test-data.js",
+    "sync:uploads": "node scripts/sync-uploads-vps.js"
   },
   "keywords": [
     "catering",

@@ -19,14 +19,12 @@ CREATE TABLE venues (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    capacity_cocktail INT,
-    capacity_banquet INT,
-    capacity_theater INT,
+    capacity INT DEFAULT 0, -- Capacidad en pax (manual)
     features JSON, -- ["Luz natural", "Wifi", "Jardín"]
     address VARCHAR(255),
     map_iframe TEXT,
     external_url VARCHAR(255),
-    images JSON, -- ["/uploads/venues/v1_1.webp", "/uploads/venues/v1_2.webp"]
+    images JSON, -- ["/uploads/nombre-venue/img1.webp", "/uploads/nombre-venue/img2.webp"]
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

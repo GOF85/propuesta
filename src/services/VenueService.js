@@ -15,6 +15,7 @@ const https = require('https');
 const http = require('http');
 const { URL } = require('url');
 const ImageService = require('./ImageService');
+const SyncService = require('./SyncService');
 const { pool } = require('../config/db');
 
 class VenueService {
@@ -84,58 +85,71 @@ class VenueService {
 
         // Extraer descripción
         let description = document.querySelector('.venue-description, .description, [class*="description"], p')?.textContent ||
-                         document.querySelector('meta[name="description"]')?.content ||
-                         '';
-        description = cleanText(description);
+                       document.querySelector('meta[name="description"]')?.content || '';
+      description = cleanText(description);
 
-        // Extraer capacidades (buscar números cerca de palabras clave)
-        const textContent = document.body.textContent;
-        let capacityCocktail = null;
-        let capacityBanquet = null;
-        let capacityTheater = null;
+      // MEJORADO: Buscar descripción en Elementor (micecatering.com)
+      const elementorDesc = document.querySelector('.elementor-tab-content .normalmio p')?.textContent;
+      if (elementorDesc) {
+        description = cleanText(elementorDesc);
+      }
 
-        // Regex patterns para capacidades
-        const cocktailMatch = textContent.match(/cocktail.*?(\d+)/i) || textContent.match(/(\d+).*?cocktail/i);
-        const banquetMatch = textContent.match(/banquet.*?(\d+)/i) || textContent.match(/(\d+).*?banquet/i);
-        const theaterMatch = textContent.match(/theater.*?(\d+)/i) || textContent.match(/(\d+).*?theater/i);
+      // Extraer capacidades - REMOVIDO (se darán manualmente desde BD)
+      // const cocktailMatch = ...
+      // const banquetMatch = ...
+      // const theaterMatch = ...
 
-        if (cocktailMatch) capacityCocktail = parseInt(cocktailMatch[1]);
-        if (banquetMatch) capacityBanquet = parseInt(banquetMatch[1]);
-        if (theaterMatch) capacityTheater = parseInt(theaterMatch[1]);
+      // Extraer características (features)
+      const features = [];
+      const featureElements = document.querySelectorAll('.feature, .amenity, [class*="feature"], [class*="amenity"], li');
+      featureElements.forEach(el => {
+        const text = cleanText(el.textContent);
+        if (text && text.length < 50 && text.length > 2) {
+          features.push(text);
+        }
+      });
 
-        // Extraer características (features)
-        const features = [];
-        const featureElements = document.querySelectorAll('.feature, .amenity, [class*="feature"], [class*="amenity"], li');
-        featureElements.forEach(el => {
-          const text = cleanText(el.textContent);
-          if (text && text.length < 50 && text.length > 2) {
-            features.push(text);
-          }
-        });
-
-        // Extraer dirección
-        let address = document.querySelector('.address, [class*="address"]')?.textContent || '';
+      // Extraer dirección - MEJORADO para micecatering.com
+      let address = '';
+      // Selector específico para micecatering.com
+      const addressElement = document.querySelector('.d-block.my-3.text-dark.text-big05, [data-address]');
+      if (addressElement) {
+        // Extraer solo el texto de la dirección (sin el icono)
+        address = cleanText(addressElement.textContent);
+      } else {
+        // Fallback a selectores genéricos
+        address = document.querySelector('.address, [class*="address"]')?.textContent || '';
         address = cleanText(address);
-
-        // Extraer imágenes (todas las que parezcan del venue)
+      }
         const images = [];
-        const imgElements = document.querySelectorAll('img');
-        imgElements.forEach(img => {
-          const src = img.src || img.dataset.src;
-          if (src && !src.includes('logo') && !src.includes('icon') && src.length > 10) {
+        
+        // 1. Intentar slider específico (swiper, gallery)
+        const sliderImages = document.querySelectorAll('.swiper-slide-image, .slider img, .gallery img, [class*="slider"] img, [class*="gallery"] img');
+        sliderImages.forEach(img => {
+          const src = img.src || img.dataset.src || img.getAttribute('data-src');
+          if (src && src.length > 10) {
             images.push(src);
           }
         });
+        
+        // 2. Si no hay slider, buscar imágenes generales (excluyendo logos/iconos)
+        if (images.length === 0) {
+          const allImages = document.querySelectorAll('img');
+          allImages.forEach(img => {
+            const src = img.src || img.dataset.src;
+            if (src && !src.includes('logo') && !src.includes('icon') && src.length > 10) {
+              images.push(src);
+            }
+          });
+        }
 
         return {
           name,
           description,
-          capacityCocktail,
-          capacityBanquet,
-          capacityTheater,
+          // Capacidad: se da manualmente en BD (no se scraepea)
           features: [...new Set(features)].slice(0, 10), // Eliminar duplicados, max 10
           address,
-          images: [...new Set(images)].slice(0, 5) // Max 5 imágenes
+          images: [...new Set(images)] // Todas las imágenes del slider (sin límite)
         };
       });
 
@@ -144,9 +158,18 @@ class VenueService {
       // Procesar imágenes
       const processedImages = [];
       if (venueData.images && venueData.images.length > 0) {
+        // Generar carpeta con nombre del venue (sanitizado para filename)
+        const venueFolderName = venueData.name
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '') // Remover acentos
+          .replace(/[^a-z0-9-]/g, '-') // Solo letras, números, guiones
+          .replace(/-+/g, '-') // Guiones múltiples -> uno
+          .replace(/^-|-$/g, ''); // Quitar guiones de inicio/fin
+        
         for (const imageUrl of venueData.images) {
           try {
-            const processed = await this.downloadAndOptimizeImage(imageUrl, venueData.name);
+            const processed = await this.downloadAndOptimizeImage(imageUrl, venueData.name, venueFolderName);
             if (processed) {
               processedImages.push(processed.path);
               console.log(`   📸 Imagen procesada: ${processed.path}`);
@@ -157,13 +180,11 @@ class VenueService {
         }
       }
 
-      // Construir venue final
+      // Construir venue final (capacity manual)
       const venue = {
         name: venueData.name || 'Venue sin nombre',
         description: venueData.description || '',
-        capacity_cocktail: venueData.capacityCocktail,
-        capacity_banquet: venueData.capacityBanquet,
-        capacity_theater: venueData.capacityTheater,
+        capacity: 0, // Dato manual en BD (default 0)
         features: venueData.features.filter(Boolean),
         address: venueData.address,
         external_url: targetUrl,
@@ -374,6 +395,7 @@ class VenueService {
    * @private
    * @param {String} imageUrl - URL de imagen (http/https)
    * @param {String} venueName - Nombre del venue (para metadata)
+   * @param {String} customFolder - (Opcional) Carpeta personalizada para guardar todas las imágenes del venue
    * @returns {Promise<Object>} {path, hash, width, height} o null si falla
    * 
    * Implementa:
@@ -382,7 +404,7 @@ class VenueService {
    * - Validación MIME type
    * - Procesamiento con Sharp (resize, webp)
    */
-  async downloadAndOptimizeImage(imageUrl, venueName = 'venue') {
+  async downloadAndOptimizeImage(imageUrl, venueName = 'venue', customFolder = null) {
     try {
       // Validar URL
       if (!imageUrl) return null;
@@ -413,8 +435,9 @@ class VenueService {
       }
 
       // Procesar con ImageService (resize, webp, etc)
+      // Usar customFolder si existe, sino generar uno único
       const filename = new URL(fullUrl).pathname.split('/').pop() || 'venue-image.jpg';
-      const result = await ImageService.processImage(imageBuffer, filename);
+      const result = await ImageService.processImage(imageBuffer, filename, customFolder);
 
       return result;
 
@@ -443,15 +466,22 @@ class VenueService {
         },
         timeout: timeout
       }, (res) => {
-        // Validar status y content-type
+        // Validar status
         if (res.statusCode !== 200) {
           reject(new Error(`HTTP ${res.statusCode}: ${url}`));
           return;
         }
 
+        // Validar content-type (permisivo con .webp y extensiones de imagen)
         const contentType = res.headers['content-type'] || '';
-        if (!contentType.startsWith('image/')) {
-          reject(new Error(`Content-Type no es imagen: ${contentType}`));
+        const urlLower = url.toLowerCase();
+        const isImageExtension = urlLower.endsWith('.jpg') || urlLower.endsWith('.jpeg') || 
+                                 urlLower.endsWith('.png') || urlLower.endsWith('.gif') || 
+                                 urlLower.endsWith('.webp') || urlLower.endsWith('.svg');
+        
+        // Aceptar si Content-Type es imagen O si la URL tiene extensión de imagen
+        if (!contentType.startsWith('image/') && !isImageExtension) {
+          reject(new Error(`Content-Type no es imagen: ${contentType} (URL: ${url})`));
           return;
         }
 
@@ -600,6 +630,18 @@ class VenueService {
       }
 
       console.log(`✅ Sincronización completada: ${createdIds.length}/${venues.length} venues guardados`);
+
+      // 📤 SINCRONIZAR UPLOADS AL VPS
+      if (createdIds.length > 0) {
+        console.log('📤 Sincronizando imágenes con VPS...');
+        try {
+          const syncResult = await SyncService.syncUploadsToVPS();
+          console.log(`${syncResult.success ? '✅' : '⚠️'} Sync: ${syncResult.message}`);
+        } catch (syncErr) {
+          // No bloquear el scraping si falla la sincronización
+          console.warn(`⚠️  Error en sincronización: ${syncErr.message}`);
+        }
+      }
 
       return {
         success: true,
