@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - MICE CATERING</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <link rel="stylesheet" href="/css/professional.css">
     <style>
         @media print {
             nav, footer, button, .print-hidden { display: none !important; }
@@ -62,7 +64,7 @@
                 class="pl-4 pr-4 py-2 border rounded-lg text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
             >
             <div id="searchLoading" class="px-4 py-2 flex items-center gap-2 text-gray-400 hidden">
-                <span class="inline-block animate-spin">⟳</span>
+                <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
             </div>
         </div>
     </div>
@@ -72,7 +74,9 @@
         <% if (proposals.length === 0) { %>
             <!-- Empty State -->
             <div class="p-12 text-center">
-                <div class="text-5xl mb-4">📋</div>
+                <div class="flex justify-center mb-4">
+                    <i data-lucide="clipboard-list" class="w-12 h-12 text-gray-400"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay propuestas</h3>
                 <p class="text-gray-500 mb-6">
                     <% if (searchTerm) { %>
@@ -164,7 +168,7 @@
                                            target="_blank"
                                            class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200 inline-flex items-center gap-1.5" 
                                            title="Ver propuesta como cliente (nueva ventana)">
-                                            👁️ Ver
+                                            <i data-lucide="eye" class="w-4 h-4"></i>Ver
                                         </a>
                                         <span class="px-3 py-1 rounded-lg text-xs font-semibold border border-red-200 bg-red-50 text-red-700">
                                             Acciones deshabilitadas
@@ -177,13 +181,13 @@
                                            target="_blank"
                                            class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200 inline-flex items-center gap-1.5" 
                                            title="Ver propuesta como cliente (nueva ventana)">
-                                            👁️ Ver
+                                            <i data-lucide="eye" class="w-4 h-4"></i>Ver
                                         </a>
 
                                         <!-- Menú de acciones adicionales -->
                                         <div class="relative group/menu">
-                                            <button class="text-gray-400 hover:text-gray-600 transition-colors text-lg" title="Más opciones">
-                                                ⋮
+                                            <button class="text-gray-400 hover:text-gray-600 transition-colors" title="Más opciones">
+                                                <i data-lucide="more-vertical" class="w-4 h-4"></i>
                                             </button>
                                             <div class="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg hidden group-hover/menu:block opacity-0 group-hover/menu:opacity-100 transition-opacity z-50">
                                                 <!-- Editar -->
@@ -197,14 +201,14 @@
                                                 <button onclick="copyToClipboard('/p/<%= p.unique_hash %>')"
                                                         class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50" 
                                                         title="Copiar enlace para compartir">
-                                                    🔗 Copiar enlace
+                                                    <i data-lucide="link" class="w-4 h-4 inline-block mr-2"></i>Copiar enlace
                                                 </button>
 
                                                 <!-- Chat -->
                                                 <a href="/proposal/<%= p.id %>/chat" 
                                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50" 
                                                    title="Chat con cliente">
-                                                    💬 Chat
+                                                    <i data-lucide="message-circle" class="w-4 h-4 inline-block mr-2"></i>Chat
                                                 </a>
 
                                                 <!-- Duplicar -->
@@ -213,7 +217,7 @@
                                                             class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50" 
                                                             title="Duplicar propuesta"
                                                             onclick="return confirm('¿Duplicar esta propuesta?')">
-                                                        📋 Duplicar
+                                                        <i data-lucide="copy" class="w-4 h-4 inline-block mr-2"></i>Duplicar
                                                     </button>
                                                 </form>
 
@@ -223,7 +227,7 @@
                                                             class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-lg" 
                                                             title="Eliminar propuesta"
                                                             onclick="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
-                                                        🗑️ Eliminar
+                                                        <i data-lucide="trash-2" class="w-4 h-4 inline-block mr-2"></i>Eliminar
                                                     </button>
                                                 </form>
                                             </div>
@@ -302,7 +306,7 @@ function copyToClipboard(text) {
     // Show toast notification
     const toast = document.createElement('div');
     toast.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-    toast.textContent = '✅ Enlace copiado: ' + fullUrl;
+    toast.textContent = 'Enlace copiado: ' + fullUrl;
     document.body.appendChild(toast);
     
     setTimeout(() => {
@@ -320,6 +324,12 @@ document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', function(e) {
             // Las validaciones ya están en los onclick de los botones
         });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.lucide) {
+        lucide.createIcons();
     }
 });
 </script>

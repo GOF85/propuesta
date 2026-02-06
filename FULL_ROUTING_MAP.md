@@ -26,7 +26,7 @@
 **Middleware:** None (Public)
 
 | Route | Method | Handler/Controller | Purpose | Auth Required |
-|-------|--------|-------------------|---------|---------------|
+| ------ | ------ | ------------------- | ----------- | --------------- |
 | `/login` | GET | `authRoutes (inline)` | Display login form | ❌ No |
 | `/login` | POST | `authRoutes (inline)` | Process login submission | ❌ No |
 | `/logout` | GET | `authRoutes (inline)` | Destroy session | ✅ Yes* |

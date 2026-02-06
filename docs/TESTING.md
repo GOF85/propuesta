@@ -2,12 +2,12 @@
 
 ## Tabla de Contenidos
 
-1. [Test Suite Completa](#test-suite-completa)
-2. [Casos de Test - Fase 2](#casos-de-test---fase-2-dashboard)
-3. [Casos de Test - Fase 3](#casos-de-test---fase-3-editor)
-4. [Casos de Test - Fase 4](#casos-de-test---fase-4-cliente--chat)
-5. [Performance Testing](#performance-testing)
-6. [Security Testing](#security-testing)
+1. [Test Suite Completa](#-test-suite-completa)
+2. [Casos de Test - Fase 2](#-casos-de-test---fase-2-dashboard)
+3. [Casos de Test - Fase 3](#-casos-de-test---fase-3-editor)
+4. [Casos de Test - Fase 4](#-casos-de-test---fase-4-cliente--chat)
+5. [Performance Testing](#-performance-testing)
+6. [Security Testing](#-security-testing)
 
 ---
 
