@@ -202,4 +202,117 @@ router.delete(
   }
 );
 
+/**
+ * ════════════════════════════════════════════════════════════════
+ * RUTAS DE UPLOAD - ImageService
+ * ════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * POST /api/admin/upload/image
+ * Subir imagen única con Sharp: Resize → WebP → Save
+ * Body: FormData con 'file' (binary)
+ */
+router.post(
+  '/api/admin/upload/image',
+  authenticateUser,
+  async (req, res, next) => {
+    try {
+      // Verificar si es admin
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Solo admin puede subir imágenes'
+        });
+      }
+
+      const adminController = require('../controllers/adminController');
+      await adminController.uploadImage(req, res);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/admin/upload/logo
+ * Subir logo del cliente (con extracción de color dominante)
+ */
+router.post(
+  '/api/admin/upload/logo',
+  authenticateUser,
+  async (req, res, next) => {
+    try {
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Solo admin puede subir logos'
+        });
+      }
+
+      const adminController = require('../controllers/adminController');
+      await adminController.uploadClientLogo(req, res);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/admin/upload/batch
+ * Subir múltiples imágenes
+ */
+router.post(
+  '/api/admin/upload/batch',
+  authenticateUser,
+  async (req, res, next) => {
+    try {
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Solo admin puede subir imágenes'
+        });
+      }
+
+      const adminController = require('../controllers/adminController');
+      await adminController.uploadBatch(req, res);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * DELETE /api/admin/image/:hash
+ * Eliminar imagen por hash
+ */
+router.delete(
+  '/api/admin/image/:hash',
+  authenticateUser,
+  param('hash').isLength({ min: 12, max: 12 }),
+  async (req, res, next) => {
+    try {
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'No permitido'
+        });
+      }
+
+      const errors = require('express-validator').validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array()
+        });
+      }
+
+      const adminController = require('../controllers/adminController');
+      await adminController.deleteImage(req, res);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 module.exports = router;

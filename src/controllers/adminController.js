@@ -458,6 +458,182 @@ class AdminController {
       res.redirect('/dashboard');
     }
   }
+
+  /**
+   * POST /api/admin/upload/image
+   * Subir y procesar una imagen con Sharp
+   * - Resize a max 1920px
+   * - Convertir a WebP
+   * - Guardar en /public/uploads/{hash}/
+   * 
+   * Body: FormData con 'file' (binary)
+   * Response: {success, path, filename, hash, sizeKB}
+   */
+  async uploadImage(req, res) {
+    try {
+      if (!req.files || !req.files.file) {
+        return res.status(400).json({
+          success: false,
+          error: 'Sin archivo en request'
+        });
+      }
+
+      const ImageService = require('../services/ImageService');
+      const imageBuffer = req.files.file.data;
+      const originalName = req.files.file.name;
+
+      // Validar que es imagen
+      const validation = await ImageService.validateImage(imageBuffer);
+      if (!validation.valid) {
+        return res.status(400).json({
+          success: false,
+          error: validation.error
+        });
+      }
+
+      // Procesar imagen
+      const result = await ImageService.processImage(imageBuffer, originalName);
+
+      res.json({
+        success: true,
+        path: result.path,
+        filename: result.filename,
+        hash: result.hash,
+        sizeKB: result.sizeKB,
+        width: result.width,
+        height: result.height,
+        message: `Imagen procesada: ${result.sizeKB}KB`
+      });
+    } catch (err) {
+      console.error('❌ Error en uploadImage:', err);
+      res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * POST /api/admin/upload/logo
+   * Subir logo del cliente (con extracción de color dominante)
+   * Usa ImageService para procesar + node-vibrant para color
+   */
+  async uploadClientLogo(req, res) {
+    try {
+      if (!req.files || !req.files.logo) {
+        return res.status(400).json({
+          success: false,
+          error: 'Sin archivo de logo'
+        });
+      }
+
+      const ImageService = require('../services/ImageService');
+      const imageBuffer = req.files.logo.data;
+
+      // Procesar imagen
+      const result = await ImageService.processImage(imageBuffer, 'logo.png');
+
+      // Extraer color dominante
+      const colorInfo = await ImageService.extractDominantColor(imageBuffer);
+
+      res.json({
+        success: true,
+        path: result.path,
+        filename: result.filename,
+        hash: result.hash,
+        color: colorInfo,
+        message: 'Logo procesado correctamente'
+      });
+    } catch (err) {
+      console.error('❌ Error en uploadClientLogo:', err);
+      res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * POST /api/admin/upload/batch
+   * Subir múltiples imágenes
+   * Response: [{path, filename, hash}, ...]
+   */
+  async uploadBatch(req, res) {
+    try {
+      if (!req.files) {
+        return res.status(400).json({
+          success: false,
+          error: 'Sin archivos en request'
+        });
+      }
+
+      const ImageService = require('../services/ImageService');
+      const files = Array.isArray(req.files.files)
+        ? req.files.files
+        : [req.files.files];
+
+      const results = [];
+      for (const file of files) {
+        try {
+          const result = await ImageService.processImage(file.data, file.name);
+          results.push({
+            success: true,
+            ...result
+          });
+        } catch (err) {
+          results.push({
+            success: false,
+            filename: file.name,
+            error: err.message
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        processed: results.filter(r => r.success).length,
+        failed: results.filter(r => !r.success).length,
+        results
+      });
+    } catch (err) {
+      console.error('❌ Error en uploadBatch:', err);
+      res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * DELETE /api/admin/image/:hash
+   * Eliminar una imagen por su hash
+   */
+  async deleteImage(req, res) {
+    try {
+      const { hash } = req.params;
+      const ImageService = require('../services/ImageService');
+
+      const result = await ImageService.deleteImage(hash);
+
+      if (result.deleted) {
+        res.json({
+          success: true,
+          message: result.message
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.message
+        });
+      }
+    } catch (err) {
+      console.error('❌ Error en deleteImage:', err);
+      res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
 }
 
 module.exports = new AdminController();

@@ -7,6 +7,7 @@
 const express = require('express');
 const session = require('express-session');
 const flash = require('connect-flash');
+const fileUpload = require('express-fileupload');
 const path = require('path');
 require('dotenv').config();
 
@@ -26,6 +27,16 @@ app.set('views', path.join(__dirname, '../views'));
 // Body parser
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// File upload (para imágenes, CSV, etc)
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
+  abortOnLimit: true,
+  responseOnLimit: 'Archivo demasiado grande',
+  useTempFiles: false, // Procesamos en memoria
+  safeFileNames: true,
+  preserveExtension: true
+}));
 
 // Static files
 app.use(express.static(path.join(__dirname, '../public')));
@@ -184,6 +195,7 @@ app.get('/admin', requireAdmin, async (req, res, next) => {
 });
 
 // ============ RUTAS ADMIN: VENUES ============
+app.get('/admin/venues', requireAdmin, async (req, res, next) => {
   try {
     await AdminController.getVenuesPanel(req, res);
   } catch (err) {
@@ -238,6 +250,10 @@ app.get('/admin/services', requireAdmin, async (req, res, next) => {
     res.redirect('/dashboard');
   }
 });
+
+// ============ RUTAS API - Image Upload & Data ============
+const apiRoutes = require('./routes/api');
+app.use('/', apiRoutes);
 
 // RUTAS ANTIGUAS - COMENTADAS (Será reintegradas después)
 /*
