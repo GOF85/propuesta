@@ -36,8 +36,8 @@
       </div>
     </div>
 
-    <!-- Botón -->
-    <button onclick="location.reload()" class="btn btn-primary w-full mb-4">
+    <!-- Botón de verificación -->
+    <button onclick="location.reload()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg mb-4 transition duration-200">
       🔄 Verificar Cambios
     </button>
 
@@ -45,45 +45,15 @@
     <p class="text-xs text-gray-500 mt-6">
       Si tienes urgencia, contáctanos directamente por email
     </p>
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <h2 class="text-xl font-semibold text-gray-900 mb-2">Propuesta en edición</h2>
-                <p class="text-gray-600">El comercial está personalizando tu propuesta. Te avisaremos cuando esté lista para revisar.</p>
-            </div>
-            
-            <!-- Loading Indicator -->
-            <div class="flex items-center justify-center gap-1 my-6">
-                <div class="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0s"></div>
-                <div class="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0.2s"></div>
-                <div class="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0.4s"></div>
-            </div>
-        </div>
-        
-        <!-- Information -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p class="text-sm text-blue-900">
-                Esta página se actualizará automáticamente cuando la propuesta esté lista. 
-                <br><br>
-                <strong>No cierres esta pestaña.</strong>
-            </p>
-        </div>
-        
-        <!-- Refresh Script -->
-        <script>
-            // Recargar la página cada 5 segundos
-            setInterval(() => {
-                location.reload();
-            }, 5000);
-        </script>
-        
-        <!-- Manual Refresh Button -->
-        <button 
-            onclick="location.reload()" 
-            class="text-blue-600 hover:text-blue-700 font-medium text-sm"
-        >
-            Actualizar ahora
-        </button>
-    </div>
-</body>
-</html>
+
+  </div>
+</main>
+
+<!-- Auto-refresh: recargar cada 5 segundos -->
+<script>
+  setInterval(() => {
+    location.reload();
+  }, 5000);
+</script>
+
+<%- include('../partials/footer') %>

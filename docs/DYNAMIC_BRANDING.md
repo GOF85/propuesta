@@ -24,19 +24,16 @@ Sistema automatizado que **extrae el color dominante del logo del cliente** y ge
 ## 🏗️ ARQUITECTURA
 
 ```
-Logo Upload (POST /api/admin/upload/logo?proposal_id=X)
-    ↓
-ImageService.processLogoWithBranding(buffer)
-    ├── Sharp: Resize → WebP conversion → Save
-    ├── Vibrant: Extract color palette
-    └── Generate CSS-ready palette
-    ↓
-Update proposal.brand_color in DB
-    ↓
-Client View Rendering (GET /p/:hash)
-    ├── Read proposal.brand_color
-    ├── ImageService.generateColorPalette(hex)
-    └── Inject <style> with CSS variables
+graph TD
+    A[Logo Upload] --> B[ImageService.processLogoWithBranding]
+    B --> C[Sharp: Resize & WebP conversion]
+    B --> D[Vibrant: Extract color palette]
+    B --> E[Generate CSS-ready palette]
+    E --> F[Update proposal.brand_color in DB]
+    F --> G[Client View Rendering]
+    G --> H[Read brand_color]
+    G --> I[generateColorPalette]
+    I --> J[Inject CSS variables]
 ```
 
 ---
@@ -356,7 +353,7 @@ npm install node-vibrant
 ### Benchmarks
 
 | Operación | Tiempo | Recursos |
-|-----------|--------|----------|
+| --------- | ------ | --------- |
 | Subir logo (5MB) | ~800ms | 50MB RAM |
 | Extraer color (Vibrant) | ~150ms | 20MB RAM |
 | Generar paleta | ~2ms | Negligible |

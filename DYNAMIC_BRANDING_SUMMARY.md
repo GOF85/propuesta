@@ -118,7 +118,7 @@ proposals.logo_url VARCHAR(255)
 ## Performance
 
 | Metric | Value |
-| --------|-------|
+| --- | --- |
 | Logo processing | ~800ms (5MB file) |
 | Color extraction | ~150ms (node-vibrant) |
 | Palette generation | ~2ms (pure math) |
@@ -144,6 +144,22 @@ curl -X POST \
   http://localhost:3000/api/admin/upload/logo?proposal_id=5 \
   -F "logo=@coca-cola-logo.png" \
   -H "Cookie: connect.sid=..."
+
+# Response:
+{
+  "brandColor": "#F40009",  // Coca-Cola red
+  "generatedPalette": {
+    "primary": "#F40009",
+    "hover": "#D8000A",
+    "light": "#FF6666",
+    "dark": "#C30007"
+  }
+}
+
+# 2. Client views proposal at /p/abc123def
+# → Header is now Coca-Cola red
+# → All buttons/badges use brand colors
+# → Logo displayed in header
 
 # Response:
 {
