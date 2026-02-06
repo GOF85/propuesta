@@ -72,24 +72,19 @@
             </a>
         </div>
 
-        <!-- Search -->
-        <form method="GET" action="/dashboard" class="ml-auto flex gap-2">
-            <input 
-                type="hidden" 
-                name="status" 
-                value="<%= currentFilter %>"
-            >
+        <!-- Search (AJAX) -->
+        <div class="ml-auto flex gap-2">
             <input 
                 type="text" 
-                name="search" 
+                id="searchInput"
                 placeholder="Buscar cliente, venue..." 
                 value="<%= searchTerm %>"
-                class="pl-4 pr-4 py-2 border rounded-lg text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                class="pl-4 pr-4 py-2 border rounded-lg text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
             >
-            <button type="submit" class="px-4 py-2 bg-blue-100 text-blue-600 hover:bg-blue-200 rounded-lg font-medium text-sm transition">
-                🔍
-            </button>
-        </form>
+            <div id="searchLoading" class="px-4 py-2 flex items-center gap-2 text-gray-400 hidden">
+                <span class="inline-block animate-spin">⟳</span>
+            </div>
+        </div>
     </div>
 
     <!-- Tabla de Propuestas -->
@@ -300,6 +295,7 @@
 <%- include('../partials/footer') %>
 
 <script src="/js/utils.js"></script>
+<script src="/js/dashboard-search.js"></script>
 <script>
 // Copiar a portapapeles
 function copyToClipboard(text) {

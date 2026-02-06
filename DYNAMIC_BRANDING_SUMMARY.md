@@ -160,22 +160,6 @@ curl -X POST \
 # → Header is now Coca-Cola red
 # → All buttons/badges use brand colors
 # → Logo displayed in header
-
-# Response:
-{
-  "brandColor": "#F40009",  // Coca-Cola red
-  "generatedPalette": {
-    "primary": "#F40009",
-    "hover": "#D8000A",
-    "light": "#FF6666",
-    "dark": "#C30007"
-  }
-}
-
-# 2. Client views proposal at /p/abc123def
-# → Header is now Coca-Cola red
-# → All buttons/badges use brand colors
-# → Logo displayed in header
 ```
 
 ---

@@ -873,5 +873,56 @@ router.get(
 //   }
 // );
 
+/**
+ * GET /api/dashboard/search
+ * Búsqueda AJAX en tiempo real para dashboard
+ * Query: ?status=draft&search=texto
+ */
+router.get(
+  '/api/dashboard/search',
+  authenticateUser,
+  async (req, res, next) => {
+    try {
+      const { status, search } = req.query;
+      const userId = req.session.user.id;
+      const ProposalService = require('../services/ProposalService');
+
+      // Llamar al servicio de listado
+      const proposals = await ProposalService.listProposals(userId, {
+        status: status || 'all',
+        search: search || '',
+        page: 1,
+        limit: 50 // Mayor límite para búsqueda
+      });
+
+      // Enriquecer con labels
+      const { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_COLORS } = require('../config/constants');
+      const enrichedProposals = proposals.map(p => ({
+        ...p,
+        statusLabel: PROPOSAL_STATUS_LABELS[p.status] || p.status,
+        statusColor: PROPOSAL_STATUS_COLORS[p.status] || 'gray',
+        formattedTotal: `${(p.total || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`,
+        formattedDate: p.event_date ? new Date(p.event_date).toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }) : 'Sin fecha'
+      }));
+
+      res.json({
+        success: true,
+        proposals: enrichedProposals,
+        count: enrichedProposals.length
+      });
+    } catch (err) {
+      console.error('Error en búsqueda:', err);
+      res.status(500).json({
+        success: false,
+        message: 'Error en la búsqueda'
+      });
+    }
+  }
+);
+
 module.exports = router;
 
