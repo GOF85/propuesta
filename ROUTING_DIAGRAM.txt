@@ -1,0 +1,550 @@
+# 🗺️ MICE CATERING - Route Architecture Diagram
+
+## Request Flow Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    INCOMING HTTP REQUEST                         │
+└─────────────────────────────────────────┬───────────────────────┘
+                                          │
+                    ┌─────────────────────┼─────────────────────┐
+                    │                     │                     │
+            ┌───────▼────────┐    ┌──────▼──────┐    ┌─────────▼─────────┐
+            │ PUBLIC ROUTES  │    │  AUTH CHECK │    │  ADMIN ONLY       │
+            │ (No Auth)      │    │  REQUIRED   │    │  role=admin       │
+            └────────────────┘    └──────┬──────┘    └─────────┬─────────┘
+                    │                    │                     │
+          ┌─────────┴──────────┐        │                     │
+          │                    │        │                     │
+      ┌───▼─┐    ┌──────┐    ┌▼──┐  ┌──▼──┐  ┌────────┐    ┌─▼────────┐
+      │/login│   │/p/:  │    │  │  │/Dash│  │/Proposals│   │/admin/*  │
+      │      │   │hash  │    │  │  │board│  │/CRUD    │   │  Panel   │
+      └──────┘    └──────┘    └──┘  └─────┘  └────────┘    └──────────┘
+```
+
+---
+
+## Complete Route Hierarchy
+
+```
+APPLICATION ROOT
+│
+├── AUTH LAYER (src/routes/auth.js)
+│   ├── GET  /login                      → Login form
+│   ├── POST /login                      → Process login → Create session
+│   └── GET  /logout                     → Destroy session
+│
+├── DASHBOARD (src/routes/dashboard.js)
+│   ├── GET  /dashboard                  → List proposals (DashboardController)
+│   ├── GET  /proposal/new               → New proposal form
+│   ├── POST /proposal                   → Create proposal (DashboardController)
+│   ├── POST /proposal/:id/duplicate     → Clone proposal
+│   ├── POST /proposal/:id/delete        → Delete proposal
+│   ├── POST /proposal/:id/status        → Update status (AJAX)
+│   │
+│   └── ADMIN PANEL (requires admin role)
+│       ├── GET /admin                   → Admin dashboard
+│       ├── GET /admin/venues            → Manage venues
+│       ├── GET /admin/dishes            → Manage dishes
+│       └── GET /admin/services          → Manage services
+│
+├── EDITOR (src/routes/editor.js)
+│   ├── GET  /proposal/:id/edit          → Editor view (EditorController)
+│   ├── POST /proposal/:id/update        → Save changes
+│   ├── POST /proposal/:id/publish       → Send to client
+│   └── POST /proposal/:id/archive       → Archive proposal
+│
+├── API (src/routes/api.js)
+│   │
+│   ├── SERVICES MANAGEMENT
+│   │   ├── POST   /api/proposals/:id/services         → Add service
+│   │   ├── DELETE /api/proposals/:id/services/:svcId  → Remove service
+│   │   ├── POST   /api/proposals/:id/options          → Add option
+│   │   ├── DELETE /api/proposals/:id/options/:optId   → Remove option
+│   │   └── GET    /api/proposals/:id/data             → Get full data (JSON)
+│   │
+│   ├── VENUE MANAGEMENT
+│   │   ├── GET    /api/venues                         → List venues (public)
+│   │   ├── GET    /api/venues/:id                     → Get venue (public)
+│   │   ├── POST   /api/proposals/:id/venues           → Add venue to proposal
+│   │   ├── DELETE /api/proposals/:id/venues/:venueId  → Remove venue
+│   │   ├── POST   /api/admin/venues/scrape            → Puppeteer scraping ⭐
+│   │   ├── POST   /api/admin/venues/manual            → Create manual venue
+│   │   ├── PUT    /api/admin/venues/:id               → Update venue
+│   │   └── DELETE /api/admin/venues/:id               → Delete venue
+│   │
+│   ├── IMAGE UPLOAD
+│   │   ├── POST   /api/admin/upload/image             → Single image (Sharp)
+│   │   ├── POST   /api/admin/upload/logo              → Logo + color extract
+│   │   ├── POST   /api/admin/upload/batch             → Multiple images
+│   │   └── DELETE /api/admin/image/:hash              → Delete image
+│   │
+│   ├── FINANCIAL ENGINE ⭐⭐
+│   │   ├── POST   /api/proposals/:id/calculate        → Recalculate totals
+│   │   ├── GET    /api/proposals/:id/totals           → Get breakdown
+│   │   ├── POST   /api/proposals/:id/discount         → Apply manual discount
+│   │   ├── DELETE /api/proposals/:id/discount         → Remove discount
+│   │   ├── GET    /api/proposals/:id/margin-analysis  → Profit margins
+│   │   ├── GET    /api/proposals/:id/audit-log        → Price history
+│   │   ├── GET    /api/volume-discounts               → List tiers
+│   │   ├── POST   /api/volume-discounts               → Create tier
+│   │   └── PUT    /api/volume-discounts/:tierId       → Update tier
+│   │
+│   └── INLINE ADMIN (src/app.js)
+│       ├── POST /admin/dishes/import                  → CSV import
+│       ├── GET  /admin/dishes/export                  → CSV export
+│       └── POST /admin/dishes/:id/delete              → Delete dish
+│
+└── CLIENT (src/routes/client.js) - PUBLIC VIA MAGIC LINK
+    ├── GET  /p/:hash                    → View proposal (magic link)
+    ├── GET  /p/:hash/messages           → Get messages (AJAX polling)
+    ├── POST /p/:hash/messages           → Send message
+    ├── POST /p/:hash/messages/mark-read → Mark as read
+    ├── POST /p/:hash/download-pdf       → Download PDF
+    ├── POST /p/:hash/accept             → Accept proposal
+    ├── POST /p/:hash/reject             → Reject proposal
+    └── POST /p/:hash/modifications      → Request modifications
+```
+
+---
+
+## Middleware Stack
+
+```
+┌────────────────────────────────────┐
+│    1. JSON Body Parser (50MB)      │
+├────────────────────────────────────┤
+│ 2. URL Encoded Parser              │
+├────────────────────────────────────┤
+│ 3. File Upload Handler (50MB max)  │
+├────────────────────────────────────┤
+│ 4. Static File Server (/public)    │
+├────────────────────────────────────┤
+│ 5. Express Session (24h timeout)   │
+├────────────────────────────────────┤
+│ 6. Flash Message System            │
+├────────────────────────────────────┤
+│ 7. Request Logger                  │
+├────────────────────────────────────┤
+│ 8. Response Locals Injector        │
+│    (user, messages, formatters)    │
+├────────────────────────────────────┤
+│              ROUTE HANDLERS        │
+│    (Auth check / authorization)    │
+├────────────────────────────────────┤
+│ 9. 404 Handler                     │
+├────────────────────────────────────┤
+│ 10. Global Error Handler           │
+└────────────────────────────────────┘
+```
+
+---
+
+## Authentication & Authorization Flow
+
+```
+                    REQUEST RECEIVED
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │ Route Matched?  │
+                 └────────┬────────┘
+                          │
+       ┌──────────────────┼──────────────────┐
+       │                  │                  │
+   ┌───▼────┐      ┌─────▼──────┐      ┌────▼────┐
+   │ PUBLIC │      │ PROTECTED  │      │ ADMIN   │
+   │ (None) │      │ (Needs     │      │ (Needs  │
+   │        │      │ Session)   │      │ Admin   │
+   └────────┘      └─────┬──────┘      │ Role)   │
+        │                │              └────┬────┘
+        │           ┌────▼──────┐            │
+        │           │ Session   │       ┌────▼──────────┐
+        │           │ Exists?   │       │ authenticateUser
+        │           └────┬──────┘       │ +
+        │                │              │ authorizeRole
+        │           YES  │   NO         └────┬──────────┘
+        │                │              │
+        │           ┌────▼──────┐      ┌▼───────────────┐
+        │           │ Store in  │      │ Role Check:    │
+        │           │ res.locals│      │ admin only?    │
+        └──────┬────┤ Proceed   │      │ YES → Proceed  │
+               │    └───────────┘      │ NO → 403       │
+               │                       └────────────────┘
+               │
+               ▼
+        HANDLER EXECUTES
+               │
+               ├─ Validation (express-validator)
+               │  └─ If invalid: 400 error
+               │
+               ├─ Business Logic (Services)
+               │  └─ If error: catch and next(err)
+               │
+               └─ Response
+                  ├─ HTML (view render)
+                  ├─ JSON (API)
+                  └─ Redirect (302/303)
+```
+
+---
+
+## Data Flow: Proposal Editor
+
+```
+CLIENT (Browser)
+      │
+      ├─▶ GET /proposal/:id/edit
+      │   ├─ EditorController.renderEditor()
+      │   ├─ ProposalService.getProposalById(id)
+      │   └─ RENDER editor.ejs (with data embedded)
+      │
+      │◀─ HTML View (editor.ejs)
+      │
+      ├─▶ POST /api/proposals/:id/services (AJAX)
+      │   ├─ EditorController.addService()
+      │   ├─ DB: INSERT INTO proposal_services
+      │   └─ RESPONSE: { success: true, service_id: 123 }
+      │
+      ├─▶ POST /api/proposals/:id/calculate (AJAX)
+      │   ├─ EditorController.calculateTotals()
+      │   ├─ ProposalService.calculateTotals()
+      │   │   ├─ SUM(price_pax * pax) per service
+      │   │   ├─ Apply VAT (10% services, 21% food)
+      │   │   ├─ Apply discounts
+      │   │   └─ Calculate margins
+      │   └─ RESPONSE: { subtotal, vat, total, margin }
+      │
+      ├─▶ POST /api/proposals/:id/discount (AJAX)
+      │   ├─ ProposalService.applyManualDiscount()
+      │   ├─ DB: UPDATE proposals SET discount_percentage
+      │   └─ RESPONSE: { totals RECALCED }
+      │
+      └─▶ POST /proposal/:id/publish
+          ├─ EditorController.publishProposal()
+          ├─ ProposalService.updateProposal({ status: 'sent' })
+          ├─ Generate magic hash (UUID)
+          ├─ DB: INSERT INTO proposal_hashes
+          ├─ EmailService.sendProposal() ← Send email to client
+          └─ REDIRECT /dashboard
+```
+
+---
+
+## Data Flow: Client Proposal View (Magic Link)
+
+```
+CLIENT (External, No Auth)
+      │
+      ├─▶ GET /p/:abc123def456... (magic link in email)
+      │   ├─ ClientController.viewProposal()
+      │   ├─ ProposalService.getProposalByHash(hash)
+      │   │   └─ Check: Proposal found? Not expired? Not is_editing?
+      │   │
+      │   ├─ IF is_editing = TRUE
+      │   │  └─ RENDER maintenance.ejs (waiting screen)
+      │   │
+      │   └─ ELSE
+      │      ├─ Calculate totals
+      │      ├─ Load messages (empty array, loaded via AJAX)
+      │      └─ RENDER proposal-view.ejs
+      │
+      ├─▶ GET /p/:hash/messages (AJAX, every 30s)
+      │   ├─ ClientController.getMessages()
+      │   ├─ ChatService.getMessages(proposal_id)
+      │   └─ RESPONSE: [{ id, sender_id, body, created_at }, ...]
+      │
+      ├─▶ POST /p/:hash/messages (Send message)
+      │   ├─ ClientController.sendMessage()
+      │   ├─ ChatService.createMessage()
+      │   ├─ DB: INSERT INTO proposal_messages
+      │   ├─ EmailService.notifyProposer()
+      │   └─ RESPONSE: { success: true }
+      │
+      ├─▶ POST /p/:hash/accept
+      │   ├─ ClientController.acceptProposal()
+      │   ├─ DB: UPDATE proposals SET status='accepted'
+      │   ├─ EmailService.sendConfirmation()
+      │   └─ RESPONSE: confirm screen
+      │
+      └─▶ POST /p/:hash/modifications
+          ├─ ClientController.requestModifications()
+          ├─ ChatService.createMessage() (with flag: is_modification_request)
+          ├─ EmailService.notifyProposer()
+          └─ RESPONSE: { success: true }
+```
+
+---
+
+## Financial Engine Flow
+
+```
+EDITOR UPDATES PROPOSAL
+      │
+      └─▶ Change quantity, add service, apply discount
+          │
+          └─▶ POST /api/proposals/:id/calculate
+              │
+              ▼
+    ProposalService.calculateTotals(id)
+              │
+              ├─ SELECT proposal_items, proposal_services
+              │
+              ├─ FOR EACH service:
+              │  ├─ subtotal = SUM(price_pax * pax)
+              │  ├─ vat = subtotal * vat_rate
+              │  └─ total = subtotal + vat
+              │
+              ├─ APPLY volume discount (if pax > tier)
+              │
+              ├─ APPLY manual discount (if set)
+              │
+              ├─ CALCULATE margin:
+              │  ├─ cost (from dishes)
+              │  ├─ gross = total - cost
+              │  └─ margin% = gross / total
+              │
+              ├─ AUDIT LOG:
+              │  └─ INSERT price_audit_log (reason, user_id, old_total, new_total)
+              │
+              └─ RESPONSE: { subtotal, vat, total, margin, audit_trail }
+
+EXAMPLE CALCULATION:
+┌─────────────────────────────────────────────────────────┐
+│ Proposal: 100 pax                                       │
+├─────────────────────────────────────────────────────────┤
+│ Service 1: Catering (Gastronomy)                       │
+│   Option: Menu A - 30€/pax                             │
+│   Subtotal: 30 × 100 = 3000€                          │
+│   VAT (21%): 630€                                      │
+│   SUBTOTAL: 3630€                                      │
+├─────────────────────────────────────────────────────────┤
+│ Service 2: Logistics (Staff)                           │
+│   Waiters - 15€/pax                                    │
+│   Subtotal: 15 × 100 = 1500€                          │
+│   VAT (10%): 150€                                      │
+│   SUBTOTAL: 1650€                                      │
+├─────────────────────────────────────────────────────────┤
+│ SUBTOTAL:                             5280€            │
+│ Manual Discount (10%):                -528€            │
+│ TOTAL (before proof):                 4752€            │
+├─────────────────────────────────────────────────────────┤
+│ MARGIN ANALYSIS:                                       │
+│   Cost (from dish costs):             1500€            │
+│   Gross Profit:                       3252€            │
+│   Margin %:                           68.4% ✅         │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Role-Based Access Control (RBAC)
+
+```
+┌──────────────┬──────────┬───────────┬────────────────────┐
+│ Route        │ Needed   │ Typical   │ Can Access         │
+│              │ Role     │ User      │                    │
+├──────────────┼──────────┼───────────┼────────────────────┤
+│ /login       │ None     │ Anyone    │ ✅ All             │
+│ /dashboard   │ Session  │ Commercial│ ✅ Commercial+     │
+│ /proposal/* │ Session  │ Commercial│ ✅ Commercial only │
+│              │          │           │ (own proposals)    │
+│ /admin/*     │ Admin    │ Admin     │ ✅ Admin only      │
+│ /api/admin/* │ Admin    │ Admin     │ ✅ Admin only      │
+│ /p/:hash     │ None     │ Client    │ ✅ Public link     │
+│ /api/venues  │ None     │ Anyone    │ ✅ Public API      │
+└──────────────┴──────────┴───────────┴────────────────────┘
+```
+
+---
+
+## Error Handling
+
+```
+Request Handler
+      │
+      ├─▶ Validation Error
+      │   └─ return res.status(400).json({...}) or .render(errors/400)
+      │
+      ├─▶ Permission Error (wrong user/role)
+      │   └─ return res.status(403).json({...}) or .render(errors/403)
+      │
+      ├─▶ Not Found Error
+      │   └─ return res.status(404).json({...}) or .render(errors/404)
+      │
+      └─▶ Server Error (try/catch)
+          └─ catch (err) → next(err)
+             │
+             └─ Global Error Handler (app.use(errorHandler))
+                └─ return res.status(500).json({...})
+
+Response Pattern:
+─────────────────
+JSON Routes:
+  ✅ { success: true, data: {...}, message: "..." }
+  ❌ { success: false, error: "...", message: "..." }
+
+HTML Routes:
+  ✅ res.render('view', { data })
+  ❌ res.status(400).render('errors/400', { message })
+
+Redirects:
+  ✅ res.redirect(302, '/dashboard')
+  ❌ (implied from POST submission)
+```
+
+---
+
+## Route Testing Checklist
+
+```
+🔍 When adding a new route:
+
+□ Route path correct and unique?
+□ HTTP method correct (GET/POST/PUT/DELETE)?
+□ Validation rules applied?
+  □ express-validator chains declared
+  □ All body/param/query fields validated
+□ Authorization middleware applied?
+  □ authenticateUser for protected routes
+  □ authorizeRole('admin') for admin routes
+□ Controller method exists and exported?
+□ Error handling in place?
+  □ try/catch wrapper
+  □ next(err) called on errors
+  □ Permissions checked (user_id, role)
+□ Response format correct?
+  □ JSON routes: { success, [...data] }
+  □ HTML routes: res.render('view', data)
+  □ Redirects: res.redirect(302, path)
+□ View template exists (if HTML)?
+□ Database queries optimized (prepared statements)?
+□ Rate limiting needed? (especially public APIs)
+□ Route registered in correct file?
+□ Route registered in correct order (app.js)?
+□ Works with CORS/preflight requests (if needed)?
+```
+
+---
+
+## Quick Reference: Route Query Examples
+
+```bash
+# GET requests (with query parameters)
+# ─────────────────────────────────────
+
+# List proposals with filters
+GET /dashboard?status=sent&search=Google&page=1
+
+# List venues with filters
+GET /api/venues?search=madrid&minCapacity=200
+
+# Get proposals by status
+GET /dashboard?status=draft
+
+# ─────────────────────────────────────
+
+# POST requests (with body & params)
+# ─────────────────────────────────────
+
+# Create proposal
+POST /proposal
+{
+  "client_name": "Amazon Inc",
+  "event_date": "2026-03-15",
+  "pax": 150
+}
+
+# Add service to proposal
+POST /api/proposals/42/services
+{
+  "title": "Catering Buffet",
+  "type": "gastronomy",
+  "vat_rate": 21
+}
+
+# Apply discount
+POST /api/proposals/42/discount
+{
+  "discount_percentage": 10,
+  "reason": "Loyal client"
+}
+
+# Send proposal to client
+POST /proposal/42/publish
+(no body, auto-generates magic link & sends email)
+
+# Client sends message
+POST /p/abc123def456/messages
+{
+  "message_body": "Can we add a cocktail hour?"
+}
+
+# ─────────────────────────────────────
+
+# PUT requests (update existing)
+# ─────────────────────────────────────
+
+# Update venue
+PUT /api/admin/venues/5
+{
+  "name": "New name",
+  "capacity_banquet": 250
+}
+
+# Update volume discount tier
+PUT /api/volume-discounts/3
+{
+  "discount_percentage": 15
+}
+
+# ─────────────────────────────────────
+
+# DELETE requests
+# ─────────────────────────────────────
+
+# Remove service from proposal
+DELETE /api/proposals/42/services/7
+
+# Delete proposal
+POST /proposal/42/delete  (actually POST form, not true DELETE)
+
+# Delete venue
+DELETE /api/admin/venues/5
+
+# Remove discount
+DELETE /api/proposals/42/discount
+```
+
+---
+
+## Summary
+
+**Total Routes:** 52  
+**Views:** 15+  
+**Controllers:** 4  
+**Services:** 5  
+**Middleware:** 10+  
+
+**Key Features:**
+✅ Magic link public access (no login required)  
+✅ Role-based access control (admin, commercial)  
+✅ Financial engine (VAT, discounts, margins)  
+✅ Image optimization (Sharp, WebP)  
+✅ Web scraping (Puppeteer)  
+✅ Email notifications (Nodemailer)  
+✅ Real-time chat (AJAX polling)  
+✅ PDF export (Puppeteer)  
+
+**Next Phases:**
+⭐⭐⭐ User database integration  
+⭐⭐⭐ Rate limiting on magic links  
+⭐⭐⭐ Password reset flow  
+⭐⭐ Analytics dashboard  
+⭐⭐ Signature capture (e-signature)  
+
+---
+
+*Generated: February 6, 2026*  
+*Architecture: Node.js/Express/MariaDB*  
+*Status: Complete routing structure defined*

@@ -1,0 +1,975 @@
+{
+  "project": "MICE Catering Proposals",
+  "version": "1.0.0",
+  "generatedDate": "2026-02-06",
+  "totalRoutes": 52,
+  "routes": {
+    "authentication": {
+      "file": "src/routes/auth.js",
+      "middleware": ["public"],
+      "routes": [
+        {
+          "path": "/login",
+          "method": "GET",
+          "handler": "authRoutes (inline)",
+          "controller": "N/A",
+          "purpose": "Display login form with email/password inputs",
+          "authRequired": false,
+          "roleRequired": null,
+          "validation": [],
+          "statusCodes": [200],
+          "notes": "Hardcoded HTML inline, demo: test@example.com/password123"
+        },
+        {
+          "path": "/login",
+          "method": "POST",
+          "handler": "authRoutes (inline)",
+          "controller": "N/A",
+          "purpose": "Process login and create session",
+          "authRequired": false,
+          "roleRequired": null,
+          "validation": [
+            { "field": "email", "rule": "isEmail()" },
+            { "field": "password", "rule": "notEmpty()" }
+          ],
+          "statusCodes": [302, 400],
+          "bodyExample": { "email": "test@example.com", "password": "password123" }
+        },
+        {
+          "path": "/logout",
+          "method": "GET",
+          "handler": "authRoutes (inline)",
+          "controller": "N/A",
+          "purpose": "Destroy session and redirect to login",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [],
+          "statusCodes": [302]
+        }
+      ]
+    },
+    "dashboard": {
+      "file": "src/routes/dashboard.js",
+      "middleware": ["authenticateUser"],
+      "proposalManagement": [
+        {
+          "path": "/dashboard",
+          "method": "GET",
+          "handler": "DashboardController.getProposals()",
+          "purpose": "List all user proposals with filters and pagination",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [
+            { "field": "status", "rule": "isIn(['all','draft','sent','accepted'])", "optional": true },
+            { "field": "search", "rule": "isLength({max:100})", "optional": true },
+            { "field": "page", "rule": "isInt({min:1})", "optional": true }
+          ],
+          "queryExample": "?status=draft&search=amazon&page=1",
+          "statusCodes": [200, 400],
+          "response": "HTML (dashboard.ejs)"
+        },
+        {
+          "path": "/proposal/new",
+          "method": "GET",
+          "handler": "DashboardController.newProposal()",
+          "purpose": "Display new proposal creation form",
+          "authRequired": true,
+          "roleRequired": null,
+          "statusCodes": [200]
+        },
+        {
+          "path": "/proposal",
+          "method": "POST",
+          "handler": "DashboardController.createProposal()",
+          "purpose": "Create new proposal with basic client info",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [
+            { "field": "client_name", "rule": "trim().notEmpty().isLength({max:255})" },
+            { "field": "event_date", "rule": "isISO8601()", "optional": true },
+            { "field": "pax", "rule": "isInt({min:0})", "optional": true }
+          ],
+          "bodyExample": {
+            "client_name": "Amazon Inc",
+            "event_date": "2026-03-15",
+            "pax": 150
+          },
+          "statusCodes": [302, 400, 500]
+        },
+        {
+          "path": "/proposal/:id/duplicate",
+          "method": "POST",
+          "handler": "DashboardController.duplicateProposal()",
+          "purpose": "Deep clone proposal (venues, services, items all copied)",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [
+            { "field": "id", "rule": "isInt()", "location": "params" }
+          ],
+          "statusCodes": [302, 403, 404]
+        },
+        {
+          "path": "/proposal/:id/delete",
+          "method": "POST",
+          "handler": "DashboardController.deleteProposal()",
+          "purpose": "Delete proposal and all related data",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [
+            { "field": "id", "rule": "isInt()", "location": "params" }
+          ],
+          "statusCodes": [302, 403, 404]
+        },
+        {
+          "path": "/proposal/:id/status",
+          "method": "POST",
+          "handler": "DashboardController.updateStatus()",
+          "purpose": "Update proposal status via AJAX",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [
+            { "field": "id", "rule": "isInt()", "location": "params" },
+            { "field": "status", "rule": "isIn(['draft','sent','accepted'])" }
+          ],
+          "bodyExample": { "status": "sent" },
+          "statusCodes": [200, 400, 403],
+          "response": "JSON"
+        }
+      ],
+      "adminPanel": [
+        {
+          "path": "/admin",
+          "method": "GET",
+          "handler": "AdminController.getAdminDashboard()",
+          "purpose": "Admin dashboard home",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "statusCodes": [200, 403]
+        },
+        {
+          "path": "/admin/venues",
+          "method": "GET",
+          "handler": "AdminController.getVenuesListPage()",
+          "purpose": "Manage venues with scraping and CRUD options",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "statusCodes": [200, 403]
+        },
+        {
+          "path": "/admin/dishes",
+          "method": "GET",
+          "handler": "AdminController.getDishesPanel()",
+          "purpose": "Manage dishes catalog (import/export CSV)",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "statusCodes": [200, 403]
+        },
+        {
+          "path": "/admin/services",
+          "method": "GET",
+          "handler": "AdminController.getServicesPanel()",
+          "purpose": "Manage services (gastronomy, logistics, staff)",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "statusCodes": [200, 403]
+        }
+      ]
+    },
+    "editor": {
+      "file": "src/routes/editor.js",
+      "middleware": ["authenticateUser"],
+      "routes": [
+        {
+          "path": "/proposal/:id/edit",
+          "method": "GET",
+          "handler": "EditorController.renderEditor()",
+          "purpose": "Show full proposal editor with venues, services, items, financial panel",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [
+            { "field": "id", "rule": "isInt()", "location": "params" }
+          ],
+          "statusCodes": [200, 400, 403, 404]
+        },
+        {
+          "path": "/proposal/:id/update",
+          "method": "POST",
+          "handler": "EditorController.updateProposal()",
+          "purpose": "Save proposal basic fields (client_name, event_date, pax, conditions)",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [
+            { "field": "id", "rule": "isInt()", "location": "params" },
+            { "field": "client_name", "rule": "trim().isLength({min:2,max:255})" },
+            { "field": "event_date", "rule": "isISO8601()", "optional": true },
+            { "field": "pax", "rule": "isInt({min:0})", "optional": true },
+            { "field": "legal_conditions", "rule": "trim()", "optional": true }
+          ],
+          "statusCodes": [302, 400, 403]
+        },
+        {
+          "path": "/proposal/:id/publish",
+          "method": "POST",
+          "handler": "EditorController.publishProposal()",
+          "purpose": "Send proposal to client (status → 'sent', generate magic link)",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [
+            { "field": "id", "rule": "isInt()", "location": "params" }
+          ],
+          "statusCodes": [302, 403, 404]
+        },
+        {
+          "path": "/proposal/:id/archive",
+          "method": "POST",
+          "handler": "EditorController.archiveProposal()",
+          "purpose": "Archive proposal (status → 'archived')",
+          "authRequired": true,
+          "roleRequired": null,
+          "validation": [
+            { "field": "id", "rule": "isInt()", "location": "params" }
+          ],
+          "statusCodes": [302, 403, 404]
+        }
+      ]
+    },
+    "api": {
+      "file": "src/routes/api.js",
+      "middleware": ["authenticateUser (most)"],
+      "proposalServices": [
+        {
+          "path": "/api/proposals/:id/services",
+          "method": "POST",
+          "handler": "EditorController.addService()",
+          "purpose": "Add service to proposal (gastronomy, logistics, staff)",
+          "authRequired": true,
+          "validation": [
+            { "field": "id", "rule": "isInt()" },
+            { "field": "title", "rule": "trim().isLength({min:2,max:255})" },
+            { "field": "type", "rule": "isIn(['gastronomy','logistics','staff','other'])" },
+            { "field": "vat_rate", "rule": "isDecimal()", "optional": true }
+          ],
+          "bodyExample": {
+            "title": "Catering Buffet",
+            "type": "gastronomy",
+            "vat_rate": 21
+          },
+          "statusCodes": [200, 400, 403],
+          "response": "JSON"
+        },
+        {
+          "path": "/api/proposals/:id/services/:serviceId",
+          "method": "DELETE",
+          "handler": "EditorController.removeService()",
+          "purpose": "Remove service from proposal",
+          "authRequired": true,
+          "validation": [
+            { "field": "id", "rule": "isInt()" },
+            { "field": "serviceId", "rule": "isInt()" }
+          ],
+          "statusCodes": [200, 403, 404]
+        },
+        {
+          "path": "/api/proposals/:id/options",
+          "method": "POST",
+          "handler": "EditorController (inline)",
+          "purpose": "Add service option (variant) with price per pax",
+          "authRequired": true,
+          "validation": [
+            { "field": "id", "rule": "isInt()" },
+            { "field": "service_id", "rule": "isInt()" },
+            { "field": "name", "rule": "trim().isLength({min:2,max:100})" },
+            { "field": "price_pax", "rule": "isDecimal()" },
+            { "field": "discount_pax", "rule": "isDecimal()", "optional": true }
+          ],
+          "bodyExample": {
+            "service_id": 5,
+            "name": "Menu A (24€ pp)",
+            "price_pax": 24.00,
+            "discount_pax": 0
+          },
+          "statusCodes": [200, 400, 403]
+        },
+        {
+          "path": "/api/proposals/:id/options/:optionId",
+          "method": "DELETE",
+          "handler": "EditorController (inline)",
+          "purpose": "Remove service option",
+          "authRequired": true,
+          "statusCodes": [200, 403, 404]
+        },
+        {
+          "path": "/api/proposals/:id/data",
+          "method": "GET",
+          "handler": "EditorController (inline)",
+          "purpose": "Get full proposal data as JSON (venues, services, items, totals)",
+          "authRequired": true,
+          "statusCodes": [200, 403, 404],
+          "response": {
+            "success": true,
+            "proposal": {}
+          }
+        }
+      ],
+      "venues": [
+        {
+          "path": "/api/venues",
+          "method": "GET",
+          "handler": "VenueService.getAll(filters)",
+          "purpose": "List all venues with optional filters",
+          "authRequired": false,
+          "validation": [
+            { "field": "search", "rule": "text search", "optional": true },
+            { "field": "minCapacity", "rule": "integer", "optional": true },
+            { "field": "features", "rule": "text", "optional": true }
+          ],
+          "queryExample": "?search=madrid&minCapacity=200&features=wifi",
+          "statusCodes": [200],
+          "response": {
+            "success": true,
+            "count": 15,
+            "venues": []
+          }
+        },
+        {
+          "path": "/api/venues/:id",
+          "method": "GET",
+          "handler": "VenueService.getById(id)",
+          "purpose": "Get specific venue details",
+          "authRequired": false,
+          "validation": [
+            { "field": "id", "rule": "isInt()" }
+          ],
+          "statusCodes": [200, 404]
+        },
+        {
+          "path": "/api/admin/venues/scrape",
+          "method": "POST",
+          "handler": "VenueService.syncVenuesFromWebsite()",
+          "purpose": "Execute Puppeteer web scraping of micecatering.com",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "notes": "Timeout: ~45s, runs with --no-sandbox arg",
+          "statusCodes": [200, 403, 500],
+          "response": {
+            "success": true,
+            "scrapedCount": 12,
+            "insertedCount": 8,
+            "message": "Scraping completed"
+          }
+        },
+        {
+          "path": "/api/admin/venues/manual",
+          "method": "POST",
+          "handler": "VenueService.createManual()",
+          "purpose": "Create venue manually (fallback if scraping fails)",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "validation": [
+            { "field": "name", "rule": "trim().isLength({min:2,max:255})" },
+            { "field": "description", "rule": "trim()", "optional": true },
+            { "field": "capacity_cocktail", "rule": "isInt({min:0})", "optional": true },
+            { "field": "capacity_banquet", "rule": "isInt({min:0})", "optional": true },
+            { "field": "capacity_theater", "rule": "isInt({min:0})", "optional": true },
+            { "field": "address", "rule": "trim()", "optional": true },
+            { "field": "external_url", "rule": "isURL()", "optional": true }
+          ],
+          "statusCodes": [200, 400, 403]
+        },
+        {
+          "path": "/api/admin/venues/:id",
+          "method": "PUT",
+          "handler": "VenueService.updateManual()",
+          "purpose": "Update existing venue",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "validation": [
+            { "field": "id", "rule": "isInt()", "location": "params" },
+            { "field": "name", "rule": "trim().isLength({min:2,max:255})", "optional": true }
+          ],
+          "statusCodes": [200, 400, 403, 404]
+        },
+        {
+          "path": "/api/admin/venues/:id",
+          "method": "DELETE",
+          "handler": "VenueService.delete()",
+          "purpose": "Delete venue",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "validation": [
+            { "field": "id", "rule": "isInt()" }
+          ],
+          "statusCodes": [200, 403, 404]
+        }
+      ],
+      "imageUpload": [
+        {
+          "path": "/api/admin/upload/image",
+          "method": "POST",
+          "handler": "AdminController.uploadImage()",
+          "purpose": "Upload single image → Resize to 1920px → Convert to WebP",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "validation": [
+            { "field": "file", "rule": "multipart file", "maxSize": "50MB" }
+          ],
+          "supportedFormats": ["JPG", "PNG", "GIF", "WebP", "SVG"],
+          "processing": "Sharp: max 1920px width → WebP → Save to /public/uploads/",
+          "statusCodes": [200, 400, 403],
+          "response": {
+            "success": true,
+            "hash": "abc123def456",
+            "url": "/uploads/abc123def456/image.webp"
+          }
+        },
+        {
+          "path": "/api/admin/upload/logo",
+          "method": "POST",
+          "handler": "AdminController.uploadClientLogo()",
+          "purpose": "Upload client logo + extract dominant color for branding",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "statusCodes": [200, 400, 403],
+          "response": {
+            "success": true,
+            "hash": "xyz789uvw123",
+            "url": "/uploads/xyz789uvw123/logo.webp",
+            "dominantColor": "#0066cc"
+          }
+        },
+        {
+          "path": "/api/admin/upload/batch",
+          "method": "POST",
+          "handler": "AdminController.uploadBatch()",
+          "purpose": "Upload multiple images at once",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "statusCodes": [200, 400, 403],
+          "response": {
+            "success": true,
+            "uploaded": 5,
+            "images": []
+          }
+        },
+        {
+          "path": "/api/admin/image/:hash",
+          "method": "DELETE",
+          "handler": "AdminController.deleteImage()",
+          "purpose": "Delete image from storage",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "validation": [
+            { "field": "hash", "rule": "isLength({min:12,max:12})" }
+          ],
+          "statusCodes": [200, 403, 404]
+        }
+      ],
+      "financialEngine": [
+        {
+          "path": "/api/proposals/:id/calculate",
+          "method": "POST",
+          "handler": "EditorController.calculateTotals()",
+          "purpose": "Recalculate all totals (VAT, discounts, margins)",
+          "authRequired": true,
+          "validation": [
+            { "field": "id", "rule": "isInt()" }
+          ],
+          "statusCodes": [200, 403, 404],
+          "response": {
+            "success": true,
+            "subtotal": 5000.00,
+            "vat": 1050.00,
+            "total": 6050.00,
+            "margin": 1000.00,
+            "marginPercent": 16.5
+          }
+        },
+        {
+          "path": "/api/proposals/:id/totals",
+          "method": "GET",
+          "handler": "EditorController (inline)",
+          "purpose": "Get detailed totals breakdown",
+          "authRequired": true,
+          "statusCodes": [200, 403, 404]
+        },
+        {
+          "path": "/api/proposals/:id/discount",
+          "method": "POST",
+          "handler": "ProposalService.applyManualDiscount()",
+          "purpose": "Apply manual discount percentage to proposal",
+          "authRequired": true,
+          "validation": [
+            { "field": "id", "rule": "isInt()" },
+            { "field": "discount_percentage", "rule": "isFloat({min:0,max:100})" },
+            { "field": "reason", "rule": "trim().isLength({min:3,max:255})" }
+          ],
+          "bodyExample": {
+            "discount_percentage": 10,
+            "reason": "Loyal client"
+          },
+          "statusCodes": [200, 403, 404]
+        },
+        {
+          "path": "/api/proposals/:id/discount",
+          "method": "DELETE",
+          "handler": "ProposalService.applyManualDiscount(0)",
+          "purpose": "Remove manual discount",
+          "authRequired": true,
+          "statusCodes": [200, 403, 404]
+        },
+        {
+          "path": "/api/proposals/:id/margin-analysis",
+          "method": "GET",
+          "handler": "ProposalService.getMarginAnalysis()",
+          "purpose": "Get detailed profit margin analysis by service",
+          "authRequired": true,
+          "statusCodes": [200, 403, 404]
+        },
+        {
+          "path": "/api/proposals/:id/audit-log",
+          "method": "GET",
+          "handler": "ProposalService.getPriceAuditLog()",
+          "purpose": "Get price change history with timestamps and reasons",
+          "authRequired": true,
+          "statusCodes": [200, 403, 404]
+        },
+        {
+          "path": "/api/volume-discounts",
+          "method": "GET",
+          "handler": "ProposalService.getVolumeDiscountTiers()",
+          "purpose": "Get all volume discount tiers",
+          "authRequired": true,
+          "statusCodes": [200]
+        },
+        {
+          "path": "/api/volume-discounts",
+          "method": "POST",
+          "handler": "ProposalService.createVolumeDiscountTier()",
+          "purpose": "Create new volume discount tier",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "validation": [
+            { "field": "min_pax", "rule": "isInt({min:0})" },
+            { "field": "max_pax", "rule": "isInt({min:0})", "optional": true },
+            { "field": "discount_percentage", "rule": "isFloat({min:0,max:100})" },
+            { "field": "description", "rule": "trim()", "optional": true }
+          ],
+          "statusCodes": [200, 400, 403]
+        },
+        {
+          "path": "/api/volume-discounts/:tierId",
+          "method": "PUT",
+          "handler": "ProposalService.updateVolumeDiscountTier()",
+          "purpose": "Update volume discount tier",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "validation": [
+            { "field": "tierId", "rule": "isInt()" },
+            { "field": "min_pax", "rule": "isInt({min:0})", "optional": true },
+            { "field": "max_pax", "rule": "isInt({min:0})", "optional": true },
+            { "field": "discount_percentage", "rule": "isFloat({min:0,max:100})", "optional": true },
+            { "field": "is_active", "rule": "isBoolean()", "optional": true }
+          ],
+          "statusCodes": [200, 400, 403, 404]
+        }
+      ]
+    },
+    "client": {
+      "file": "src/routes/client.js",
+      "middleware": ["public (magic link based)"],
+      "routes": [
+        {
+          "path": "/p/:hash",
+          "method": "GET",
+          "handler": "ClientController.viewProposal()",
+          "purpose": "View proposal via magic link (read-only, no login required)",
+          "authRequired": false,
+          "isPublic": true,
+          "validation": [
+            { "field": "hash", "rule": "isLength({min:32,max:64})" }
+          ],
+          "notes": "If is_editing=true, shows maintenance.ejs instead",
+          "statusCodes": [200, 400, 404]
+        },
+        {
+          "path": "/p/:hash/messages",
+          "method": "GET",
+          "handler": "ClientController.getMessages()",
+          "purpose": "Fetch messages for AJAX polling (30s intervals)",
+          "authRequired": false,
+          "isPublic": true,
+          "validation": [
+            { "field": "hash", "rule": "isLength({min:32,max:64})" }
+          ],
+          "statusCodes": [200, 400, 404],
+          "response": {
+            "success": true,
+            "messages": [
+              {
+                "id": 1,
+                "sender_id": null,
+                "body": "Let's discuss the menu options",
+                "created_at": "2026-02-06T10:30:00Z"
+              }
+            ]
+          }
+        },
+        {
+          "path": "/p/:hash/messages",
+          "method": "POST",
+          "handler": "ClientController.sendMessage()",
+          "purpose": "Send message from client",
+          "authRequired": false,
+          "isPublic": true,
+          "validation": [
+            { "field": "hash", "rule": "isLength({min:32,max:64})" },
+            { "field": "message_body", "rule": "trim().isLength({min:1,max:2000})" }
+          ],
+          "bodyExample": { "message_body": "Can we increase the cocktail duration to 2 hours?" },
+          "statusCodes": [200, 400, 404],
+          "notes": "Triggers email notification to proposer"
+        },
+        {
+          "path": "/p/:hash/messages/mark-read",
+          "method": "POST",
+          "handler": "ClientController.markMessagesAsRead()",
+          "purpose": "Mark all messages as read",
+          "authRequired": false,
+          "isPublic": true,
+          "validation": [
+            { "field": "hash", "rule": "isLength({min:32,max:64})" }
+          ],
+          "statusCodes": [200, 400, 404]
+        },
+        {
+          "path": "/p/:hash/download-pdf",
+          "method": "POST",
+          "handler": "ClientController.downloadPDF()",
+          "purpose": "Generate and download PDF of proposal",
+          "authRequired": false,
+          "isPublic": true,
+          "validation": [
+            { "field": "hash", "rule": "isLength({min:32,max:64})" }
+          ],
+          "statusCodes": [200, 400, 404],
+          "notes": "Uses Puppeteer to render to PDF"
+        },
+        {
+          "path": "/p/:hash/accept",
+          "method": "POST",
+          "handler": "ClientController.acceptProposal()",
+          "purpose": "Client accepts proposal",
+          "authRequired": false,
+          "isPublic": true,
+          "validation": [
+            { "field": "hash", "rule": "isLength({min:32,max:64})" }
+          ],
+          "statusCodes": [200, 302, 404],
+          "notes": "Updates status to 'accepted', sends email notification"
+        },
+        {
+          "path": "/p/:hash/reject",
+          "method": "POST",
+          "handler": "ClientController.rejectProposal()",
+          "purpose": "Client rejects proposal",
+          "authRequired": false,
+          "isPublic": true,
+          "validation": [
+            { "field": "hash", "rule": "isLength({min:32,max:64})" },
+            { "field": "reason", "rule": "trim().isLength({max:500})", "optional": true }
+          ],
+          "bodyExample": { "reason": "Budget too high" },
+          "statusCodes": [200, 302, 404]
+        },
+        {
+          "path": "/p/:hash/modifications",
+          "method": "POST",
+          "handler": "ClientController.requestModifications()",
+          "purpose": "Client requests proposal modifications",
+          "authRequired": false,
+          "isPublic": true,
+          "validation": [
+            { "field": "hash", "rule": "isLength({min:32,max:64})" },
+            { "field": "modifications", "rule": "trim().isLength({min:10,max:2000})" }
+          ],
+          "bodyExample": { "modifications": "Could we reduce the number of catering stations from 3 to 2?" },
+          "statusCodes": [200, 400, 404]
+        }
+      ]
+    },
+    "admin": {
+      "file": "src/app.js (inline) + src/routes/dashboard.js",
+      "routes": [
+        {
+          "path": "/admin/dishes/import",
+          "method": "POST",
+          "handler": "AdminController.importDishes()",
+          "purpose": "Import dishes from CSV file",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "statusCodes": [302, 400, 403]
+        },
+        {
+          "path": "/admin/dishes/export",
+          "method": "GET",
+          "handler": "AdminController.exportDishes()",
+          "purpose": "Export dishes to CSV file",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "statusCodes": [200, 403],
+          "response": "CSV file download"
+        },
+        {
+          "path": "/admin/dishes/:id/delete",
+          "method": "POST",
+          "handler": "AdminController.deleteDish()",
+          "purpose": "Delete dish from catalog",
+          "authRequired": true,
+          "roleRequired": "admin",
+          "statusCodes": [302, 403, 404]
+        }
+      ]
+    }
+  },
+  "views": {
+    "commercial": [
+      {
+        "file": "views/commercial/dashboard.ejs",
+        "route": "/dashboard GET",
+        "purpose": "List proposals with filters and pagination"
+      },
+      {
+        "file": "views/commercial/editor.ejs",
+        "route": "/proposal/:id/edit GET",
+        "purpose": "Full proposal editor with venues, services, items, financials"
+      },
+      {
+        "file": "views/commercial/new-proposal.ejs",
+        "route": "/proposal/new GET",
+        "purpose": "New proposal creation form"
+      }
+    ],
+    "client": [
+      {
+        "file": "views/client/proposal-view.ejs",
+        "route": "/p/:hash GET",
+        "purpose": "Read-only proposal view with decision buttons"
+      },
+      {
+        "file": "views/client/maintenance.ejs",
+        "route": "/p/:hash GET (conditional)",
+        "purpose": "Waiting screen when is_editing=true"
+      }
+    ],
+    "auth": [
+      {
+        "file": "views/auth/login.ejs",
+        "route": "/login GET",
+        "purpose": "Login form (currently inline HTML)"
+      }
+    ],
+    "admin": [
+      {
+        "file": "views/admin/venues-list.ejs",
+        "route": "/admin/venues GET",
+        "purpose": "Venue management CRUD"
+      },
+      {
+        "file": "views/admin/venue-form-modal.ejs",
+        "route": "Inline in venues-list.ejs",
+        "purpose": "Create/edit venue modal form"
+      },
+      {
+        "file": "views/admin/dishes-list.ejs",
+        "route": "/admin/dishes GET",
+        "purpose": "Dishes management"
+      },
+      {
+        "file": "views/admin/services-list.ejs",
+        "route": "/admin/services GET",
+        "purpose": "Services management"
+      }
+    ],
+    "partials": [
+      {
+        "file": "views/partials/header.ejs",
+        "usage": "All commercial views",
+        "content": "Navigation bar, user menu, logo"
+      },
+      {
+        "file": "views/partials/header-client.ejs",
+        "usage": "Client views",
+        "content": "Minimal header for public proposals"
+      },
+      {
+        "file": "views/partials/footer.ejs",
+        "usage": "All views",
+        "content": "Company branding, copyright"
+      },
+      {
+        "file": "views/partials/flash-messages.ejs",
+        "usage": "All views",
+        "content": "Alert boxes (success/error/info messages)"
+      }
+    ]
+  },
+  "middleware": {
+    "authentication": [
+      {
+        "name": "authenticateUser",
+        "file": "src/middleware/auth.js",
+        "purpose": "Check if session.user exists, redirect to /login if not"
+      },
+      {
+        "name": "authorizeRole",
+        "file": "src/middleware/auth.js",
+        "purpose": "Check if user.role matches required role (admin, commercial)"
+      }
+    ],
+    "global": [
+      {
+        "name": "express.json()",
+        "purpose": "Parse JSON bodies (50MB limit)"
+      },
+      {
+        "name": "express.urlencoded()",
+        "purpose": "Parse form bodies (50MB limit)"
+      },
+      {
+        "name": "express-fileupload",
+        "purpose": "Handle file uploads (50MB max)"
+      },
+      {
+        "name": "express.static",
+        "purpose": "Serve static files from /public"
+      },
+      {
+        "name": "express-session",
+        "purpose": "Session management (24h max age)"
+      },
+      {
+        "name": "connect-flash",
+        "purpose": "Flash message system"
+      }
+    ]
+  },
+  "routeRegistrationOrder": [
+    "1. src/routes/auth.js - /login, /logout, root redirect",
+    "2. src/routes/index.js - /health, root redirect",
+    "3. src/routes/dashboard.js - /dashboard, /admin/*, /proposal/*",
+    "4. src/routes/editor.js - /proposal/:id/edit, /proposal/:id/update",
+    "5. src/routes/api.js - /api/*, image uploads",
+    "6. src/routes/client.js - /p/:hash (magic link routes)",
+    "7. 404 and error handlers"
+  ],
+  "statistics": {
+    "totalRoutes": 52,
+    "getRoutes": 22,
+    "postRoutes": 22,
+    "putRoutes": 4,
+    "deleteRoutes": 4,
+    "protectedRoutes": 38,
+    "publicRoutes": 14,
+    "adminOnlyRoutes": 14,
+    "totalViews": 15,
+    "totalPartials": 4,
+    "controllers": 4,
+    "services": 5
+  },
+  "missingTodoRoutes": {
+    "authentication": [
+      {
+        "path": "/register",
+        "method": "GET/POST",
+        "priority": "⭐⭐⭐ High",
+        "notes": "User registration flow"
+      },
+      {
+        "path": "/forgot-password",
+        "method": "GET/POST",
+        "priority": "⭐⭐ Medium",
+        "notes": "Password reset flow"
+      }
+    ],
+    "proposals": [
+      {
+        "path": "/proposal/:id/send-email",
+        "method": "POST",
+        "priority": "⭐⭐⭐ High",
+        "notes": "Send proposal via email (Nodemailer)"
+      },
+      {
+        "path": "/proposal/:id/schedule-send",
+        "method": "POST",
+        "priority": "⭐⭐ Medium",
+        "notes": "Schedule delivery for specific date/time"
+      }
+    ],
+    "client": [
+      {
+        "path": "/p/:hash/signature",
+        "method": "POST",
+        "priority": "⭐⭐⭐ High",
+        "notes": "E-signature capture"
+      },
+      {
+        "path": "/p/:hash/rate-limit",
+        "method": "Middleware",
+        "priority": "⭐⭐⭐ High",
+        "notes": "Implement 5 req/min per IP rate limiting"
+      }
+    ],
+    "admin": [
+      {
+        "path": "/admin/users",
+        "method": "GET",
+        "priority": "⭐⭐⭐ High",
+        "notes": "User account management CRUD"
+      },
+      {
+        "path": "/admin/settings",
+        "method": "GET/POST",
+        "priority": "⭐⭐ Medium",
+        "notes": "App settings (VAT rates, company info)"
+      }
+    ]
+  },
+  "permissionModel": {
+    "roles": [
+      {
+        "name": "admin",
+        "description": "Full system access",
+        "capabilities": [
+          "View/edit all proposals",
+          "Manage venues (CRUD + scraping)",
+          "Manage dishes and services",
+          "Manage users",
+          "Access analytics",
+          "Upload images",
+          "Configure app settings"
+        ]
+      },
+      {
+        "name": "commercial",
+        "description": "Can create and manage proposals",
+        "capabilities": [
+          "Create/edit own proposals",
+          "Send proposals to clients",
+          "View proposal analytics",
+          "Chat with clients"
+        ]
+      },
+      {
+        "name": "client",
+        "description": "View assigned proposals via magic link",
+        "capabilities": [
+          "View proposal details",
+          "Accept/reject proposal",
+          "Request modifications",
+          "Message with proposer",
+          "Download PDF"
+        ]
+      }
+    ]
+  }
+}
