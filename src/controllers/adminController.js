@@ -208,6 +208,215 @@ class AdminController {
       res.redirect('/admin/venues');
     }
   }
+
+  /**
+   * GET /admin/dishes - Panel de gestión de platos
+   */
+  async getDishesPanel(req, res) {
+    try {
+      const conn = await pool.getConnection();
+      const dishes = await conn.query('SELECT * FROM dishes ORDER BY category, name');
+      conn.end();
+
+      res.render('admin/dishes', {
+        dishes,
+        totalDishes: dishes.length
+      });
+    } catch (err) {
+      console.error('Error en getDishesPanel:', err);
+      req.flash('error', 'Error al cargar platos');
+      res.redirect('/dashboard');
+    }
+  }
+
+  /**
+   * POST /admin/dishes/import - Importar platos desde JSON
+   */
+  async importDishes(req, res) {
+    try {
+      if (!req.body || !req.body.jsonData) {
+        return res.status(400).json({ error: 'Sin datos JSON' });
+      }
+
+      let data;
+      try {
+        data = JSON.parse(req.body.jsonData);
+      } catch (e) {
+        return res.status(400).json({ error: 'JSON inválido: ' + e.message });
+      }
+
+      if (!Array.isArray(data)) {
+        return res.status(400).json({ error: 'Debe ser un array de platos' });
+      }
+
+      const conn = await pool.getConnection();
+      let inserted = 0;
+      let updated = 0;
+      let errors = [];
+
+      for (const dish of data) {
+        try {
+          if (!dish.name) {
+            errors.push('Fila: sin nombre');
+            continue;
+          }
+
+          const existing = await conn.query(
+            'SELECT id FROM dishes WHERE name = ?',
+            [dish.name]
+          );
+
+          const allergens = typeof dish.allergens === 'string' 
+            ? dish.allergens 
+            : JSON.stringify(dish.allergens || []);
+
+          const badges = typeof dish.badges === 'string' 
+            ? dish.badges 
+            : JSON.stringify(dish.badges || []);
+
+          if (existing.length > 0) {
+            // UPDATE
+            await conn.query(
+              `UPDATE dishes SET 
+                description = ?, 
+                category = ?,
+                allergens = ?,
+                badges = ?,
+                image_url = ?,
+                base_price = ?
+               WHERE id = ?`,
+              [
+                dish.description || null,
+                dish.category || 'otro',
+                allergens,
+                badges,
+                dish.image_url || null,
+                dish.base_price || 0,
+                existing[0].id
+              ]
+            );
+            updated++;
+          } else {
+            // INSERT
+            await conn.query(
+              `INSERT INTO dishes (name, description, category, allergens, badges, image_url, base_price)
+               VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              [
+                dish.name,
+                dish.description || null,
+                dish.category || 'otro',
+                allergens,
+                badges,
+                dish.image_url || null,
+                dish.base_price || 0
+              ]
+            );
+            inserted++;
+          }
+        } catch (e) {
+          errors.push(`${dish.name}: ${e.message}`);
+        }
+      }
+
+      conn.end();
+
+      res.json({
+        success: true,
+        inserted,
+        updated,
+        total: inserted + updated,
+        errors: errors.length > 0 ? errors : null
+      });
+    } catch (err) {
+      console.error('Error en importDishes:', err);
+      res.status(500).json({ error: err.message });
+    }
+  }
+
+  /**
+   * GET /admin/dishes/export - Exportar platos como JSON
+   */
+  async exportDishes(req, res) {
+    try {
+      const conn = await pool.getConnection();
+      const dishes = await conn.query('SELECT * FROM dishes ORDER BY category, name');
+      conn.end();
+
+      const formatted = dishes.map(d => ({
+        name: d.name,
+        description: d.description,
+        category: d.category,
+        allergens: typeof d.allergens === 'string' ? JSON.parse(d.allergens) : d.allergens,
+        badges: typeof d.badges === 'string' ? JSON.parse(d.badges) : d.badges,
+        image_url: d.image_url,
+        base_price: d.base_price
+      }));
+
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=dishes-${new Date().toISOString().split('T')[0]}.json`);
+      res.send(JSON.stringify(formatted, null, 2));
+    } catch (err) {
+      console.error('Error en exportDishes:', err);
+      res.status(500).json({ error: err.message });
+    }
+  }
+
+  /**
+   * POST /admin/dishes/:id/delete - Eliminar plato
+   */
+  async deleteDish(req, res) {
+    try {
+      const { id } = req.params;
+      const conn = await pool.getConnection();
+
+      // Verificar que no esté en propuestas
+      const inUse = await conn.query(
+        'SELECT COUNT(*) as cnt FROM proposal_items WHERE dish_id = ?',
+        [id]
+      );
+
+      if (inUse[0].cnt > 0) {
+        conn.end();
+        return res.status(400).json({ error: 'Plato en uso en propuestas' });
+      }
+
+      await conn.query('DELETE FROM dishes WHERE id = ?', [id]);
+      conn.end();
+
+      req.flash('success', 'Plato eliminado');
+      res.redirect('/admin/dishes');
+    } catch (err) {
+      console.error('Error en deleteDish:', err);
+      req.flash('error', 'Error al eliminar plato');
+      res.redirect('/admin/dishes');
+    }
+  }
+
+  /**
+   * GET /admin/services - Panel de gestión de servicios/menús
+   */
+  async getServicesPanel(req, res) {
+    try {
+      const conn = await pool.getConnection();
+      const services = await conn.query(
+        `SELECT ps.*, p.client_name 
+         FROM proposal_services ps
+         JOIN proposals p ON ps.proposal_id = p.id
+         ORDER BY ps.created_at DESC
+         LIMIT 100`
+      );
+      conn.end();
+
+      res.render('admin/services', {
+        services,
+        totalServices: services.length
+      });
+    } catch (err) {
+      console.error('Error en getServicesPanel:', err);
+      req.flash('error', 'Error al cargar servicios');
+      res.redirect('/dashboard');
+    }
+  }
 }
 
 module.exports = new AdminController();

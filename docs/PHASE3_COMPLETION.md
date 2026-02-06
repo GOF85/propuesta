@@ -116,23 +116,10 @@ updateSaveButton()
 
 
 #### Backend API Tests (8 cases)
-- [ ] **T1:** GET /proposal/:id/edit - Load existing proposal (verify all data loads)
-- [ ] **T2:** POST /proposal/:id/update - Update client info (verify changes saved)
-- [ ] **T3:** POST /api/proposals/:id/services - Add service (verify row appears + totals recalculated)
-- [ ] **T4:** DELETE /api/proposals/:id/services/:id - Remove service (verify row removed)
-- [ ] **T5:** POST /api/proposals/:id/venues - Add venue (verify row appears)
-- [ ] **T6:** DELETE /api/proposals/:id/venues/:id - Remove venue (verify row removed)
-- [ ] **T7:** POST /api/proposals/:id/calculate - Get totals (verify calculation correct)
-- [ ] **T8:** POST /proposal/:id/publish - Send to client (verify status change + is_editing=false)
 
-#### Frontend Interaction Tests (8 cases)
-- [ ] **T9:** Click "Add Service" - Form validation works
-- [ ] **T10:** Add service - Notification appears + row added to table
-- [ ] **T11:** Edit PAX - Total recalculates automatically
-- [ ] **T12:** Remove service - Confirmation dialog appears
-- [ ] **T13:** Save changes - Button disables after save
-- [ ] **T14:** Exit without saving - Warning appears
-- [ ] **T15:** Publish proposal - Redirects to dashboard
+
+
+
 - [ ] **T16:** Print proposal - Buttons/nav hidden in print view
 
 ---

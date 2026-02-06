@@ -114,7 +114,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   if (req.body.email === 'test@example.com' && req.body.password === 'password123') {
-    req.session.user = { id: 12, email: 'test@example.com', name: 'Test', role: 'commercial' };
+    req.session.user = { id: 12, email: 'test@example.com', name: 'Test', role: 'admin' };
     return res.redirect('/dashboard');
   }
   res.redirect('/login');
@@ -178,6 +178,40 @@ app.get('/admin/venues/export', requireAdmin, (req, res) => {
 
 app.post('/admin/venues/:id/delete', requireAdmin, (req, res) => {
   AdminController.deleteVenue(req, res);
+});
+
+// ============ RUTAS ADMIN: DISHES ============
+app.get('/admin/dishes', requireAdmin, async (req, res, next) => {
+  try {
+    await AdminController.getDishesPanel(req, res);
+  } catch (err) {
+    console.error('Admin Dishes Error:', err);
+    req.flash('error', 'Error al cargar panel de platos');
+    res.redirect('/dashboard');
+  }
+});
+
+app.post('/admin/dishes/import', requireAdmin, (req, res) => {
+  AdminController.importDishes(req, res);
+});
+
+app.get('/admin/dishes/export', requireAdmin, (req, res) => {
+  AdminController.exportDishes(req, res);
+});
+
+app.post('/admin/dishes/:id/delete', requireAdmin, (req, res) => {
+  AdminController.deleteDish(req, res);
+});
+
+// ============ RUTAS ADMIN: SERVICES ============
+app.get('/admin/services', requireAdmin, async (req, res, next) => {
+  try {
+    await AdminController.getServicesPanel(req, res);
+  } catch (err) {
+    console.error('Admin Services Error:', err);
+    req.flash('error', 'Error al cargar panel de servicios');
+    res.redirect('/dashboard');
+  }
 });
 
 // RUTAS ANTIGUAS - COMENTADAS (Será reintegradas después)

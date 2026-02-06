@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración - Servicios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50" style="font-family: 'Inter', sans-serif;">
+
+<%- include('../partials/header') %>
+
+<main class="max-w-6xl mx-auto px-6 py-8">
+
+    <%- include('../partials/flash-messages') %>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">📋 Administración - Servicios/Menús</h1>
+        <p class="text-gray-500 mt-2">Visualiza los servicios creados en propuestas. Los servicios se gestionan desde el editor de propuestas.</p>
+    </div>
+
+    <!-- Tabla de Servicios -->
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <% if (services.length === 0) { %>
+            <div class="p-12 text-center text-gray-500">
+                <p class="mb-4">No hay servicios creados aún.</p>
+                <p class="text-sm">Los servicios se crean cuando editas una propuesta.</p>
+            </div>
+        <% } else { %>
+            <div class="flex justify-between items-center bg-gray-50 border-b border-gray-200 px-6 py-4">
+                <div>
+                    <p class="text-gray-600">Total: <strong><%= totalServices %> servicios</strong></p>
+                </div>
+            </div>
+
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left font-semibold text-gray-700">Propuesta</th>
+                        <th class="px-6 py-3 text-left font-semibold text-gray-700">Título</th>
+                        <th class="px-6 py-3 text-left font-semibold text-gray-700">Tipo</th>
+                        <th class="px-6 py-3 text-center font-semibold text-gray-700">Horario</th>
+                        <th class="px-6 py-3 text-center font-semibold text-gray-700">IVA %</th>
+                        <th class="px-6 py-3 text-center font-semibold text-gray-700">Multi-opción</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <% services.forEach(service => { %>
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900"><%= service.client_name %></div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900"><%= service.title %></div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
+                                <%= service.type %>
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm">
+                            <% if (service.start_time && service.end_time) { %>
+                                <%= service.start_time.substring(0, 5) %> - <%= service.end_time.substring(0, 5) %>
+                            <% } else { %>
+                                <span class="text-gray-400">--</span>
+                            <% } %>
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm">
+                            <span class="font-bold"><%= service.vat_rate %>%</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <% if (service.is_multichoice) { %>
+                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">✓ Sí</span>
+                            <% } else { %>
+                                <span class="text-gray-400 text-xs">No</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } %>
+    </div>
+
+    <!-- Info Box -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 class="font-bold text-blue-900 mb-2">💡 Información</h3>
+        <p class="text-blue-700 text-sm mb-2">
+            Los servicios/menús se gestionan directamente en el editor de propuestas. Cada propuesta puede tener varios servicios, y cada servicio puede tener múltiples opciones (A/B/C).
+        </p>
+        <p class="text-blue-600 text-sm">
+            <a href="/dashboard" class="underline font-medium">Ir al Dashboard</a> para crear y editar propuestas.
+        </p>
+    </div>
+
+</main>
+
+<%- include('../partials/footer') %>
+
+</body>
+</html>

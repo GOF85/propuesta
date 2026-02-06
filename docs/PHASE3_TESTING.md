@@ -2,26 +2,19 @@
 
 **Date:** Today  
 **Phase:** Phase 3 (Editor Implementation)  
-**Scope:** Editor backend + frontend integration  
+**Scope:** Editor backend + frontend integration
 
 ---
 
 ## 🎯 TESTING OVERVIEW
 
 Phase 3 implements the **Proposal Editor** - a full-featured interface for editing proposals with:
-- Real-time venue/service management
-- Automatic price calculations
-- Client information editing
-- Publishing workflow
+
 
 **Total Test Cases:** 20 (organized by feature)
-
 ---
-
 ## 📋 PRE-TEST CHECKLIST
-
 Before running tests:
-
 ```bash
 # 1. Start database
 # mysql -u root -p < database.sql
