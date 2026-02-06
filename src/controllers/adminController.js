@@ -605,7 +605,36 @@ class AdminController {
   }
 
   /**
-   * GET /admin/venues/list
+   * GET /admin - Dashboard administrativo principal
+   * Renderiza el panel con estadísticas y accesos rápidos
+   */
+  async getAdminDashboard(req, res) {
+    try {
+      const conn = await pool.getConnection();
+      
+      // Obtener estadísticas
+      const [venuesResult] = await conn.query('SELECT COUNT(*) as count FROM venues');
+      const [dishesResult] = await conn.query('SELECT COUNT(*) as count FROM dishes');
+      const [servicesResult] = await conn.query('SELECT COUNT(*) as count FROM proposal_services');
+      
+      conn.end();
+
+      res.render('admin/dashboard', {
+        totalVenues: venuesResult.count || 0,
+        totalDishes: dishesResult.count || 0,
+        totalServices: servicesResult.count || 0,
+        user: req.session.user,
+        title: 'Panel Administrativo'
+      });
+    } catch (err) {
+      console.error('Error en getAdminDashboard:', err);
+      req.flash('error', 'Error al cargar dashboard admin');
+      res.redirect('/dashboard');
+    }
+  }
+
+  /**
+   * GET /admin/venues - Panel de gestión de venues con scraping
    * Renderizar lista de venues con interfaz de scraping
    */
   async getVenuesListPage(req, res) {
@@ -613,15 +642,23 @@ class AdminController {
       const VenueService = require('../services/VenueService');
       const venues = await VenueService.getAll();
 
+      // Parsear JSON fields
+      const parsedVenues = venues.map(v => ({
+        ...v,
+        features: typeof v.features === 'string' ? JSON.parse(v.features) : (v.features || []),
+        images: typeof v.images === 'string' ? JSON.parse(v.images) : (v.images || [])
+      }));
+
       res.render('admin/venues-list', {
-        venues,
-        totalVenues: venues.length,
+        venues: parsedVenues,
+        totalVenues: parsedVenues.length,
+        user: req.session.user,
         title: 'Gestión de Venues'
       });
     } catch (err) {
       console.error('Error en getVenuesListPage:', err);
       req.flash('error', 'Error al cargar venues');
-      res.redirect('/dashboard');
+      res.redirect('/admin');
     }
   }
 

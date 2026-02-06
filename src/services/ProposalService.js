@@ -128,11 +128,11 @@ class ProposalService {
       prop.services = services.map(s => ({
         ...s,
         options: s.options ? JSON.parse(`[${s.options}]`) : []
+      }));
       
       // Obtener totales completos
       prop.totals = await this.calculateTotals(id, { persist: true });
       prop.total = prop.totals.total_final; // Backward compatibility
-      prop.total = await this.calculateTotals(id);
 
       return prop;
     } finally {

@@ -135,6 +135,20 @@ router.post('/proposal/:id/status', [
 // ============ ADMIN PANEL ============
 
 /**
+ * GET /admin
+ * ADMIN ONLY: Dashboard administrativo principal
+ * Requiere rol: admin
+ */
+router.get('/admin',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getAdminDashboard(req, res, next);
+  }
+);
+
+/**
  * GET /admin/venues
  * ADMIN ONLY: Gestión de venues con scraping
  * Requiere rol: admin

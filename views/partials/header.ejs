@@ -8,12 +8,33 @@
     </div>
     
     <div class="flex items-center gap-4">
-        <!-- Admin Button (only for admins) -->
+        <!-- Admin Dropdown (only for admins) -->
         <% if (user && user.role === 'admin') { %>
-        <a href="/admin" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition text-sm font-semibold flex items-center gap-2 print:hidden">
-            <span>⚙️</span>
-            <span>Admin</span>
-        </a>
+        <div class="relative group">
+            <a href="/admin" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition text-sm font-semibold flex items-center gap-2 print:hidden">
+                <span>⚙️</span>
+                <span>Admin</span>
+                <span class="text-xs">▾</span>
+            </a>
+            <!-- Dropdown Menu -->
+            <div class="hidden group-hover:block absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                <div class="py-2">
+                    <a href="/admin" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <span class="mr-2">📊</span>Dashboard Admin
+                    </a>
+                    <div class="border-t border-gray-100 my-1"></div>
+                    <a href="/admin/venues" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50">
+                        <span class="mr-2">🏢</span>Gestión de Venues
+                    </a>
+                    <a href="/admin/dishes" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50">
+                        <span class="mr-2">🍽️</span>Gestión de Platos
+                    </a>
+                    <a href="/admin/services" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50">
+                        <span class="mr-2">🎯</span>Gestión de Servicios
+                    </a>
+                </div>
+            </div>
+        </div>
         <% } %>
 
         <!-- My Proposals Button (for logged in users) -->
