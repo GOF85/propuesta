@@ -379,6 +379,84 @@
 
     </div>
 
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- IMAGE UPLOAD SECTION -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="mt-12 mb-12">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <span class="text-3xl">📸</span> Gestor de Imágenes
+            <span class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-normal">Sharp + WebP</span>
+        </h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Upload Area -->
+            <div class="lg:col-span-2">
+                <div id="imageUploadBox" class="border-2 border-dashed border-blue-400 rounded-lg p-8 bg-blue-50 text-center hover:bg-blue-100 transition cursor-pointer"
+                     ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;">
+                    
+                    <div class="mb-4">
+                        <span class="text-5xl">⬆️</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Subir Imágenes</h3>
+                    <p class="text-gray-600 mb-4">Arrastra imágenes aquí o haz clic para seleccionar</p>
+                    <p class="text-xs text-gray-500">
+                        Formatos: PNG, JPEG, WebP | Máx: 50MB por archivo<br>
+                        Se optimizarán automáticamente a WebP (max 1920px ancho)
+                    </p>
+                </div>
+
+                <!-- Progress & Status -->
+                <div id="uploadStatus" class="mt-4 hidden">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700">Procesando imágenes...</span>
+                            <span id="uploadProgress" class="text-sm text-blue-600">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="uploadProgressBar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Messages -->
+                <div id="uploadMessages" class="mt-4 space-y-2"></div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="bg-gradient-to-br from-amber-50 to-orange-100 border border-orange-200 rounded-lg p-6">
+                <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>📊</span> Estadísticas
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <div class="text-sm text-gray-600 mb-1">Imágenes cargadas</div>
+                        <div class="text-3xl font-bold text-orange-600" id="imageCount">0</div>
+                    </div>
+                    <div class="pt-3 border-t border-orange-300">
+                        <div class="text-sm text-gray-600 mb-1">Compresión promedio</div>
+                        <div class="text-2xl font-bold text-green-600" id="compressRatio">--</div>
+                        <p class="text-xs text-gray-600 mt-1">Reducción de tamaño</p>
+                    </div>
+                    <div class="pt-3 border-t border-orange-300">
+                        <div class="text-sm text-gray-600 mb-1">Espacio ahorrado</div>
+                        <div class="text-xl font-bold text-blue-600" id="spaceSaved">0 MB</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processed Images Gallery -->
+    <div class="mb-12">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Imágenes Procesadas</h3>
+        <div id="processedImagesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="text-center py-8 col-span-4 text-gray-500">
+                <p class="text-sm">Sube imágenes para verlas aquí</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Info Section with Tips -->
     <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
         
@@ -419,6 +497,8 @@
 </main>
 
 <%- include('../partials/footer') %>
+
+<script src="/js/admin-image-upload.js"></script>
 
 </body>
 </html>
