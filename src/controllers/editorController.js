@@ -19,7 +19,8 @@ class EditorController {
       // Validar ID
       if (!id || isNaN(id)) {
         return res.status(400).render('errors/400', {
-          message: 'ID de propuesta inválido'
+          message: 'ID de propuesta inválido',
+          user: req.user
         });
       }
 
@@ -27,21 +28,29 @@ class EditorController {
       const proposal = await ProposalService.getProposalById(id);
       if (!proposal) {
         return res.status(404).render('errors/404', {
-          message: 'Propuesta no encontrada'
+          message: 'Propuesta no encontrada',
+          user: req.user
         });
       }
 
       // Verificar permisos (user_id)
       if (proposal.user_id !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).render('errors/403', {
-          message: 'No tienes permiso para editar esta propuesta'
+          message: 'No tienes permiso para editar esta propuesta',
+          user: req.user
         });
       }
 
       // Obtener venues disponibles desde la BD
-      const VenueService = require('../services/VenueService');
-      const venueService = new VenueService();
-      const allVenues = await venueService.getAll({ limit: 500 }) || [];
+      let allVenues = [];
+      try {
+        const VenueService = require('../services/VenueService');
+        const venueService = new VenueService();
+        allVenues = await venueService.getAll({ limit: 500 }) || [];
+      } catch (err) {
+        console.error('Error cargando venues:', err.message);
+        // Continuar sin venues si hay error
+      }
 
       // Verificar que no esté en modo mantenimiento para cliente
       if (proposal.is_editing === false) {
@@ -52,14 +61,16 @@ class EditorController {
       // Renderizar editor con datos de propuesta
       res.render('commercial/editor', {
         proposal,
-        availableVenues: allVenues || [],
+        availableVenues: allVenues,
         title: `Editar: ${proposal.client_name}`,
         breadcrumb: [
           { label: 'Dashboard', url: '/dashboard' },
           { label: proposal.client_name }
-        ]
+        ],
+        user: req.user
       });
     } catch (err) {
+      console.error('Error en renderEditor:', err);
       next(err);
     }
   }

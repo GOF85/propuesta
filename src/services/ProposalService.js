@@ -96,7 +96,7 @@ class ProposalService {
       );
 
       if (!proposal || !proposal[0]) {
-        throw new Error('Propuesta no encontrada');
+        return null; // Devolver null en lugar de lanzar error
       }
 
       const prop = proposal[0];
@@ -110,29 +110,34 @@ class ProposalService {
         [id]
       );
 
-      // Servicios
+      // Servicios - Query separado para evitar problemas con GROUP_CONCAT
       const services = await conn.query(
-        `SELECT ps.*, 
-                GROUP_CONCAT(
-                  JSON_OBJECT('id', so.id, 'name', so.name, 'price_pax', so.price_pax, 'discount_pax', so.discount_pax)
-                  SEPARATOR ','
-                ) as options
-         FROM proposal_services ps
-         LEFT JOIN service_options so ON ps.id = so.service_id
-         WHERE ps.proposal_id = ?
-         GROUP BY ps.id`,
+        `SELECT * FROM proposal_services WHERE proposal_id = ? ORDER BY service_order`,
         [id]
       );
 
-      prop.venues = venues;
-      prop.services = services.map(s => ({
-        ...s,
-        options: s.options ? JSON.parse(`[${s.options}]`) : []
-      }));
+      // Obtener opciones para cada servicio
+      for (let service of services) {
+        const options = await conn.query(
+          `SELECT * FROM service_options WHERE service_id = ?`,
+          [service.id]
+        );
+        service.options = options || [];
+      }
+
+      prop.venues = venues || [];
+      prop.services = services || [];
       
       // Obtener totales completos
-      prop.totals = await this.calculateTotals(id, { persist: true });
-      prop.total = prop.totals.total_final; // Backward compatibility
+      try {
+        prop.totals = await this.calculateTotals(id, { persist: true });
+        prop.total = prop.totals.total_final; // Backward compatibility
+      } catch (err) {
+        // Si falla el cálculo, usar valores por defecto
+        console.error('Error calculando totales:', err.message);
+        prop.totals = { subtotal: 0, vat_amount: 0, total_final: 0 };
+        prop.total = 0;
+      }
 
       return prop;
     } finally {

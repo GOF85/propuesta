@@ -58,19 +58,17 @@
 
   <!-- Toolbar -->
   <div class="flex gap-3 mb-6 flex-wrap">
-    <button id="btn-scrape" class="btn-scrape" onclick="startScraping()">
-      <span class="inline-flex items-center gap-2">
-        <i class="fas fa-spider"></i> Scrapear micecatering.com
-      </span>
+    <button id="btn-scrape" class="btn-scrape flex items-center gap-2" onclick="startScraping()">
+      <i data-lucide="download" class="w-4 h-4"></i> <span>Scrapear micecatering.com</span>
     </button>
 
-    <button class="btn-add-manual" onclick="openVenueForm('new')">
-      <i class="fas fa-plus"></i> Crear Venue Manual
+    <button class="btn-add-manual flex items-center gap-2" onclick="openVenueForm('new')">
+      <i data-lucide="plus" class="w-4 h-4"></i> <span>Crear Venue Manual</span>
     </button>
 
-    <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition"
+    <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition flex items-center gap-2"
             onclick="document.getElementById('import-csv').click()">
-      <i class="fas fa-file-csv"></i> Importar CSV
+      <i data-lucide="file" class="w-4 h-4"></i> <span>Importar CSV</span>
     </button>
 
     <input type="file" id="import-csv" hidden accept=".csv"
