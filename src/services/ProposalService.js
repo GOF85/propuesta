@@ -258,7 +258,6 @@ class ProposalService {
           pi.*,
           so.price_pax,
           so.discount_pax,
-          so.cost_price as option_cost,
           ps.vat_rate,
           ps.type as service_type
         FROM proposal_items pi
@@ -775,9 +774,7 @@ class ProposalService {
           ps.type,
           ps.vat_rate,
           SUM(so.price_pax * p.pax) as revenue,
-          SUM(so.cost_price * p.pax) as cost,
-          (SUM(so.price_pax * p.pax) - SUM(so.cost_price * p.pax)) as margin,
-          ((SUM(so.price_pax * p.pax) - SUM(so.cost_price * p.pax)) / NULLIF(SUM(so.price_pax * p.pax), 0) * 100) as margin_percentage
+          SUM(so.price_pax * p.pax) as revenue
         FROM proposal_services ps
         JOIN service_options so ON ps.id = so.service_id
         JOIN proposals p ON ps.proposal_id = p.id
