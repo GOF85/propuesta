@@ -321,17 +321,18 @@ class ProposalService {
 
       const totalVAT = totalVATServices + totalVATFood;
 
-      // 4. Aplicar descuento por volumen (si aplica)
+      // 4. Aplicar descuento por volumen (comentado - tabla volume_discount_tiers no existe)
       let volumeDiscount = 0;
       let volumeDiscountPercentage = 0;
       let volumeDiscountApplied = false;
 
-      const discountTier = await this._getVolumeDiscountTier(pax);
-      if (discountTier && !proposal.discount_percentage) {
-        volumeDiscountPercentage = discountTier.discount_percentage;
-        volumeDiscount = baseAmount * (volumeDiscountPercentage / 100);
-        volumeDiscountApplied = true;
-      }
+      // TODO: Implementar volume_discount_tiers cuando se agregue a DB schema
+      // const discountTier = await this._getVolumeDiscountTier(pax);
+      // if (discountTier && !proposal.discount_percentage) {
+      //   volumeDiscountPercentage = discountTier.discount_percentage;
+      //   volumeDiscount = baseAmount * (volumeDiscountPercentage / 100);
+      //   volumeDiscountApplied = true;
+      // }
 
       // 5. Aplicar descuento manual de la propuesta (si existe)
       let manualDiscount = 0;
