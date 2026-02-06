@@ -1,22 +1,16 @@
 <%- include('../partials/header-client') %>
 
 <!-- 🎨 INYECCIÓN DINÁMICA DE BRANDING -->
-<% 
-  const ImageService = require('../../src/services/ImageService');
-  const brandColor = proposal.brand_color || '#0066cc';
-  const palette = ImageService.generateColorPalette(brandColor);
-%>
-
 <style>
   :root {
     /* Colores dinámicos generados desde logo */
-    --brand-primary: <%= palette.primary %>;
-    --brand-primary-rgb: <%= palette.primaryRgb %>;
-    --brand-hover: <%= palette.hover %>;
-    --brand-light: <%= palette.light %>;
-    --brand-dark: <%= palette.dark %>;
-    --brand-text: <%= palette.text %>;
-    --brand-complement: <%= palette.complement %>;
+    --brand-primary: <%= brandPalette.primary %>;
+    --brand-primary-rgb: <%= brandPalette.primaryRgb %>;
+    --brand-hover: <%= brandPalette.hover %>;
+    --brand-light: <%= brandPalette.light %>;
+    --brand-dark: <%= brandPalette.dark %>;
+    --brand-text: <%= brandPalette.text %>;
+    --brand-complement: <%= brandPalette.complement %>;
   }
 
   /* Aplicar branding dinámico */

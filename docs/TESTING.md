@@ -313,24 +313,20 @@ npm test
      - Servicio B: 30€/pax + VAT 10%
   2. Hacer clic en "Calcular Total"
 - **Resultado Esperado:**
-  ```
   Servicio A: 50 × 40 = 2000€ + 21% VAT = 2420€
   Servicio B: 50 × 30 = 1500€ + 10% VAT = 1650€
   Total Bruto: 4070€
-  ```
 
 #### TC-3.12: Descuento por PAX (Cantidad)
 - **Pasos:**
   1. En servicio, ingresar descuento: -2€/pax para 50+ pax
   2. Calcular
 - **Resultado Esperado:**
-  ```
   Base: 50 × 40 = 2000€
   Descuento: 50 × 2 = -100€
   Subtotal: 1900€
   VAT 21%: +399€
   Total: 2299€
-  ```
 
 #### TC-3.13: Cambiar PAX (Recálculo Dinámico)
 - **Pasos:**
@@ -478,11 +474,9 @@ npm test
 - **Pasos:**
   1. En propuesta cliente, revisar tabla de servicios
 - **Resultado Esperado:**
-  ```
   | Servicio | Precio/Pax | Cantidad | Subtotal | VAT | Total |
   | Welcome Coffee | 5€ | 50 | 250€ | +10% | 275€ |
   | Almuerzo | 40€ | 50 | 2000€ | +21% | 2420€ |
-  ```
 
 #### TC-4.7: Cálculo de Total Correcto
 - **Pasos:**
@@ -643,6 +637,7 @@ npm test
 ## ⚡ Performance Testing
 
 ### PT-1: Tiempo de Carga
+
 ```
 GET /dashboard (con 100 propuestas)
 Esperado: < 1s
@@ -655,6 +650,7 @@ Esperado: < 500ms
 ```
 
 ### PT-2: Cálculo de Totales
+
 ```
 Propuesta con 100 servicios x 30 platos
 Calcular totales: < 200ms
@@ -662,6 +658,7 @@ JSON retornado vía API
 ```
 
 ### PT-3: Concurrencia
+
 ```
 100 usuarios simultáneos en /dashboard
 Sin errores de conexión DB
@@ -673,6 +670,7 @@ Response time: < 2s
 ## 🔐 Security Testing
 
 ### ST-1: SQL Injection
+
 ```javascript
 // Login form
 email: admin' OR '1'='1
@@ -683,6 +681,7 @@ Resultado: Error "Email o contraseña incorrectos"
 ```
 
 ### ST-2: XSS Prevention
+
 ```javascript
 // Chat
 Mensaje: <script>alert('XSS')</script>
@@ -692,24 +691,28 @@ Renderizado como: &lt;script&gt;alert('XSS')&lt;/script&gt;
 ```
 
 ### ST-3: CSRF Protection
+
 ```
 POST /proposals (sin token CSRF)
 Resultado: Error 403 Forbidden
 ```
 
 ### ST-4: Session Hijacking
+
 ```
 Cookie de sesión robada
 Resultado: Token inválido, logout automático
 ```
 
 ### ST-5: Rate Limiting (Magic Link)
+
 ```
 GET /p/:hash (5 veces en 1 minuto)
 Resultado: 6ta petición → 429 Too Many Requests
 ```
 
 ### ST-6: Permission Check
+
 ```
 Usuario A intenta acceder a propuesta de Usuario B
 GET /editor/propuesta_de_B

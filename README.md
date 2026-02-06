@@ -1,3 +1,24 @@
+# MICE CATERING PROPOSALS
+
+```text
+```text
+1. Install dependencies
+2. Configure .env
+3. Import database.sql
+4. Run seed script
+5. Start server
+6. Open [http://localhost:3000](http://localhost:3000)
+```
+
+```text
+- [PROJECT.md](PROJECT.md)
+- [database.sql](database.sql)
+- [docs/](docs/)
+- [mockups/](mockups/)
+* [PROJECT.md](PROJECT.md)
+* [database.sql](database.sql)
+* [docs/](docs/)
+* [mockups/](mockups/)
 src/
   ├── config/           # DB Pool + Constants
   ├── controllers/      # HTTP Request Handlers
@@ -20,7 +41,6 @@ public/
   └── uploads/         # User Images
 ```
 
-
 ---
 
 ## 📋 Implementation Progress
@@ -38,7 +58,6 @@ public/
 
 **Status:** Ready for testing. Run: `npm run seed && npm run dev`
 
-
 - [ ] EditorController - Load/save proposal editing
 - [ ] editor.ejs - Full editor form (venues, services, items, pricing)
 - [ ] public/js/editor.js - DOM interactions (add/remove without reload)
@@ -52,17 +71,23 @@ public/
 - [ ] ChatService - Message persistence
 - [ ] public/js/chat.js - 30s polling + UI
 - [ ] Email notifications (Nodemailer)
+
 ### Quick Links
+
 - **[docs/INDEX.md](docs/INDEX.md)** - Full documentation index (start here!)
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** - Complete developer guide
 - **[docs/PHASE2_COMPLETION.md](docs/PHASE2_COMPLETION.md)** - What was built in Phase 2
 - **[docs/PHASE2_TESTING.md](docs/PHASE2_TESTING.md)** - 16 test cases for Phase 2
 - **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - AI agent instructions
+
 # 1. Setup
 
 # 5. Visit dashboard
-# http://localhost:3000/dashboard
-# Login: test@example.com / password123
+
+# <http://localhost:3000/dashboard>
+
+# Login: <test@example.com> / password123
+
 ```
 
 ---

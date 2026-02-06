@@ -271,12 +271,16 @@
     }
 
     // Print styles
+    /* Use a <style> tag for CSS, not inside <script> */
+</script>
+
+<style>
     @media print {
         body { background: white; }
-        header, footer, .print\\:hidden, button { display: none !important; }
+        header, footer, .print\:hidden, button { display: none !important; }
         .bg-gradient-to-r { background: white !important; }
     }
-</script>
+</style>
 
 </body>
 </html>

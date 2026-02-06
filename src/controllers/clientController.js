@@ -39,6 +39,11 @@ exports.viewProposal = async (req, res, next) => {
     // Calcular totales
     const totals = await ProposalService.calculateTotals(proposal.id);
 
+    // Generar paleta de branding desde brand_color
+    const ImageService = require('../services/ImageService');
+    const brandColor = proposal.brand_color || '#0066cc';
+    const brandPalette = ImageService.generateColorPalette(brandColor);
+
     res.render('client/proposal-view', {
       title: `Propuesta: ${proposal.client_name}`,
       proposal: {
@@ -46,6 +51,7 @@ exports.viewProposal = async (req, res, next) => {
         ...details,
         total_estimated: totals
       },
+      brandPalette: brandPalette,
       hash: hash,
       messages: [] // Se cargarán vía AJAX
     });
