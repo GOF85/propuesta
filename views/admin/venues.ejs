@@ -27,10 +27,10 @@
             📋 Lista
         </button>
         <button class="py-2 px-0 border-b border-gray-200 text-gray-600 hover:text-gray-900 font-medium" onclick="showTab('import')">
-            📥 Importar JSON
+            📥 Importar CSV
         </button>
         <button class="py-2 px-0 border-b border-gray-200 text-gray-600 hover:text-gray-900 font-medium" onclick="showTab('template')">
-            📄 Ver Plantilla
+            📄 Descargar CSV
         </button>
     </div>
 
@@ -41,7 +41,7 @@
                 <p class="text-gray-600">Total: <strong><%= totalVenues %> venues</strong></p>
             </div>
             <a href="/admin/venues/export" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
-                ⬇️ Exportar JSON
+                ⬇️ Exportar CSV
             </a>
         </div>
 
@@ -99,38 +99,26 @@
         </div>
     </div>
 
-    <!-- TAB 2: IMPORTAR JSON -->
+    <!-- TAB 2: IMPORTAR CSV -->
     <div id="tab-import" class="tab-content hidden">
         <div class="bg-white rounded-lg border border-gray-200 p-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Importar Venues desde JSON</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Importar Venues desde CSV</h2>
             
-            <form id="import-form" method="POST" action="/admin/venues/import">
+            <form id="import-form" method="POST" action="/admin/venues/import" enctype="multipart/form-data">
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">JSON de Venues</label>
-                    <textarea 
-                        id="json-input" 
-                        name="jsonData" 
-                        rows="12"
-                        placeholder='[
-  {
-    "name": "Sala Modernista Barcelona",
-    "description": "Espacio diáfano...",
-    "capacity_cocktail": 200,
-    "capacity_banquet": 120,
-    "address": "Passeig de Gràcia 85, Barcelona",
-    "features": ["Wifi", "Proyector 4K"]
-  }
-]'
-                        class="w-full border border-gray-300 rounded-lg p-3 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    ></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">📁 Archivo CSV</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 cursor-pointer transition"
+                         id="dropzone" onclick="document.getElementById('csvFile').click()">
+                        <input type="file" id="csvFile" name="csvFile" accept=".csv" class="hidden" required>
+                        <p class="text-gray-600 font-medium">Arrastra un CSV aquí o haz clic para seleccionar</p>
+                        <p class="text-sm text-gray-500 mt-1">Formato: CSV con encabezados</p>
+                        <p id="file-name" class="text-blue-600 font-medium mt-2"></p>
+                    </div>
                 </div>
 
                 <div class="flex gap-3">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
                         ✅ Importar
-                    </button>
-                    <button type="button" id="clear-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium">
-                        Limpiar
                     </button>
                 </div>
 
@@ -142,43 +130,26 @@
     <!-- TAB 3: PLANTILLA -->
     <div id="tab-template" class="tab-content hidden">
         <div class="bg-white rounded-lg border border-gray-200 p-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Plantilla JSON de Venues</h2>
-            <p class="text-gray-600 mb-4">Copia y modifica este template:</p>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">📥 Descargar Plantilla CSV de Venues</h2>
+            <p class="text-gray-600 mb-4">Descarga este archivo CSV, edítalo en Excel o Google Sheets, y luego impórtalo:</p>
 
-            <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-x-auto text-sm"><code id="template-code">[
-  {
-    "name": "Sala Modernista Barcelona",
-    "description": "Espacio diáfano con techos altos y luz natural",
-    "capacity_cocktail": 200,
-    "capacity_banquet": 120,
-    "capacity_theater": 150,
-    "features": ["Luz natural", "Wifi", "Proyector 4K", "Aire acondicionado"],
-    "address": "Passeig de Gràcia, 85, Barcelona",
-    "map_iframe": "https://maps.google.com/?q=Barcelona",
-    "external_url": "https://ejemplo.com/venues/barcelona",
-    "images": ["/uploads/venues/barcelona-1.webp"]
-  },
-  {
-    "name": "Hotel Boutique Madrid",
-    "description": "Terraza panorámica con vistas espectaculares",
-    "capacity_cocktail": 150,
-    "capacity_banquet": 80,
-    "capacity_theater": 100,
-    "features": ["Vista panorámica", "Wifi", "Toldo retráctil"],
-    "address": "Gran Vía, 32, Madrid",
-    "map_iframe": "https://maps.google.com/?q=Madrid",
-    "external_url": "https://ejemplo.com/venues/madrid",
-    "images": ["/uploads/venues/madrid-1.webp"]
-  }
-]</code></pre>
+            <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-x-auto text-sm"><code id="template-code">name,description,capacity_cocktail,capacity_banquet,capacity_theater,features,address,map_iframe,external_url,images
+"Sala Modernista Barcelona","Espacio diáfano con techos altos",200,120,150,"Luz natural|Wifi|Proyector 4K","Passeig de Gràcia, 85, Barcelona","https://maps.google.com/?q=Barcelona","https://ejemplo.com/barcelona","/uploads/venues/barcelona-1.webp"
+"Hotel Boutique Madrid","Terraza panorámica con vistas",150,80,100,"Vista panorámica|Wifi|Toldo retráctil","Gran Vía, 32, Madrid","https://maps.google.com/?q=Madrid","https://ejemplo.com/madrid","/uploads/venues/madrid-1.webp"</code></pre>
 
-            <div class="mt-6 flex gap-3">
-                <button id="copy-template" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+            <div class="flex gap-3 mt-6">
+                <button id="copy-template" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium">
                     📋 Copiar Plantilla
                 </button>
-                <button id="paste-to-import" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium">
-                    📍 Pegar a Importar
-                </button>
+                <a id="download-template" href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium inline-block">
+                    ⬇️ Descargar CSV
+                </a>
+            </div>
+
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p class="text-sm text-blue-900">
+                    <strong>📝 Columnas:</strong> name (requerido), description, capacity_cocktail, capacity_banquet, capacity_theater, features (separadas por |), address, map_iframe, external_url, images
+                </p>
             </div>
         </div>
     </div>
@@ -188,12 +159,10 @@
 <%- include('../partials/footer') %>
 
 <script>
-// Cambiar tabs
 function showTab(tab) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
     document.getElementById(`tab-${tab}`).classList.remove('hidden');
     
-    // Actualizar botones
     document.querySelectorAll('[onclick^="showTab"]').forEach(b => {
         b.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600');
         b.classList.add('border-b', 'border-gray-200', 'text-gray-600');
@@ -202,37 +171,70 @@ function showTab(tab) {
     event.target.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
 }
 
-// Limpiar textarea
-document.getElementById('clear-btn')?.addEventListener('click', () => {
-    document.getElementById('json-input').value = '';
+// Drag & drop + file select
+const dropzone = document.getElementById('dropzone');
+const csvFile = document.getElementById('csvFile');
+
+dropzone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('border-blue-500', 'bg-blue-50');
 });
+
+dropzone?.addEventListener('dragleave', () => {
+    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+});
+
+dropzone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+    if (e.dataTransfer.files[0]) {
+        csvFile.files = e.dataTransfer.files;
+        updateFileName();
+    }
+});
+
+csvFile?.addEventListener('change', updateFileName);
+
+function updateFileName() {
+    const name = csvFile.files[0]?.name;
+    if (name) {
+        document.getElementById('file-name').textContent = `📄 ${name}`;
+    }
+}
 
 // Copiar plantilla
 document.getElementById('copy-template')?.addEventListener('click', () => {
     const code = document.getElementById('template-code').textContent;
     navigator.clipboard.writeText(code).then(() => {
-        alert('✅ Plantilla copiada al portapapeles');
+        alert('✅ CSV copiado. Pégalo en un archivo .csv');
     });
 });
 
-// Pegar a importar
-document.getElementById('paste-to-import')?.addEventListener('click', () => {
-    navigator.clipboard.readText().then(text => {
-        document.getElementById('json-input').value = text;
-        showTab('import');
-    });
+// Descargar plantilla
+document.getElementById('download-template')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const csv = `name,description,capacity_cocktail,capacity_banquet,capacity_theater,features,address,map_iframe,external_url,images
+"Sala Modernista Barcelona","Espacio diáfano con techos altos",200,120,150,"Luz natural|Wifi|Proyector 4K","Passeig de Gràcia, 85, Barcelona","https://maps.google.com/?q=Barcelona","https://ejemplo.com/barcelona","/uploads/venues/barcelona-1.webp"
+"Hotel Boutique Madrid","Terraza panorámica",150,80,100,"Vista panorámica|Wifi|Toldo retráctil","Gran Vía, 32, Madrid","https://maps.google.com/?q=Madrid","https://ejemplo.com/madrid","/uploads/venues/madrid-1.webp"`;
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'venues-template.csv';
+    a.click();
 });
 
 // Procesar importación
 document.getElementById('import-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const jsonData = document.getElementById('json-input').value;
+    const formData = new FormData();
+    formData.append('csvFile', csvFile.files[0]);
     
     try {
         const response = await fetch('/admin/venues/import', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `jsonData=${encodeURIComponent(jsonData)}`
+            body: formData
         });
 
         const result = await response.json();

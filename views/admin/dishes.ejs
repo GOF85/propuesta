@@ -27,10 +27,10 @@
             📋 Lista
         </button>
         <button class="py-2 px-0 border-b border-gray-200 text-gray-600 hover:text-gray-900 font-medium" onclick="showTab('import')">
-            📥 Importar JSON
+            📥 Importar CSV
         </button>
         <button class="py-2 px-0 border-b border-gray-200 text-gray-600 hover:text-gray-900 font-medium" onclick="showTab('template')">
-            📄 Ver Plantilla
+            📄 Descargar CSV
         </button>
     </div>
 
@@ -41,7 +41,7 @@
                 <p class="text-gray-600">Total: <strong><%= totalDishes %> platos</strong></p>
             </div>
             <a href="/admin/dishes/export" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
-                ⬇️ Exportar JSON
+                ⬇️ Exportar CSV
             </a>
         </div>
 
@@ -102,38 +102,26 @@
         </div>
     </div>
 
-    <!-- TAB 2: IMPORTAR JSON -->
+    <!-- TAB 2: IMPORTAR CSV -->
     <div id="tab-import" class="tab-content hidden">
         <div class="bg-white rounded-lg border border-gray-200 p-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Importar Platos desde JSON</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Importar Platos desde CSV</h2>
             
-            <form id="import-form" method="POST" action="/admin/dishes/import">
+            <form id="import-form" method="POST" action="/admin/dishes/import" enctype="multipart/form-data">
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">JSON de Platos</label>
-                    <textarea 
-                        id="json-input" 
-                        name="jsonData" 
-                        rows="12"
-                        placeholder='[
-  {
-    "name": "Ensalada César",
-    "description": "Lechuga romana con salsa casera",
-    "category": "entrante",
-    "allergens": ["gluten", "lacteos"],
-    "badges": ["vegano"],
-    "base_price": 8.50
-  }
-]'
-                        class="w-full border border-gray-300 rounded-lg p-3 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    ></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">📁 Archivo CSV</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 cursor-pointer transition"
+                         id="dropzone" onclick="document.getElementById('csvFile').click()">
+                        <input type="file" id="csvFile" name="csvFile" accept=".csv" class="hidden" required>
+                        <p class="text-gray-600 font-medium">Arrastra un CSV aquí o haz clic para seleccionar</p>
+                        <p class="text-sm text-gray-500 mt-1">Formato: CSV con encabezados</p>
+                        <p id="file-name" class="text-blue-600 font-medium mt-2"></p>
+                    </div>
                 </div>
 
                 <div class="flex gap-3">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
                         ✅ Importar
-                    </button>
-                    <button type="button" id="clear-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium">
-                        Limpiar
                     </button>
                 </div>
 
@@ -145,46 +133,27 @@
     <!-- TAB 3: PLANTILLA -->
     <div id="tab-template" class="tab-content hidden">
         <div class="bg-white rounded-lg border border-gray-200 p-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Plantilla JSON de Platos</h2>
-            <p class="text-gray-600 mb-4">Copia y modifica este template:</p>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">📥 Descargar Plantilla CSV de Platos</h2>
+            <p class="text-gray-600 mb-4">Descarga este archivo CSV, edítalo en Excel o Google Sheets, y luego impórtalo:</p>
 
-            <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-x-auto text-sm"><code id="template-code">[
-  {
-    "name": "Ensalada César",
-    "description": "Lechuga romana, croutons, parmesano, salsa César casera",
-    "category": "entrante",
-    "allergens": ["gluten", "lacteos", "huevo"],
-    "badges": [],
-    "image_url": "/uploads/dishes/ensalada-cesar.webp",
-    "base_price": 8.50
-  },
-  {
-    "name": "Solomillo de Ternera",
-    "description": "Corte premium con salsa de champiñones",
-    "category": "principal",
-    "allergens": [],
-    "badges": [],
-    "image_url": "/uploads/dishes/solomillo.webp",
-    "base_price": 28.00
-  },
-  {
-    "name": "Tarta de Queso NY",
-    "description": "Clásica receta neoyorquina",
-    "category": "postre",
-    "allergens": ["lacteos", "huevo"],
-    "badges": ["sin gluten"],
-    "image_url": "/uploads/dishes/tarta-queso.webp",
-    "base_price": 6.50
-  }
-]</code></pre>
+            <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-x-auto text-sm"><code id="template-code">name,description,category,allergens,badges,image_url,base_price
+"Ensalada César","Lechuga romana, croutons, parmesano, salsa César casera","entrante","gluten|lacteos|huevo","","/uploads/dishes/ensalada-cesar.webp",8.50
+"Solomillo de Ternera","Corte premium con salsa de champiñones","principal","","","/uploads/dishes/solomillo.webp",28.00
+"Tarta de Queso NY","Clásica receta neoyorquina","postre","lacteos|huevo","sin gluten","/uploads/dishes/tarta-queso.webp",6.50</code></pre>
 
-            <div class="mt-6 flex gap-3">
-                <button id="copy-template" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+            <div class="flex gap-3 mt-6">
+                <button id="copy-template" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium">
                     📋 Copiar Plantilla
                 </button>
-                <button id="paste-to-import" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium">
-                    📍 Pegar a Importar
-                </button>
+                <a id="download-template" href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium inline-block">
+                    ⬇️ Descargar CSV
+                </a>
+            </div>
+
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p class="text-sm text-blue-900">
+                    <strong>📝 Columnas:</strong> name (requerido), description, category, allergens (separados por |), badges (separados por |), image_url, base_price
+                </p>
             </div>
         </div>
     </div>
@@ -206,33 +175,71 @@ function showTab(tab) {
     event.target.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
 }
 
-document.getElementById('clear-btn')?.addEventListener('click', () => {
-    document.getElementById('json-input').value = '';
+// Drag & drop + file select
+const dropzone = document.getElementById('dropzone');
+const csvFile = document.getElementById('csvFile');
+
+dropzone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('border-blue-500', 'bg-blue-50');
 });
 
+dropzone?.addEventListener('dragleave', () => {
+    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+});
+
+dropzone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+    if (e.dataTransfer.files[0]) {
+        csvFile.files = e.dataTransfer.files;
+        updateFileName();
+    }
+});
+
+csvFile?.addEventListener('change', updateFileName);
+
+function updateFileName() {
+    const name = csvFile.files[0]?.name;
+    if (name) {
+        document.getElementById('file-name').textContent = `📄 ${name}`;
+    }
+}
+
+// Copiar plantilla
 document.getElementById('copy-template')?.addEventListener('click', () => {
     const code = document.getElementById('template-code').textContent;
     navigator.clipboard.writeText(code).then(() => {
-        alert('✅ Plantilla copiada al portapapeles');
+        alert('✅ CSV copiado. Pégalo en un archivo .csv');
     });
 });
 
-document.getElementById('paste-to-import')?.addEventListener('click', () => {
-    navigator.clipboard.readText().then(text => {
-        document.getElementById('json-input').value = text;
-        showTab('import');
-    });
+// Descargar plantilla
+document.getElementById('download-template')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const csv = `name,description,category,allergens,badges,image_url,base_price
+"Ensalada César","Lechuga romana, croutons, parmesano, salsa César casera","entrante","gluten|lacteos|huevo","","/uploads/dishes/ensalada-cesar.webp",8.50
+"Solomillo de Ternera","Corte premium con salsa de champiñones","principal","","","/uploads/dishes/solomillo.webp",28.00
+"Tarta de Queso NY","Clásica receta neoyorquina","postre","lacteos|huevo","sin gluten","/uploads/dishes/tarta-queso.webp",6.50`;
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dishes-template.csv';
+    a.click();
 });
 
+// Procesar importación
 document.getElementById('import-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const jsonData = document.getElementById('json-input').value;
+    const formData = new FormData();
+    formData.append('csvFile', csvFile.files[0]);
     
     try {
         const response = await fetch('/admin/dishes/import', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `jsonData=${encodeURIComponent(jsonData)}`
+            body: formData
         });
 
         const result = await response.json();

@@ -24,6 +24,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^2.4.3",
     "connect-flash": "^0.1.1",
     "dayjs": "^1.11.10",
