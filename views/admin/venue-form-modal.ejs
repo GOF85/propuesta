@@ -35,18 +35,6 @@
   .form-group textarea {
     @apply resize-vertical;
   }
-
-  .features-input {
-    @apply flex flex-wrap gap-2 mb-2;
-  }
-
-  .feature-tag {
-    @apply bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm inline-flex items-center gap-1;
-  }
-
-  .feature-tag button {
-    @apply cursor-pointer text-blue-600 hover:text-red-600;
-  }
 </style>
 
 <div id="venue-form-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -114,43 +102,6 @@
 
 <script>
   // ════════════════════════════════════════════
-  // GESTIÓN DE FEATURES (TAGS)
-  // ════════════════════════════════════════════
-
-  let currentFeatures = [];
-
-  function updateFeaturesTags() {
-    const input = document.getElementById('venue-features-input').value;
-    const features = input
-      .split(',')
-      .map(f => f.trim())
-      .filter(f => f.length > 0 && !currentFeatures.includes(f));
-
-    if (input.includes(',') && features.length > 0) {
-      currentFeatures.push(features[0]);
-      document.getElementById('venue-features-input').value = '';
-      renderFeaturesTags();
-    }
-  }
-
-  function removeFeature(index) {
-    currentFeatures.splice(index, 1);
-    renderFeaturesTags();
-  }
-
-  function renderFeaturesTags() {
-    const container = document.getElementById('features-list');
-    container.innerHTML = currentFeatures.map((f, i) => `
-      <span class="feature-tag">
-        ${f}
-        <button type="button" onclick="removeFeature(${i})">✕</button>
-      </span>
-    `).join('');
-
-    document.getElementById('venue-features').value = JSON.stringify(currentFeatures);
-  }
-
-  // ════════════════════════════════════════════
   // MODAL CONTROL
   // ════════════════════════════════════════════
 
@@ -176,8 +127,6 @@
       submitIcon.textContent = '✔️';
       submitText.textContent = 'Crear';
       document.getElementById('venue-form').reset();
-      currentFeatures = [];
-      renderFeaturesTags();
     }
 
     modal.classList.remove('hidden');
@@ -186,8 +135,6 @@
   function closeVenueForm() {
     document.getElementById('venue-form-modal').classList.add('hidden');
     document.getElementById('venue-form').reset();
-    currentFeatures = [];
-    renderFeaturesTags();
     editingVenueId = null;
   }
 
@@ -199,15 +146,7 @@
       if (data.success) {
         const v = data.venue;
         document.getElementById('venue-name').value = v.name || '';
-        document.getElementById('venue-description').value = v.description || '';
-        document.getElementById('venue-capacity-cocktail').value = v.capacity_cocktail || '';
-        document.getElementById('venue-capacity-banquet').value = v.capacity_banquet || '';
-        document.getElementById('venue-capacity-theater').value = v.capacity_theater || '';
-        document.getElementById('venue-address').value = v.address || '';
         document.getElementById('venue-external-url').value = v.external_url || '';
-
-        currentFeatures = Array.isArray(v.features) ? v.features : [];
-        renderFeaturesTags();
       } else {
         alert('Error cargando venue: ' + (data.error || 'Desconocido'));
       }

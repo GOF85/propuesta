@@ -65,8 +65,8 @@ class VenueService {
       console.log(`📍 Navegando a: ${targetUrl}`);
       await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: this.scraperTimeout });
 
-      // Esperar un segundo para que cargue completamente
-      await page.waitForTimeout(2000);
+      // Esperar a que cargue completamente
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Extraer datos del venue (selectores genéricos adaptables)
       const venueData = await page.evaluate(() => {
