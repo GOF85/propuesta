@@ -300,9 +300,7 @@ class VenueService {
               venues.push({
                 name,
                 description,
-                capacity_cocktail: capacityCocktail || null,
-                capacity_banquet: capacityBanquet || null,
-                capacity_theater: capacityTheater || null,
+                capacity: 0,
                 features: features.length > 0 ? features : null,
                 address,
                 images, // URLs sin procesar aún
@@ -528,7 +526,7 @@ class VenueService {
    * Maneja creación new + actualización existing
    * Usa prepared statements para security
    * 
-   * @param {Object} venueData - {name, description, capacity_*, features, address, images, external_url, map_iframe}
+   * @param {Object} venueData - {name, description, capacity, features, address, images, external_url, map_iframe}
    * @param {Number} existingId - ID del venue si es update (optional)
    * @returns {Promise<Number>} ID del venue creado/actualizado
    */
@@ -542,16 +540,14 @@ class VenueService {
         // UPDATE
         await conn.query(
           `UPDATE venues SET
-             name = ?, description = ?, capacity_cocktail = ?, capacity_banquet = ?,
-             capacity_theater = ?, features = ?, address = ?, external_url = ?,
+             name = ?, description = ?, capacity = ?,
+             features = ?, address = ?, external_url = ?,
              images = ?, map_iframe = ?
            WHERE id = ?`,
           [
             venueData.name,
             venueData.description,
-            venueData.capacity_cocktail,
-            venueData.capacity_banquet,
-            venueData.capacity_theater,
+            venueData.capacity || 0,
             featuresJson,
             venueData.address,
             venueData.external_url,
@@ -566,15 +562,12 @@ class VenueService {
         // INSERT
         const result = await conn.query(
           `INSERT INTO venues 
-             (name, description, capacity_cocktail, capacity_banquet, capacity_theater,
-              features, address, external_url, images, map_iframe)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (name, description, capacity, features, address, external_url, images, map_iframe)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             venueData.name,
             venueData.description,
-            venueData.capacity_cocktail,
-            venueData.capacity_banquet,
-            venueData.capacity_theater,
+            venueData.capacity || 0,
             featuresJson,
             venueData.address,
             venueData.external_url,
@@ -665,7 +658,7 @@ class VenueService {
    * 📋 OBTENER TODOS LOS VENUES
    * Lista todos los venues disponibles
    * 
-   * @param {Object} filters - {search, minCapacity, features}
+   * @param {Object} filters - {search, minCapacity}
    * @returns {Promise<Array>}
    */
   async getAll(filters = {}) {
@@ -684,8 +677,8 @@ class VenueService {
 
       // Filtro: capacidad mínima
       if (filters.minCapacity) {
-        conditions.push('(capacity_cocktail >= ? OR capacity_banquet >= ? OR capacity_theater >= ?)');
-        params.push(filters.minCapacity, filters.minCapacity, filters.minCapacity);
+        conditions.push('capacity >= ?');
+        params.push(filters.minCapacity);
       }
 
       if (conditions.length > 0) {
@@ -755,13 +748,11 @@ class VenueService {
       }
 
       // En primer momento: solo guardar name + external_url
-      // El scraping posterior rellenará description, images, capacidades, etc.
+      // El scraping posterior rellenará description, images, capacidad, etc.
       const processed = {
         name: venueData.name.trim(),
         description: '',
-        capacity_cocktail: null,
-        capacity_banquet: null,
-        capacity_theater: null,
+        capacity: 0,
         features: [],
         address: '',
         external_url: venueData.external_url?.trim() || '',
@@ -799,9 +790,7 @@ class VenueService {
       const processed = {
         name: venueData.name.trim(),
         description: venueData.description?.trim() || '',
-        capacity_cocktail: parseInt(venueData.capacity_cocktail) || null,
-        capacity_banquet: parseInt(venueData.capacity_banquet) || null,
-        capacity_theater: parseInt(venueData.capacity_theater) || null,
+        capacity: parseInt(venueData.capacity) || 0,
         features: features || [],
         address: venueData.address?.trim() || '',
         external_url: venueData.external_url?.trim() || '',

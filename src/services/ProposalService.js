@@ -103,7 +103,7 @@ class ProposalService {
 
       // Venues asociados
       const venues = await conn.query(
-        `SELECT pv.*, v.name, v.description, v.capacity_cocktail, v.capacity_banquet
+        `SELECT pv.*, v.name, v.description, v.capacity
          FROM proposal_venues pv
          JOIN venues v ON pv.venue_id = v.id
          WHERE pv.proposal_id = ?`,

@@ -495,16 +495,14 @@ router.post(
 /**
  * POST /api/admin/venues/manual
  * ADMIN ONLY: Crear venue manualmente (fallback sin scraping)
- * Body: {name, description, capacity_cocktail, capacity_banquet, capacity_theater, features[], address, external_url}
+ * Body: {name, description, capacity, features[], address, external_url}
  */
 router.post(
   '/api/admin/venues/manual',
   authenticateUser,
   body('name').trim().isLength({ min: 2, max: 255 }),
   body('description').optional().trim(),
-  body('capacity_cocktail').optional().isInt({ min: 0 }),
-  body('capacity_banquet').optional().isInt({ min: 0 }),
-  body('capacity_theater').optional().isInt({ min: 0 }),
+  body('capacity').optional().isInt({ min: 0 }),
   body('address').optional().trim(),
   body('external_url').optional().isURL(),
   async (req, res, next) => {
@@ -556,9 +554,7 @@ router.put(
   param('id').isInt().toInt(),
   body('name').optional().trim().isLength({ min: 2, max: 255 }),
   body('description').optional().trim(),
-  body('capacity_cocktail').optional().isInt({ min: 0 }),
-  body('capacity_banquet').optional().isInt({ min: 0 }),
-  body('capacity_theater').optional().isInt({ min: 0 }),
+  body('capacity').optional().isInt({ min: 0 }),
   body('address').optional().trim(),
   body('external_url').optional().isURL(),
   async (req, res, next) => {
