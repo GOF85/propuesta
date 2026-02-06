@@ -310,7 +310,16 @@
               </button>
             <% } %>
 
-            <% if (proposal.status !== 'accepted') { %>
+            <% if (proposal.status !== 'cancelled') { %>
+              <form method="POST" action="/proposal/<%= proposal.id %>/cancel" style="display: contents;">
+                <button class="btn btn-outline btn-danger w-full text-sm"
+                        onclick="return confirm('¿Anular esta propuesta?')">
+                  🛑 Anular
+                </button>
+              </form>
+            <% } %>
+
+            <% if (proposal.status !== 'accepted' && proposal.status !== 'cancelled') { %>
               <button class="btn btn-outline btn-danger w-full text-sm">
                 🗑️ Archivar
               </button>
@@ -404,6 +413,10 @@
 
   .badge-accepted {
     @apply bg-green-100 text-green-800;
+  }
+
+  .badge-cancelled {
+    @apply bg-red-100 text-red-700;
   }
 
   @keyframes slideIn {

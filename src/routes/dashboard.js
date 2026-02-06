@@ -31,7 +31,7 @@ router.use((req, res, next) => {
 router.get('/dashboard', [
   query('status')
     .optional()
-    .isIn(['all', 'draft', 'sent', 'accepted'])
+    .isIn(['all', 'draft', 'sent', 'accepted', 'cancelled'])
     .withMessage('Estado inválido'),
   query('search')
     .optional()

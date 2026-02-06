@@ -100,7 +100,8 @@ app.use((req, res, next) => {
     const labels = {
       'draft': 'Borrador',
       'sent': 'Enviada',
-      'accepted': 'Aceptada'
+      'accepted': 'Aceptada',
+      'cancelled': 'Anulada'
     };
     return labels[status] || status;
   };

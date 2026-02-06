@@ -54,7 +54,7 @@ CREATE TABLE proposals (
     logo_url VARCHAR(255),
     legal_conditions TEXT,
     is_editing BOOLEAN DEFAULT TRUE, -- MODO MANTENIMIENTO
-    status ENUM('draft', 'sent', 'accepted') DEFAULT 'draft',
+    status ENUM('draft', 'sent', 'accepted', 'cancelled') DEFAULT 'draft',
     valid_until DATE, -- Caducidad
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)

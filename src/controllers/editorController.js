@@ -395,6 +395,41 @@ class EditorController {
       next(err);
     }
   }
+
+  /**
+   * POST /proposal/:id/cancel
+   * Cambiar estado a "anulada"
+   */
+  async cancelProposal(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const proposal = await ProposalService.getProposalById(id);
+      if (!proposal) {
+        req.flash('error', 'Propuesta no encontrada');
+        return res.redirect('/dashboard');
+      }
+
+      if (proposal.user_id !== req.user.id && req.user.role !== 'admin') {
+        req.flash('error', 'No tienes permiso');
+        return res.redirect('/dashboard');
+      }
+
+      if (proposal.status === 'cancelled') {
+        req.flash('info', 'La propuesta ya estaba anulada');
+        return res.redirect(`/proposal/${id}/edit`);
+      }
+
+      await ProposalService.updateProposal(id, {
+        status: 'cancelled'
+      });
+
+      req.flash('success', 'Propuesta anulada');
+      res.redirect('/dashboard');
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new EditorController();

@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --brand-green: #31713D;
+  --brand-green-dark: #24552E;
+  --brand-green-light: #E5F0E8;
+  --brand-gray: #4B5563;
+  --brand-gray-light: #E5E7EB;
+  --brand-black: #111827;
+  --brand-white: #FFFFFF;
+  --brand-surface: #F7F9F7;
+  --brand-border: #C7D8CB;
+}
+
+body {
+  font-family: 'Space Grotesk', 'Helvetica Neue', Helvetica, sans-serif;
+  color: var(--brand-black);
+  background-color: var(--brand-surface);
+}
+
+a {
+  color: var(--brand-green);
+}
+
+/* Primary blues -> brand green */
+.bg-blue-500,
+.bg-blue-600 {
+  background-color: var(--brand-green) !important;
+}
+
+.bg-blue-700 {
+  background-color: var(--brand-green-dark) !important;
+}
+
+.text-blue-600,
+.text-blue-700 {
+  color: var(--brand-green) !important;
+}
+
+.border-blue-600 {
+  border-color: var(--brand-green) !important;
+}
+
+.ring-blue-500 {
+  --tw-ring-color: var(--brand-green) !important;
+}
+
+.focus\:ring-blue-500:focus {
+  --tw-ring-color: var(--brand-green) !important;
+}
+
+/* Emerald -> brand green */
+.bg-emerald-50 {
+  background-color: var(--brand-green-light) !important;
+}
+
+.text-emerald-700 {
+  color: var(--brand-green-dark) !important;
+}
+
+.border-emerald-200 {
+  border-color: var(--brand-border) !important;
+}
+
+/* Green family harmonized */
+.bg-green-100 {
+  background-color: var(--brand-green-light) !important;
+}
+
+.text-green-700,
+.text-green-800 {
+  color: var(--brand-green-dark) !important;
+}
+
+.border-green-200 {
+  border-color: var(--brand-border) !important;
+}
+
+/* Amber/Orange/Yellow -> gray */
+.bg-yellow-100,
+.bg-amber-50,
+.bg-amber-100,
+.bg-orange-50 {
+  background-color: var(--brand-gray-light) !important;
+}
+
+.text-yellow-700,
+.text-amber-600,
+.text-orange-600 {
+  color: var(--brand-gray) !important;
+}
+
+.border-yellow-200,
+.border-amber-200,
+.border-orange-200 {
+  border-color: var(--brand-gray-light) !important;
+}
+
+/* Red -> gray for neutral error styling */
+.bg-red-50,
+.bg-red-100 {
+  background-color: var(--brand-gray-light) !important;
+}
+
+.text-red-600,
+.text-red-700 {
+  color: var(--brand-gray) !important;
+}
+
+.border-red-200,
+.border-red-400 {
+  border-color: var(--brand-gray-light) !important;
+}
+
+/* Purple -> gray */
+.bg-purple-50 {
+  background-color: var(--brand-gray-light) !important;
+}
+
+.text-purple-700 {
+  color: var(--brand-gray) !important;
+}
+
+/* Gradient overrides (blue/amber/orange) */
+.from-blue-500 {
+  --tw-gradient-from: var(--brand-green) !important;
+  --tw-gradient-to: rgba(49, 113, 61, 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.to-blue-600 {
+  --tw-gradient-to: var(--brand-green-dark) !important;
+}
+
+.from-amber-500 {
+  --tw-gradient-from: var(--brand-green) !important;
+  --tw-gradient-to: rgba(49, 113, 61, 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.to-orange-500 {
+  --tw-gradient-to: var(--brand-green-dark) !important;
+}
+
+/* Hover helpers */
+.hover\:bg-blue-700:hover {
+  background-color: var(--brand-green-dark) !important;
+}
+
+.hover\:text-blue-700:hover,
+.hover\:text-blue-600:hover {
+  color: var(--brand-green-dark) !important;
+}

@@ -7,18 +7,21 @@ const PROPOSAL_STATUS = {
   DRAFT: 'draft',
   SENT: 'sent',
   ACCEPTED: 'accepted',
+  CANCELLED: 'cancelled',
 };
 
 const PROPOSAL_STATUS_LABELS = {
   draft: 'Borrador',
   sent: 'Enviada',
   accepted: 'Aceptada',
+  cancelled: 'Anulada',
 };
 
 const PROPOSAL_STATUS_COLORS = {
   draft: 'gray',
   sent: 'yellow',
   accepted: 'green',
+  cancelled: 'red',
 };
 
 const SERVICE_TYPES = {

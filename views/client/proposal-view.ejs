@@ -235,23 +235,29 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="mt-8 space-y-3">
-          <button id="btn-accept" class="btn btn-primary w-full btn-lg flex items-center justify-center gap-2">
-            <i data-lucide="check-circle" class="w-5 h-5"></i> Aceptar Propuesta
-          </button>
+        <% if (proposal.status !== 'cancelled') { %>
+          <div class="mt-8 space-y-3">
+            <button id="btn-accept" class="btn btn-primary w-full btn-lg flex items-center justify-center gap-2">
+              <i data-lucide="check-circle" class="w-5 h-5"></i> Aceptar Propuesta
+            </button>
 
-          <button id="btn-modifications" class="btn btn-outline w-full flex items-center justify-center gap-2">
-            <i data-lucide="refresh-cw" class="w-5 h-5"></i> Solicitar Cambios
-          </button>
+            <button id="btn-modifications" class="btn btn-outline w-full flex items-center justify-center gap-2">
+              <i data-lucide="refresh-cw" class="w-5 h-5"></i> Solicitar Cambios
+            </button>
 
-          <button id="btn-reject" class="btn btn-outline w-full flex items-center justify-center gap-2">
-            <i data-lucide="x-circle" class="w-5 h-5"></i> Rechazar
-          </button>
+            <button id="btn-reject" class="btn btn-outline w-full flex items-center justify-center gap-2">
+              <i data-lucide="x-circle" class="w-5 h-5"></i> Rechazar
+            </button>
 
-          <button onclick="window.print()" class="btn btn-secondary w-full flex items-center justify-center gap-2 text-gray-700">
-            <i data-lucide="printer" class="w-5 h-5"></i> Imprimir
-          </button>
-        </div>
+            <button onclick="window.print()" class="btn btn-secondary w-full flex items-center justify-center gap-2 text-gray-700">
+              <i data-lucide="printer" class="w-5 h-5"></i> Imprimir
+            </button>
+          </div>
+        <% } else { %>
+          <div class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            Esta propuesta ha sido anulada por el comercial.
+          </div>
+        <% } %>
 
         <!-- Help Section -->
         <div class="mt-8 bg-blue-50 rounded-lg border border-blue-200 p-6">

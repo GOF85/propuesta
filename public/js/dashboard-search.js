@@ -130,13 +130,14 @@ async function performSearch(searchTerm, status) {
  */
 function createProposalRow(proposal) {
   const row = document.createElement('tr');
-  row.className = 'hover:bg-gray-50 transition-colors group';
+  row.className = `hover:bg-gray-50 transition-colors group ${proposal.status === 'cancelled' ? 'bg-red-50/40' : ''}`;
   
   // Mapear colores de estado
   const statusColorMap = {
     'draft': 'bg-gray-100 text-gray-700 border-gray-200',
     'sent': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    'accepted': 'bg-green-100 text-green-700 border-green-200'
+    'accepted': 'bg-green-100 text-green-700 border-green-200',
+    'cancelled': 'bg-red-100 text-red-700 border-red-200'
   };
 
   const statusColor = statusColorMap[proposal.status] || 'bg-gray-100 text-gray-700 border-gray-200';
@@ -144,26 +145,92 @@ function createProposalRow(proposal) {
     ? proposal.venue_names 
     : '<span class="inline-block bg-yellow-50 text-yellow-700 px-2 py-1 rounded text-xs border border-yellow-200">Sin venue definido</span>';
 
+  const actionsHtml = proposal.status === 'cancelled'
+    ? `
+      <div class="flex justify-end gap-2 items-center print-hidden">
+        <a href="/p/${escapeHtml(proposal.unique_hash)}" target="_blank"
+           class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200 inline-flex items-center gap-1.5"
+           title="Ver propuesta como cliente">
+          👁️ Ver
+        </a>
+        <span class="px-3 py-1 rounded-lg text-xs font-semibold border border-red-200 bg-red-50 text-red-700">
+          Acciones deshabilitadas
+        </span>
+      </div>
+    `
+    : `
+      <div class="flex justify-end gap-2 items-center opacity-0 group-hover:opacity-100 transition-opacity print-hidden">
+        <a href="/p/${escapeHtml(proposal.unique_hash)}" target="_blank"
+           class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200 inline-flex items-center gap-1.5"
+           title="Ver propuesta como cliente">
+          👁️ Ver
+        </a>
+
+        <div class="relative group/menu">
+          <button class="text-gray-400 hover:text-gray-600 transition-colors text-lg" title="Más opciones">
+            ⋮
+          </button>
+          <div class="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg hidden group-hover/menu:block opacity-0 group-hover/menu:opacity-100 transition-opacity z-50">
+            <a href="/proposal/${proposal.id}/edit"
+               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 first:rounded-t-lg"
+               title="Editar propuesta">
+              ✏️ Editar
+            </a>
+
+            <button onclick="copyToClipboard('/p/${escapeHtml(proposal.unique_hash)}')"
+                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
+                    title="Copiar enlace para compartir">
+              🔗 Copiar enlace
+            </button>
+
+            <a href="/proposal/${proposal.id}/chat"
+               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50"
+               title="Chat con cliente">
+              💬 Chat
+            </a>
+
+            <form method="POST" action="/proposal/${proposal.id}/duplicate" style="display: contents;">
+              <button type="submit"
+                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50"
+                      title="Duplicar propuesta"
+                      onclick="return confirm('¿Duplicar esta propuesta?')">
+                📋 Duplicar
+              </button>
+            </form>
+
+            <form method="POST" action="/proposal/${proposal.id}/delete" style="display: contents;">
+              <button type="submit"
+                      class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-lg"
+                      title="Eliminar propuesta"
+                      onclick="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
+                🗑️ Eliminar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+
   row.innerHTML = `
     <!-- Cliente / Evento -->
     <td class="px-6 py-4">
-      <div class="font-bold text-gray-900">${escapeHtml(proposal.client_name)}</div>
+      <div class="font-bold ${proposal.status === 'cancelled' ? 'text-red-800 line-through' : 'text-gray-900'}">${escapeHtml(proposal.client_name)}</div>
     </td>
 
     <!-- Fecha Evento -->
-    <td class="px-6 py-4 text-sm text-gray-600">
+    <td class="px-6 py-4 text-sm ${proposal.status === 'cancelled' ? 'text-red-700/70' : 'text-gray-600'}">
       <div>${proposal.formattedDate}</div>
-      <div class="text-xs text-gray-400 mt-1">${proposal.pax} Pax</div>
+      <div class="text-xs mt-1 ${proposal.status === 'cancelled' ? 'text-red-600/60' : 'text-gray-400'}">${proposal.pax} Pax</div>
     </td>
 
     <!-- Venue -->
-    <td class="px-6 py-4 text-sm text-gray-600">
+    <td class="px-6 py-4 text-sm ${proposal.status === 'cancelled' ? 'text-red-700/70' : 'text-gray-600'}">
       ${venueDisplay}
     </td>
 
     <!-- Importe Estimado -->
     <td class="px-6 py-4 text-right">
-      <div class="font-bold text-gray-900 text-sm">
+      <div class="font-bold text-sm ${proposal.status === 'cancelled' ? 'text-red-800' : 'text-gray-900'}">
         ${proposal.total > 0 ? proposal.formattedTotal : '<span class="text-gray-400">--</span>'}
       </div>
     </td>
@@ -179,63 +246,7 @@ function createProposalRow(proposal) {
 
     <!-- Acciones -->
     <td class="px-6 py-4 text-right">
-      <div class="flex justify-end gap-2 items-center opacity-0 group-hover:opacity-100 transition-opacity print-hidden">
-        <!-- Ver como Cliente -->
-        <a href="/p/${escapeHtml(proposal.unique_hash)}" target="_blank"
-           class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200 inline-flex items-center gap-1.5"
-           title="Ver propuesta como cliente">
-          👁️ Ver
-        </a>
-
-        <!-- Menú de acciones -->
-        <div class="relative group/menu">
-          <button class="text-gray-400 hover:text-gray-600 transition-colors text-lg" title="Más opciones">
-            ⋮
-          </button>
-          <div class="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg hidden group-hover/menu:block opacity-0 group-hover/menu:opacity-100 transition-opacity z-50">
-            <!-- Editar -->
-            <a href="/proposal/${proposal.id}/edit"
-               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 first:rounded-t-lg"
-               title="Editar propuesta">
-              ✏️ Editar
-            </a>
-
-            <!-- Copiar hash -->
-            <button onclick="copyToClipboard('/p/${escapeHtml(proposal.unique_hash)}')"
-                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
-                    title="Copiar enlace para compartir">
-              🔗 Copiar enlace
-            </button>
-
-            <!-- Chat -->
-            <a href="/proposal/${proposal.id}/chat"
-               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50"
-               title="Chat con cliente">
-              💬 Chat
-            </a>
-
-            <!-- Duplicar -->
-            <form method="POST" action="/proposal/${proposal.id}/duplicate" style="display: contents;">
-              <button type="submit"
-                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50"
-                      title="Duplicar propuesta"
-                      onclick="return confirm('¿Duplicar esta propuesta?')">
-                📋 Duplicar
-              </button>
-            </form>
-
-            <!-- Eliminar -->
-            <form method="POST" action="/proposal/${proposal.id}/delete" style="display: contents;">
-              <button type="submit"
-                      class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-lg"
-                      title="Eliminar propuesta"
-                      onclick="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
-                🗑️ Eliminar
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
+      ${actionsHtml}
     </td>
   `;
 

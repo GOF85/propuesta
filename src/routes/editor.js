@@ -94,4 +94,15 @@ router.post(
   }
 );
 
+/**
+ * POST /proposal/:id/cancel
+ * Anular propuesta
+ */
+router.post(
+  '/proposal/:id/cancel',
+  authenticateUser,
+  param('id').isInt().toInt(),
+  editorController.cancelProposal
+);
+
 module.exports = router;

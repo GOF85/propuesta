@@ -4,7 +4,7 @@
 /* ROOT VARIABLES - Typography & Spacing */
 /* ═══════════════════════════════════════════════════════ */
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  --font-sans: 'Space Grotesk', 'Helvetica Neue', Helvetica, sans-serif;
   --font-mono: 'Fira Code', 'Courier New', monospace;
   
   --text-xs: 0.75rem;
@@ -79,7 +79,7 @@ h4 {
 }
 
 p {
-  color: #4b5563;
+  color: var(--brand-gray);
   line-height: 1.6;
 }
 
@@ -106,20 +106,20 @@ a {
 }
 
 .btn-primary {
-  background-color: #3b82f6;
-  color: white;
+  background-color: var(--brand-green);
+  color: var(--brand-white);
   box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-  background-color: #2563eb;
+  background-color: var(--brand-green-dark);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: #e5e7eb;
-  color: #1f2937;
+  background-color: var(--brand-gray-light);
+  color: var(--brand-black);
 }
 
 .btn-secondary:hover {
@@ -127,13 +127,13 @@ a {
 }
 
 .btn-outline {
-  border-color: #d1d5db;
-  color: #374151;
+  border-color: var(--brand-border);
+  color: var(--brand-gray);
 }
 
 .btn-outline:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
+  background-color: var(--brand-white);
+  border-color: var(--brand-gray);
 }
 
 .btn-lg {
@@ -147,7 +147,7 @@ a {
 .card {
   background: white;
   border-radius: var(--radius-lg);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--brand-gray-light);
   box-shadow: var(--shadow-sm);
   padding: var(--spacing-8);
   transition: box-shadow var(--transition-base), transform var(--transition-base);
@@ -164,13 +164,13 @@ a {
   justify-content: space-between;
   margin-bottom: var(--spacing-6);
   padding-bottom: var(--spacing-6);
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--brand-gray-light);
 }
 
 .card-title {
   font-size: var(--text-xl);
   font-weight: 700;
-  color: #1f2937;
+  color: var(--brand-black);
 }
 
 /* ═══════════════════════════════════════════════════════ */
@@ -189,13 +189,13 @@ a {
 }
 
 .badge-success {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: var(--brand-green-light);
+  color: var(--brand-green-dark);
 }
 
 .badge-warning {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--brand-gray-light);
+  color: var(--brand-gray);
 }
 
 .badge-info {
