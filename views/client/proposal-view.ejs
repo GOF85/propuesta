@@ -1,17 +1,65 @@
 <%- include('../partials/header-client') %>
 
+<!-- 🎨 INYECCIÓN DINÁMICA DE BRANDING -->
+<% 
+  const ImageService = require('../../src/services/ImageService');
+  const brandColor = proposal.brand_color || '#0066cc';
+  const palette = ImageService.generateColorPalette(brandColor);
+%>
+
+<style>
+  :root {
+    /* Colores dinámicos generados desde logo */
+    --brand-primary: <%= palette.primary %>;
+    --brand-primary-rgb: <%= palette.primaryRgb %>;
+    --brand-hover: <%= palette.hover %>;
+    --brand-light: <%= palette.light %>;
+    --brand-dark: <%= palette.dark %>;
+    --brand-text: <%= palette.text %>;
+    --brand-complement: <%= palette.complement %>;
+  }
+
+  /* Aplicar branding dinámico */
+  .brand-bg { background-color: var(--brand-primary) !important; }
+  .brand-bg-light { background-color: var(--brand-light) !important; }
+  .brand-text { color: var(--brand-primary) !important; }
+  .brand-border { border-color: var(--brand-primary) !important; }
+  .brand-hover:hover { background-color: var(--brand-hover) !important; }
+  
+  /* Botones con marca */
+  .btn-brand {
+    background-color: var(--brand-primary);
+    color: var(--brand-text);
+    border: none;
+  }
+  .btn-brand:hover {
+    background-color: var(--brand-hover);
+  }
+</style>
+
 <main class="min-h-screen bg-gray-50 py-8">
   <div class="max-w-6xl mx-auto px-4">
 
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">
-        <%= proposal.client_name %>
-      </h1>
-      <p class="text-gray-600 mt-2">
-        Propuesta #<%= proposal.id %> | 
-        Evento: <%= formatDate(proposal.event_date) %>
-      </p>
+    <!-- Header con Logo del Cliente (si existe) -->
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <% if (proposal.logo_url) { %>
+          <img src="<%= proposal.logo_url %>" alt="<%= proposal.client_name %>" class="h-12 mb-3 object-contain">
+        <% } %>
+        <h1 class="text-3xl font-bold text-gray-900">
+          <%= proposal.client_name %>
+        </h1>
+        <p class="text-gray-600 mt-2">
+          Propuesta #<%= proposal.id %> | 
+          Evento: <%= formatDate(proposal.event_date) %>
+        </p>
+      </div>
+      
+      <!-- Badge con color de marca -->
+      <div class="brand-bg text-white px-6 py-3 rounded-lg shadow-lg">
+        <p class="text-sm font-medium">Presupuesto Personalizado</p>
+        <p class="text-2xl font-bold"><%= proposal.pax %> PAX</p>
+      </div>
     </div>
 
     <!-- Grid: Propuesta + Chat -->
