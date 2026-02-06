@@ -1,0 +1,437 @@
+<%- include('../partials/header') %>
+
+<main class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-8 flex items-center space-x-2 text-sm">
+      <a href="/dashboard" class="text-blue-600 hover:underline">Dashboard</a>
+      <span class="text-gray-400">/</span>
+      <span class="text-gray-700 font-medium"><%= proposal.client_name %></span>
+    </nav>
+
+    <!-- Header con titulo y acciones -->
+    <div class="mb-8 flex items-start justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">
+          <%= proposal.client_name %>
+        </h1>
+        <p class="text-gray-600 mt-1">
+          Propuesta #<%= proposal.id %> | 
+          Estado: <span class="badge badge-<%= proposal.status %>"><%= statusLabel(proposal.status) %></span>
+        </p>
+      </div>
+      <div class="flex gap-3">
+        <% if (proposal.status === 'draft' || proposal.status === 'accepted') { %>
+          <button id="btn-publish" class="btn btn-primary">
+            📤 Enviar a Cliente
+          </button>
+        <% } %>
+        <% if (proposal.user_id === user.id) { %>
+          <button class="btn btn-outline" onclick="history.back()">
+            ← Volver
+          </button>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Contenedor principal (grid 2 columnas) -->
+    <div class="grid grid-cols-3 gap-8">
+
+      <!-- COLUMNA PRINCIPAL (2/3) -->
+      <div class="col-span-2 space-y-8">
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- SECCIÓN 1: INFORMACIÓN DEL CLIENTE -->
+        <!-- ════════════════════════════════════════════════════════ -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">📋 Información de la Propuesta</h2>
+
+          <form id="proposal-form" class="space-y-4">
+            <input type="hidden" data-proposal-id="<%= proposal.id %>">
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">Cliente *</label>
+                <input 
+                  type="text" 
+                  name="client_name" 
+                  value="<%= proposal.client_name %>"
+                  class="form-input"
+                  required
+                >
+              </div>
+              <div>
+                <label class="form-label">Email Cliente</label>
+                <input 
+                  type="email" 
+                  name="client_email" 
+                  value="<%= proposal.client_email || '' %>"
+                  class="form-input"
+                >
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">Nombre del Evento</label>
+                <input 
+                  type="text" 
+                  name="event_name" 
+                  value="<%= proposal.event_name || '' %>"
+                  class="form-input"
+                >
+              </div>
+              <div>
+                <label class="form-label">Fecha del Evento</label>
+                <input 
+                  type="date" 
+                  name="event_date" 
+                  value="<%= proposal.event_date ? proposal.event_date.split('T')[0] : '' %>"
+                  class="form-input"
+                >
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">PAX (Comensales)</label>
+                <input 
+                  type="number" 
+                  name="pax" 
+                  value="<%= proposal.pax || 0 %>"
+                  min="1"
+                  class="form-input"
+                >
+              </div>
+              <div>
+                <label class="form-label">Válida hasta</label>
+                <input 
+                  type="date" 
+                  name="valid_until" 
+                  value="<%= proposal.valid_until ? proposal.valid_until.split('T')[0] : '' %>"
+                  class="form-input"
+                >
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">Condiciones Legales</label>
+              <textarea 
+                name="legal_conditions" 
+                rows="4"
+                class="form-input"
+                placeholder="Términos y condiciones..."
+              ><%= proposal.legal_conditions || '' %></textarea>
+            </div>
+
+            <button type="button" id="btn-save-proposal" class="btn btn-secondary w-full">
+              💾 Guardar Cambios
+            </button>
+          </form>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- SECCIÓN 2: VENUES -->
+        <!-- ════════════════════════════════════════════════════════ -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">🏢 Venues</h2>
+
+          <div class="mb-6 flex gap-2">
+            <select name="venue-selector" class="form-input flex-1">
+              <option value="">Selecciona un venue...</option>
+              <% if (availableVenues) { %>
+                <% availableVenues.forEach(v => { %>
+                  <option value="<%= v.id %>"><%= v.name %></option>
+                <% }); %>
+              <% } %>
+            </select>
+            <button type="button" id="btn-add-venue" class="btn btn-primary">
+              ➕ Agregar
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="venues-table w-full text-sm">
+              <thead>
+                <tr class="border-b-2 border-gray-200">
+                  <th class="text-left py-2 px-4 font-semibold">Venue</th>
+                  <th class="text-right py-2 px-4 font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <% if (proposal.venues && proposal.venues.length > 0) { %>
+                  <% proposal.venues.forEach(v => { %>
+                    <tr class="venue-row hover:bg-gray-50">
+                      <td class="py-3 px-4"><%= v.name %></td>
+                      <td class="py-3 px-4 text-right">
+                        <button 
+                          type="button" 
+                          class="btn btn-sm btn-danger btn-remove-venue" 
+                          data-venue-id="<%= v.id %>"
+                        >
+                          🗑️ Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  <% }); %>
+                <% } else { %>
+                  <tr>
+                    <td class="py-8 px-4 text-center text-gray-500 col-span-2">
+                      Sin venues agregados
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- SECCIÓN 3: SERVICIOS -->
+        <!-- ════════════════════════════════════════════════════════ -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">🍽️ Servicios / Hitos</h2>
+
+          <div class="mb-6 flex gap-2">
+            <input 
+              type="text"
+              placeholder="Nombre del servicio (ej: Welcome Coffee)..."
+              id="service-title"
+              class="form-input flex-1"
+            >
+            <select name="service-type" class="form-input">
+              <option value="gastronomy">Gastronomía</option>
+              <option value="logistics">Logística</option>
+              <option value="staff">Personal</option>
+              <option value="other">Otro</option>
+            </select>
+            <button type="button" id="btn-add-service" class="btn btn-primary">
+              ➕ Agregar
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="services-table w-full text-sm">
+              <thead>
+                <tr class="border-b-2 border-gray-200">
+                  <th class="text-left py-2 px-4 font-semibold">Servicio</th>
+                  <th class="text-left py-2 px-4 font-semibold">Tipo</th>
+                  <th class="text-right py-2 px-4 font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <% if (proposal.services && proposal.services.length > 0) { %>
+                  <% proposal.services.forEach(s => { %>
+                    <tr class="service-row hover:bg-gray-50">
+                      <td class="py-3 px-4"><%= s.title %></td>
+                      <td class="py-3 px-4">
+                        <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                          <%= s.type %>
+                        </span>
+                      </td>
+                      <td class="py-3 px-4 text-right">
+                        <button 
+                          type="button" 
+                          class="btn btn-sm btn-danger btn-remove-service" 
+                          data-service-id="<%= s.id %>"
+                        >
+                          🗑️ Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  <% }); %>
+                <% } else { %>
+                  <tr>
+                    <td class="py-8 px-4 text-center text-gray-500" colspan="3">
+                      Sin servicios agregados
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUMNA DERECHA (1/3) - SIDEBAR -->
+      <div class="col-span-1">
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- WIDGET: RESUMEN FINANCIERO -->
+        <!-- ════════════════════════════════════════════════════════ -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6 sticky top-8">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">💰 Resumen Financiero</h3>
+
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Base:</span>
+              <span class="text-lg font-semibold text-gray-900" data-total>
+                <%= formatCurrency(proposal.total_base || 0) %>
+              </span>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">IVA (10%):</span>
+              <span class="font-medium text-gray-800">
+                <%= formatCurrency((proposal.total_base || 0) * 0.10) %>
+              </span>
+            </div>
+
+            <div class="flex justify-between items-center py-3 border-t-2 border-b-2 border-gray-300">
+              <span class="font-bold text-gray-900">Total:</span>
+              <span class="text-2xl font-bold text-blue-600" data-total>
+                <%= formatCurrency(proposal.total_estimated || 0) %>
+              </span>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-secondary w-full mt-6 text-sm">
+            🔄 Recalcular
+          </button>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- WIDGET: ESTADO Y ACCIONES -->
+        <!-- ════════════════════════════════════════════════════════ -->
+        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">⚙️ Acciones</h3>
+
+          <div class="space-y-2">
+            <% if (proposal.status === 'draft') { %>
+              <button class="btn btn-primary w-full text-sm">
+                📤 Enviar a Cliente
+              </button>
+              <button class="btn btn-outline w-full text-sm">
+                📋 Descargar PDF
+              </button>
+            <% } %>
+
+            <% if (proposal.status !== 'accepted') { %>
+              <button class="btn btn-outline btn-danger w-full text-sm">
+                🗑️ Archivar
+              </button>
+            <% } %>
+
+            <button class="btn btn-outline w-full text-sm" onclick="window.print()">
+              🖨️ Imprimir
+            </button>
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- WIDGET: INFORMACIÓN -->
+        <!-- ════════════════════════════════════════════════════════ -->
+        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-6 text-sm">
+          <h3 class="font-bold text-gray-900 mb-3">ℹ️ Información</h3>
+
+          <div class="space-y-2 text-gray-600">
+            <p>
+              <strong>Creada:</strong> <%= formatDate(proposal.created_at) %>
+            </p>
+            <p>
+              <strong>Estado:</strong> 
+              <span class="badge badge-<%= proposal.status %>">
+                <%= statusLabel(proposal.status) %>
+              </span>
+            </p>
+            <% if (proposal.event_date) { %>
+              <p>
+                <strong>Evento:</strong> <%= formatDate(proposal.event_date) %>
+              </p>
+            <% } %>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Script de editor -->
+<script src="/js/editor.js" defer></script>
+
+<!-- Estilos personalizados para editor -->
+<style>
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+
+  .form-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all cursor-pointer;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-900 hover:bg-gray-300;
+  }
+
+  .btn-outline {
+    @apply border border-gray-300 text-gray-900 hover:bg-gray-50;
+  }
+
+  .btn-danger {
+    @apply bg-red-100 text-red-700 hover:bg-red-200;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1 text-xs;
+  }
+
+  .badge {
+    @apply inline-block px-2 py-1 rounded text-xs font-semibold;
+  }
+
+  .badge-draft {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+
+  .badge-sent {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  .badge-accepted {
+    @apply bg-green-100 text-green-800;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  /* Print-safe */
+  @media print {
+    .btn, nav, .sticky, button {
+      display: none !important;
+    }
+  }
+</style>
+
+<%- include('../partials/footer') %>

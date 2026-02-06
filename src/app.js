@@ -88,9 +88,18 @@ app.use((req, res, next) => {
 // ============ RUTAS PRINCIPALES ============
 const routes = require('./routes/index');
 const dashboardRoutes = require('./routes/dashboard');
+const authRoutes = require('./routes/auth');
+const editorRoutes = require('./routes/editor');
+const apiRoutes = require('./routes/api');
+const clientRoutes = require('./routes/client');
 
+// Orden IMPORTANTE: authRoutes primero para que /login y /logout funcionen
+app.use('/', authRoutes);
 app.use('/', routes);
 app.use('/', dashboardRoutes);
+app.use('/', editorRoutes);
+app.use('/', apiRoutes);
+app.use('/', clientRoutes); // Magic link routes (public)
 
 // ============ MANEJO DE ERRORES ============
 

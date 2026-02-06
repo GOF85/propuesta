@@ -7,9 +7,16 @@
 2. **[DEVELOPMENT.md](../DEVELOPMENT.md)** - Full developer guide
 3. **.env.example** - Environment configuration template
 
-### For Phase 2 Dashboard Work (Current)
+### For Phase 2 Dashboard Work (Testing)
 1. **[PHASE2_COMPLETION.md](PHASE2_COMPLETION.md)** - What was built ✅
 2. **[PHASE2_TESTING.md](PHASE2_TESTING.md)** - How to test (16 test cases)
+
+### For Phase 3 Editor Work (Current)
+1. **[PHASE3_COMPLETION.md](PHASE3_COMPLETION.md)** - What was built ✅
+2. **[PHASE3_TESTING.md](PHASE3_TESTING.md)** - How to test (20 test cases)
+3. **[PHASE3_STATUS.md](PHASE3_STATUS.md)** - Current project status
+
+### Code Patterns & Reference
 3. **[QUICK_REFERENCE.md](../QUICK_REFERENCE.md)** - Code patterns & commands
 
 ### For Architecture Understanding

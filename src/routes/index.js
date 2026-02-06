@@ -16,6 +16,16 @@ router.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
+// ============ ROOT REDIRECT ============
+// Redirige / al dashboard si está autenticado, a /login si no
+// Pero no redirige si ya está en /login o rutas públicas
+router.get('/', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/dashboard');
+  }
+  res.redirect('/login');
+});
+
 // ============ RUTAS PROTEGIDAS (Requieren login) ============
 // Se irán añadiendo en las próximas fases:
 // - GET /dashboard - Dashboard comercial

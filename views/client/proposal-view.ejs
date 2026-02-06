@@ -1,0 +1,277 @@
+<%- include('../partials/header-client') %>
+
+<main class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-6xl mx-auto px-4">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">
+        <%= proposal.client_name %>
+      </h1>
+      <p class="text-gray-600 mt-2">
+        Propuesta #<%= proposal.id %> | 
+        Evento: <%= formatDate(proposal.event_date) %>
+      </p>
+    </div>
+
+    <!-- Grid: Propuesta + Chat -->
+    <div class="grid grid-cols-3 gap-8">
+
+      <!-- COLUMNA PRINCIPAL (2/3) -->
+      <div class="col-span-2 space-y-8">
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- INFORMACIÓN DEL EVENTO -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">📋 Información del Evento</h2>
+
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <p class="text-sm text-gray-600">Fecha del Evento</p>
+              <p class="text-lg font-semibold text-gray-900">
+                <%= formatDate(proposal.event_date) %>
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Comensales (PAX)</p>
+              <p class="text-lg font-semibold text-gray-900">
+                <%= proposal.pax %> personas
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-6 border-t">
+            <p class="text-sm text-gray-600 mb-2">Condiciones Legales</p>
+            <p class="text-gray-700 whitespace-pre-wrap">
+              <%= proposal.legal_conditions || 'Sin información adicional' %>
+            </p>
+          </div>
+
+          <div class="mt-6 pt-6 border-t">
+            <p class="text-xs text-gray-500">
+              ✓ Propuesta válida hasta: <strong><%= formatDate(proposal.valid_until) %></strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- VENUES -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">🏢 Venues</h2>
+
+          <div class="space-y-4">
+            <% if (proposal.venues && proposal.venues.length > 0) { %>
+              <% proposal.venues.forEach(venue => { %>
+                <div class="border rounded-lg p-4 hover:bg-gray-50">
+                  <h3 class="font-bold text-gray-900"><%= venue.name %></h3>
+                  <p class="text-sm text-gray-600 mt-1"><%= venue.description || 'Sin descripción' %></p>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <p class="text-gray-500">Sin venues especificados</p>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SERVICIOS (Desglose de Precios) -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">🍽️ Servicios y Precios</h2>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b-2 border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold">Servicio</th>
+                  <th class="text-center py-3 px-4 font-semibold">Por PAX</th>
+                  <th class="text-right py-3 px-4 font-semibold">Subtotal</th>
+                  <th class="text-right py-3 px-4 font-semibold">IVA</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <% if (proposal.services && proposal.services.length > 0) { %>
+                  <% proposal.services.forEach(service => { %>
+                    <tr class="hover:bg-gray-50">
+                      <td class="py-3 px-4"><strong><%= service.title %></strong></td>
+                      <td class="text-center py-3 px-4">
+                        <%= formatCurrency(service.price_per_pax || 0) %>
+                      </td>
+                      <td class="text-right py-3 px-4">
+                        <%= formatCurrency((service.price_per_pax || 0) * proposal.pax) %>
+                      </td>
+                      <td class="text-right py-3 px-4 text-blue-600">
+                        <%= formatCurrency(((service.price_per_pax || 0) * proposal.pax) * (service.vat_rate || 0.10) / 100) %>
+                      </td>
+                    </tr>
+                  <% }); %>
+                <% } else { %>
+                  <tr>
+                    <td class="py-8 px-4 text-center text-gray-500" colspan="4">
+                      Sin servicios especificados
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUMNA DERECHA (1/3) -->
+      <div class="col-span-1">
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- RESUMEN FINANCIERO -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6 sticky top-8">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">💰 Presupuesto</h3>
+
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Subtotal:</span>
+              <span class="text-lg font-semibold text-gray-900">
+                <%= formatCurrency(proposal.total_base || 0) %>
+              </span>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">IVA (10-21%):</span>
+              <span class="font-medium text-gray-800">
+                <%= formatCurrency((proposal.total_estimated - proposal.total_base) || 0) %>
+              </span>
+            </div>
+
+            <div class="flex justify-between items-center py-3 border-t-2 border-b-2 border-gray-300">
+              <span class="font-bold text-gray-900">Total Final:</span>
+              <span class="text-2xl font-bold text-blue-600">
+                <%= formatCurrency(proposal.total_estimated || 0) %>
+              </span>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-600 mt-4">
+            * Presupuesto válido hasta <%= formatDate(proposal.valid_until) %>
+          </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- ACCIONES -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">✅ Acciones</h3>
+
+          <div class="space-y-2">
+            <button id="btn-accept" class="btn btn-primary w-full text-sm">
+              ✅ Aceptar Propuesta
+            </button>
+
+            <button id="btn-modifications" class="btn btn-outline w-full text-sm">
+              🔄 Solicitar Cambios
+            </button>
+
+            <button id="btn-reject" class="btn btn-outline btn-danger w-full text-sm">
+              ❌ Rechazar
+            </button>
+
+            <button class="btn btn-outline w-full text-sm" onclick="window.print()">
+              🖨️ Imprimir
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- INFO -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-6 text-sm">
+          <h3 class="font-bold text-gray-900 mb-3">ℹ️ Ayuda</h3>
+
+          <div class="space-y-2 text-gray-600 text-xs">
+            <p>
+              📧 Si tienes preguntas, envía un mensaje en el chat a la derecha.
+            </p>
+            <p>
+              ⏰ El comercial te responderá en el menor tiempo posible.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Modal: Solicitar Modificaciones -->
+<div id="modal-modifications" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">🔄 Solicitar Modificaciones</h2>
+    
+    <textarea id="modifications-text" 
+      placeholder="Describe los cambios que deseas..."
+      rows="6"
+      class="form-input w-full mb-4"></textarea>
+
+    <div class="flex gap-3">
+      <button id="btn-cancel-modifications" class="btn btn-outline flex-1">Cancelar</button>
+      <button id="btn-send-modifications" class="btn btn-primary flex-1">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Rechazar -->
+<div id="modal-reject" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">❌ Rechazar Propuesta</h2>
+    
+    <p class="text-gray-600 mb-4">¿Estás seguro de que deseas rechazar esta propuesta?</p>
+    
+    <textarea id="reject-reason" 
+      placeholder="(Opcional) Cuéntanos por qué..."
+      rows="3"
+      class="form-input w-full mb-4"></textarea>
+
+    <div class="flex gap-3">
+      <button id="btn-cancel-reject" class="btn btn-outline flex-1">Cancelar</button>
+      <button id="btn-confirm-reject" class="btn btn-danger flex-1">Rechazar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos -->
+<style>
+  .form-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all cursor-pointer;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+
+  .btn-outline {
+    @apply border border-gray-300 text-gray-900 hover:bg-gray-50;
+  }
+
+  .btn-danger {
+    @apply bg-red-100 text-red-700 hover:bg-red-200;
+  }
+
+  @media print {
+    .btn, nav, .sticky, button, #btn-accept, #btn-modifications, #btn-reject {
+      display: none !important;
+    }
+  }
+</style>
+
+<!-- Script de cliente -->
+<script src="/js/client-proposal.js" defer></script>
+
+<%- include('../partials/footer') %>
