@@ -8,7 +8,7 @@
 
 require('dotenv').config({ path: '.env.local' });
 const { v4: uuid } = require('uuid');
-const pool = require('../src/config/db');
+const { pool } = require('../src/config/db');
 
 const testData = {
   userId: 'test-user-001',
@@ -16,38 +16,30 @@ const testData = {
     {
       id: uuid(),
       client_name: 'Amazon Web Services',
-      event_name: 'Tech Summit 2026',
       event_date: '2026-03-15',
       pax: 250,
-      status: 'draft',
-      total_estimated: 15000.50
+      status: 'draft'
     },
     {
       id: uuid(),
       client_name: 'Google Spain',
-      event_name: 'Annual Gala Dinner',
       event_date: '2026-04-10',
       pax: 180,
-      status: 'sent',
-      total_estimated: 12500.75
+      status: 'sent'
     },
     {
       id: uuid(),
       client_name: 'Microsoft Iberia',
-      event_name: 'Team Building',
       event_date: '2026-02-28',
       pax: 120,
-      status: 'accepted',
-      total_estimated: 8750.00
+      status: 'accepted'
     },
     {
       id: uuid(),
       client_name: 'Telefónica S.A.',
-      event_name: 'Executive Meeting',
       event_date: '2026-05-20',
       pax: 95,
-      status: 'draft',
-      total_estimated: 6200.00
+      status: 'draft'
     }
   ]
 };
@@ -55,55 +47,64 @@ const testData = {
 async function seedData() {
   let conn;
   try {
+    // PRIMERA CONEXIÓN: usuario
     conn = await pool.getConnection();
-
     console.log('🌱 Iniciando seed de datos de prueba...\n');
-
-    // 1. Verificar que existe el usuario
+    await conn.query(
+      'DELETE FROM users WHERE email = ? AND id != ?',
+      ['test@example.com', testData.userId]
+    );
     const userExists = await conn.query(
       'SELECT id FROM users WHERE id = ?',
       [testData.userId]
     );
-
     if (!userExists.length) {
       console.log('👤 Insertando usuario de prueba...');
-      await conn.query(
-        `INSERT INTO users (id, email, password, role, created_at) VALUES (?, ?, ?, ?, NOW())`,
-        [testData.userId, 'test@example.com', 'password123', 'commercial']
-      );
-      console.log('✅ Usuario creado: test@example.com\n');
+      try {
+        await conn.query(
+          `INSERT INTO users (id, name, email, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, NOW())`,
+          [testData.userId, 'Test User', 'test@example.com', 'password123', 'commercial']
+        );
+        console.log('✅ Usuario creado: test@example.com\n');
+      } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY' || (err.errno === 1062)) {
+          console.log('ℹ️  Usuario ya existe (email duplicado)\n');
+        } else {
+          throw err;
+        }
+      }
     } else {
       console.log('ℹ️  Usuario ya existe\n');
     }
+    await conn.end();
 
-    // 2. Insertar propuestas
+    // SEGUNDA CONEXIÓN: propuestas
+    conn = await pool.getConnection();
     console.log('📋 Insertando propuestas de prueba...');
     for (const proposal of testData.proposals) {
       const exists = await conn.query(
         'SELECT id FROM proposals WHERE id = ?',
         [proposal.id]
       );
-
       if (!exists.length) {
         await conn.query(
           `INSERT INTO proposals 
-           (id, user_id, unique_hash, client_name, event_name, event_date, pax, status, total_estimated, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+           (id, user_id, unique_hash, client_name, event_date, pax, status, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
             proposal.id,
             testData.userId,
             uuid(),
             proposal.client_name,
-            proposal.event_name,
             proposal.event_date,
             proposal.pax,
-            proposal.status,
-            proposal.total_estimated
+            proposal.status
           ]
         );
         console.log(`  ✅ ${proposal.client_name} (${proposal.status})`);
       }
     }
+    await conn.end();
 
     console.log('\n✨ Seed completado exitosamente!\n');
     console.log('📊 Datos insertados:');
