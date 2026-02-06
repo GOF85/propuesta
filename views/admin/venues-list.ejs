@@ -1,0 +1,493 @@
+<!-- views/admin/venues-list.ejs -->
+<!-- Gestión de Venues: Lista, scraping, y formulario fallback -->
+
+<%- include('../partials/header') %>
+
+<style>
+  .venue-card {
+    @apply bg-white rounded-lg shadow hover:shadow-lg transition p-4 mb-4;
+  }
+
+  .venue-images {
+    @apply flex gap-2 mt-3 overflow-x-auto;
+  }
+
+  .venue-images img {
+    @apply w-24 h-24 rounded object-cover flex-shrink-0;
+  }
+
+  .btn-scrape {
+    @apply bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition;
+  }
+
+  .btn-add-manual {
+    @apply bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition;
+  }
+
+  .status-badge {
+    @apply inline-block px-3 py-1 rounded text-sm font-medium;
+  }
+
+  .status-scraping {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+
+  .status-manual {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  .loading-spinner {
+    @apply inline-block animate-spin h-4 w-4 border-2 border-white border-r-transparent rounded-full;
+  }
+
+  @media print {
+    .action-buttons,
+    .btn-scrape,
+    .btn-add-manual {
+      @apply hidden;
+    }
+  }
+</style>
+
+<div class="container mx-auto p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold mb-2">🏢 Gestión de Venues</h1>
+    <p class="text-gray-600">Importa venues desde micecatering.com o crea manualmente</p>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="flex gap-3 mb-6 flex-wrap">
+    <button id="btn-scrape" class="btn-scrape" onclick="startScraping()">
+      <span class="inline-flex items-center gap-2">
+        <i class="fas fa-spider"></i> Scrapear micecatering.com
+      </span>
+    </button>
+
+    <button class="btn-add-manual" onclick="openVenueForm('new')">
+      <i class="fas fa-plus"></i> Crear Venue Manual
+    </button>
+
+    <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition"
+            onclick="document.getElementById('import-csv').click()">
+      <i class="fas fa-file-csv"></i> Importar CSV
+    </button>
+
+    <input type="file" id="import-csv" hidden accept=".csv"
+           onchange="importVenuesCSV()" />
+  </div>
+
+  <!-- Status Messages -->
+  <% if (locals.flash && locals.flash.success) { %>
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+      ✅ <%= locals.flash.success %>
+    </div>
+  <% } %>
+
+  <% if (locals.flash && locals.flash.error) { %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      ❌ <%= locals.flash.error %>
+    </div>
+  <% } %>
+
+  <!-- Progress Bar (scraping) -->
+  <div id="scrape-progress" class="hidden mb-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-medium">Scrapeando...</span>
+      <span id="scrape-status">0%</span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-2">
+      <div id="scrape-bar" class="bg-blue-600 h-2 rounded-full transition"
+           style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Venues List -->
+  <div>
+    <h2 class="text-xl font-bold mb-4">
+      📍 Venues (<span id="venue-count"><%= venues?.length || 0 %></span>)
+    </h2>
+
+    <% if (!venues || venues.length === 0) { %>
+      <div class="text-center py-8 text-gray-500">
+        <p class="text-lg mb-4">No hay venues aún</p>
+        <p class="text-sm">
+          Usa <strong>Scrapear</strong> para importarlos automáticamente<br/>
+          o <strong>Crear Manual</strong> para agregarlos uno por uno
+        </p>
+      </div>
+    <% } else { %>
+      <div class="grid gap-4">
+        <% venues.forEach((venue) => { %>
+          <div class="venue-card">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <h3 class="text-lg font-bold"><%= venue.name %></h3>
+                <p class="text-gray-600 text-sm mt-1">
+                  <% if (venue.address) { %> 📍 <%= venue.address %> <% } %>
+                </p>
+                <p class="text-gray-700 mt-2"><%= venue.description?.substring(0, 150) %>...</p>
+
+                <!-- Capacidades -->
+                <div class="flex gap-4 mt-3 text-sm">
+                  <% if (venue.capacity_cocktail) { %>
+                    <span class="bg-gray-100 px-2 py-1 rounded">
+                      🍸 Cóctel: <%= venue.capacity_cocktail %>
+                    </span>
+                  <% } %>
+                  <% if (venue.capacity_banquet) { %>
+                    <span class="bg-gray-100 px-2 py-1 rounded">
+                      🍽️ Banquete: <%= venue.capacity_banquet %>
+                    </span>
+                  <% } %>
+                  <% if (venue.capacity_theater) { %>
+                    <span class="bg-gray-100 px-2 py-1 rounded">
+                      🎭 Teatro: <%= venue.capacity_theater %>
+                    </span>
+                  <% } %>
+                </div>
+
+                <!-- Características -->
+                <% if (venue.features && venue.features.length > 0) { %>
+                  <div class="flex gap-2 flex-wrap mt-2">
+                    <% venue.features.forEach((f) => { %>
+                      <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                        <%= f %>
+                      </span>
+                    <% }) %>
+                  </div>
+                <% } %>
+
+                <!-- Imágenes -->
+                <% if (venue.images && venue.images.length > 0) { %>
+                  <div class="venue-images">
+                    <% venue.images.forEach((img) => { %>
+                      <img src="<%= img %>" alt="<%= venue.name %>"
+                           title="<%= venue.name %>" />
+                    <% }) %>
+                  </div>
+                <% } %>
+              </div>
+
+              <!-- Acciones -->
+              <div class="action-buttons ml-4 flex flex-col gap-2">
+                <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 text-sm rounded"
+                        onclick="openVenueForm('edit', <%= venue.id %>)">
+                  ✏️ Editar
+                </button>
+                <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-sm rounded"
+                        onclick="deleteVenue(<%= venue.id %>, '<%= venue.name %>')">
+                  🗑️ Eliminar
+                </button>
+                <% if (venue.external_url) { %>
+                  <a href="<%= venue.external_url %>" target="_blank"
+                     class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 text-sm rounded text-center">
+                    🔗 Ver Original
+                  </a>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- Modal: Formulario Manual -->
+<div id="venue-form-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
+    <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+      <h2 id="form-title" class="text-xl font-bold">Crear Venue</h2>
+      <button onclick="closeVenueForm()" class="text-2xl text-gray-500 hover:text-gray-700">
+        ×
+      </button>
+    </div>
+
+    <div class="p-6">
+      <form id="venue-form" onsubmit="submitVenueForm(event)">
+        <!-- Nombre -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Nombre * <span class="text-red-500">requerido</span>
+          </label>
+          <input type="text" id="venue-name" name="name" required
+                 class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 placeholder="Ej: Gran Salón Madrid">
+        </div>
+
+        <!-- Descripción -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+          <textarea id="venue-description" name="description" rows="4"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Describe el venue..."></textarea>
+        </div>
+
+        <!-- Capacidades -->
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Cóctel (pax)
+            </label>
+            <input type="number" id="venue-capacity-cocktail" name="capacity_cocktail" min="0"
+                   class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Banquete (pax)
+            </label>
+            <input type="number" id="venue-capacity-banquet" name="capacity_banquet" min="0"
+                   class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Teatro (pax)
+            </label>
+            <input type="number" id="venue-capacity-theater" name="capacity_theater" min="0"
+                   class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <!-- Dirección -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+          <input type="text" id="venue-address" name="address"
+                 class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 placeholder="Ej: Calle Gran Vía 25, Madrid">
+        </div>
+
+        <!-- URL Externa -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">URL Externa</label>
+          <input type="url" id="venue-external-url" name="external_url"
+                 class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 placeholder="https://...">
+        </div>
+
+        <!-- Características (tags) -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Características (separadas por coma)
+          </label>
+          <input type="text" id="venue-features" name="features"
+                 class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 placeholder="Ej: Wifi, Parking, Catering, Luz natural">
+        </div>
+
+        <!-- Botones -->
+        <div class="flex gap-3 justify-end">
+          <button type="button" onclick="closeVenueForm()"
+                  class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded transition">
+            Cancelar
+          </button>
+          <button type="submit" id="submit-btn"
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition flexible">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  let formMode = 'new'; // 'new' o 'edit'
+  let editingVenueId = null;
+
+  /**
+   * Abrir formulario para crear/editar venue
+   */
+  function openVenueForm(mode = 'new', venueId = null) {
+    formMode = mode;
+    editingVenueId = venueId;
+
+    const modal = document.getElementById('venue-form-modal');
+    const title = document.getElementById('form-title');
+
+    if (mode === 'edit' && venueId) {
+      title.textContent = '✏️ Editar Venue';
+      // Cargar datos del venue
+      fetchVenueData(venueId);
+    } else {
+      title.textContent = '➕ Crear Venue';
+      document.getElementById('venue-form').reset();
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeVenueForm() {
+    document.getElementById('venue-form-modal').classList.add('hidden');
+    document.getElementById('venue-form').reset();
+  }
+
+  /**
+   * Cargar datos del venue para edición
+   */
+  async function fetchVenueData(venueId) {
+    try {
+      const response = await fetch(`/api/venues/${venueId}`);
+      const data = await response.json();
+
+      if (data.success) {
+        const v = data.venue;
+        document.getElementById('venue-name').value = v.name || '';
+        document.getElementById('venue-description').value = v.description || '';
+        document.getElementById('venue-capacity-cocktail').value = v.capacity_cocktail || '';
+        document.getElementById('venue-capacity-banquet').value = v.capacity_banquet || '';
+        document.getElementById('venue-capacity-theater').value = v.capacity_theater || '';
+        document.getElementById('venue-address').value = v.address || '';
+        document.getElementById('venue-external-url').value = v.external_url || '';
+        document.getElementById('venue-features').value = Array.isArray(v.features)
+          ? v.features.join(', ')
+          : '';
+      }
+    } catch (err) {
+      console.error('Error cargando venue:', err);
+    }
+  }
+
+  /**
+   * Enviar formulario (crear o actualizar)
+   */
+  async function submitVenueForm(event) {
+    event.preventDefault();
+
+    const formData = new FormData(document.getElementById('venue-form'));
+    const data = Object.fromEntries(formData);
+
+    const endpoint = formMode === 'edit'
+      ? `/api/admin/venues/${editingVenueId}`
+      : '/api/admin/venues/manual';
+
+    const method = formMode === 'edit' ? 'PUT' : 'POST';
+
+    try {
+      const response = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(result.message || 'Guardado correctamente');
+        closeVenueForm();
+        location.reload(); // Recargar lista
+      } else {
+        alert('Error: ' + (result.error || result.message || 'Error desconocido'));
+      }
+    } catch (err) {
+      console.error('Error guardando:', err);
+      alert('Error: ' + err.message);
+    }
+  }
+
+  /**
+   * Iniciar scraping de micecatering.com
+   */
+  async function startScraping() {
+    if (!confirm('¿Ejecutar scraping de micecatering.com? Esto descargará venues e imágenes.')) {
+      return;
+    }
+
+    const btn = document.getElementById('btn-scrape');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-flex items-center gap-2"><span class="loading-spinner"></span>Scrapeando...</span>';
+
+    const progressDiv = document.getElementById('scrape-progress');
+    progressDiv.classList.remove('hidden');
+
+    try {
+      const response = await fetch('/api/admin/venues/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(`✅ ${result.message}\n${result.count} venues importados`);
+        location.reload();
+      } else {
+        alert(`❌ ${result.message || 'Scraping falló'}\n\nPor favor, usa el formulario manual.`);
+      }
+    } catch (err) {
+      console.error('Error scraping:', err);
+      alert('💥 Error: ' + err.message + '\n\nUsa el formulario manual para agregar venues.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="inline-flex items-center gap-2"><i class="fas fa-spider"></i> Scrapear micecatering.com</span>';
+      progressDiv.classList.add('hidden');
+    }
+  }
+
+  /**
+   * Eliminar venue
+   */
+  async function deleteVenue(venueId, venueName) {
+    if (!confirm(`¿Eliminar "${venueName}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/venues/${venueId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(result.message);
+        location.reload();
+      } else {
+        alert('Error: ' + (result.error || 'No se pudo eliminar'));
+      }
+    } catch (err) {
+      console.error('Error eliminando:', err);
+      alert('Error: ' + err.message);
+    }
+  }
+
+  /**
+   * Importar CSV
+   */
+  async function importVenuesCSV() {
+    const fileInput = document.getElementById('import-csv');
+    if (!fileInput.files.length) return;
+
+    const formData = new FormData();
+    formData.append('csvFile', fileInput.files[0]);
+
+    try {
+      const response = await fetch('/api/admin/venues/import', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(`✅ Importado correctamente`);
+        location.reload();
+      } else {
+        alert('Error: ' + result.error);
+      }
+    } catch (err) {
+      console.error('Error importando:', err);
+      alert('Error: ' + err.message);
+    }
+  }
+
+  // Limpiar input file después de usar
+  document.getElementById('import-csv')?.addEventListener('change', function() {
+    if (this.files.length > 0) {
+      importVenuesCSV();
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -605,6 +605,27 @@ class AdminController {
   }
 
   /**
+   * GET /admin/venues/list
+   * Renderizar lista de venues con interfaz de scraping
+   */
+  async getVenuesListPage(req, res) {
+    try {
+      const VenueService = require('../services/VenueService');
+      const venues = await VenueService.getAll();
+
+      res.render('admin/venues-list', {
+        venues,
+        totalVenues: venues.length,
+        title: 'Gestión de Venues'
+      });
+    } catch (err) {
+      console.error('Error en getVenuesListPage:', err);
+      req.flash('error', 'Error al cargar venues');
+      res.redirect('/dashboard');
+    }
+  }
+
+  /**
    * DELETE /api/admin/image/:hash
    * Eliminar una imagen por su hash
    */

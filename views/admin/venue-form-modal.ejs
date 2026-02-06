@@ -1,0 +1,334 @@
+<!-- views/admin/venue-form-modal.ejs -->
+<!-- Modal Reutilizable para Crear/Editar Venues -->
+<!-- Incluir en cualquier página con: <%- include('../admin/venue-form-modal') %> -->
+
+<style>
+  #venue-form-modal {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .form-group {
+    @apply mb-4;
+  }
+
+  .form-group label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    @apply w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+
+  .form-group textarea {
+    @apply resize-vertical;
+  }
+
+  .features-input {
+    @apply flex flex-wrap gap-2 mb-2;
+  }
+
+  .feature-tag {
+    @apply bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm inline-flex items-center gap-1;
+  }
+
+  .feature-tag button {
+    @apply cursor-pointer text-blue-600 hover:text-red-600;
+  }
+</style>
+
+<div id="venue-form-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
+    <!-- Header Modal -->
+    <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex justify-between items-center">
+      <h2 id="form-title" class="text-xl font-bold">
+        <i class="fas fa-building"></i> Crear Venue
+      </h2>
+      <button onclick="closeVenueForm()" class="text-2xl hover:text-blue-100 transition">
+        ✕
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <div class="p-6">
+      <form id="venue-form" onsubmit="submitVenueForm(event)">
+        
+        <!-- SECCIÓN 1: Información Básica -->
+        <fieldset class="mb-6 pb-4 border-b">
+          <legend class="text-lg font-bold text-gray-800 mb-3">
+            ℹ️ Información Básica
+          </legend>
+
+          <div class="form-group">
+            <label for="venue-name">
+              Nombre <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="venue-name" name="name" required
+                   placeholder="Ej: Grand Hotel Ballroom">
+          </div>
+
+          <div class="form-group">
+            <label for="venue-description">Descripción</label>
+            <textarea id="venue-description" name="description" rows="4"
+                      placeholder="Describe el espacio, ambiente, servicios disponibles..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="venue-address">Dirección</label>
+            <input type="text" id="venue-address" name="address"
+                   placeholder="Ej: Paseo de la Castellana 20, Madrid">
+          </div>
+
+          <div class="form-group">
+            <label for="venue-external-url">URL Sitio Web</label>
+            <input type="url" id="venue-external-url" name="external_url"
+                   placeholder="https://www.ejemplo.com">
+          </div>
+        </fieldset>
+
+        <!-- SECCIÓN 2: Capacidades -->
+        <fieldset class="mb-6 pb-4 border-b">
+          <legend class="text-lg font-bold text-gray-800 mb-3">
+            📊 Capacidades (personas)
+          </legend>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div class="form-group">
+              <label for="venue-capacity-cocktail">
+                <i class="fas fa-glass-cheers"></i> Cóctel
+              </label>
+              <input type="number" id="venue-capacity-cocktail" name="capacity_cocktail" min="0"
+                     placeholder="500">
+            </div>
+
+            <div class="form-group">
+              <label for="venue-capacity-banquet">
+                <i class="fas fa-utensils"></i> Banquete
+              </label>
+              <input type="number" id="venue-capacity-banquet" name="capacity_banquet" min="0"
+                     placeholder="300">
+            </div>
+
+            <div class="form-group">
+              <label for="venue-capacity-theater">
+                <i class="fas fa-theater-masks"></i> Teatro
+              </label>
+              <input type="number" id="venue-capacity-theater" name="capacity_theater" min="0"
+                     placeholder="1000">
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- SECCIÓN 3: Características (Tags) -->
+        <fieldset class="mb-6">
+          <legend class="text-lg font-bold text-gray-800 mb-3">
+            ✨ Características
+          </legend>
+
+          <div class="form-group">
+            <label for="venue-features">Características (separadas por coma)</label>
+            <div id="features-list" class="features-input"></div>
+            <input type="text" id="venue-features-input"
+                   placeholder="Ej: Wifi, Aire acondicionado, Parking, Jardín"
+                   onkeyup="updateFeaturesTags()">
+            <p class="text-xs text-gray-500 mt-2">
+              Presiona ENTER o usa comas para agregar características
+            </p>
+            <input type="hidden" id="venue-features" name="features" value="[]">
+          </div>
+        </fieldset>
+
+        <!-- Botones de Acción -->
+        <div class="flex gap-3 justify-end pt-4 border-t">
+          <button type="button" onclick="closeVenueForm()"
+                  class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition font-medium">
+            <i class="fas fa-times"></i> Cancelar
+          </button>
+
+          <button type="submit"
+                  class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition font-medium inline-flex items-center gap-2">
+            <span id="submit-icon">✔️</span>
+            <span id="submit-text">Guardar Venue</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ════════════════════════════════════════════
+  // GESTIÓN DE FEATURES (TAGS)
+  // ════════════════════════════════════════════
+
+  let currentFeatures = [];
+
+  function updateFeaturesTags() {
+    const input = document.getElementById('venue-features-input').value;
+    const features = input
+      .split(',')
+      .map(f => f.trim())
+      .filter(f => f.length > 0 && !currentFeatures.includes(f));
+
+    if (input.includes(',') && features.length > 0) {
+      currentFeatures.push(features[0]);
+      document.getElementById('venue-features-input').value = '';
+      renderFeaturesTags();
+    }
+  }
+
+  function removeFeature(index) {
+    currentFeatures.splice(index, 1);
+    renderFeaturesTags();
+  }
+
+  function renderFeaturesTags() {
+    const container = document.getElementById('features-list');
+    container.innerHTML = currentFeatures.map((f, i) => `
+      <span class="feature-tag">
+        ${f}
+        <button type="button" onclick="removeFeature(${i})">✕</button>
+      </span>
+    `).join('');
+
+    document.getElementById('venue-features').value = JSON.stringify(currentFeatures);
+  }
+
+  // ════════════════════════════════════════════
+  // MODAL CONTROL
+  // ════════════════════════════════════════════
+
+  let formMode = 'new';
+  let editingVenueId = null;
+
+  function openVenueForm(mode = 'new', venueId = null) {
+    formMode = mode;
+    editingVenueId = venueId;
+
+    const modal = document.getElementById('venue-form-modal');
+    const title = document.getElementById('form-title');
+    const submitIcon = document.getElementById('submit-icon');
+    const submitText = document.getElementById('submit-text');
+
+    if (mode === 'edit' && venueId) {
+      title.innerHTML = '<i class="fas fa-edit"></i> Editar Venue';
+      submitIcon.textContent = '💾';
+      submitText.textContent = 'Actualizar';
+      fetchVenueData(venueId);
+    } else {
+      title.innerHTML = '<i class="fas fa-plus-circle"></i> Crear Venue';
+      submitIcon.textContent = '✔️';
+      submitText.textContent = 'Crear';
+      document.getElementById('venue-form').reset();
+      currentFeatures = [];
+      renderFeaturesTags();
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeVenueForm() {
+    document.getElementById('venue-form-modal').classList.add('hidden');
+    document.getElementById('venue-form').reset();
+    currentFeatures = [];
+    renderFeaturesTags();
+    editingVenueId = null;
+  }
+
+  async function fetchVenueData(venueId) {
+    try {
+      const response = await fetch(`/api/venues/${venueId}`);
+      const data = await response.json();
+
+      if (data.success) {
+        const v = data.venue;
+        document.getElementById('venue-name').value = v.name || '';
+        document.getElementById('venue-description').value = v.description || '';
+        document.getElementById('venue-capacity-cocktail').value = v.capacity_cocktail || '';
+        document.getElementById('venue-capacity-banquet').value = v.capacity_banquet || '';
+        document.getElementById('venue-capacity-theater').value = v.capacity_theater || '';
+        document.getElementById('venue-address').value = v.address || '';
+        document.getElementById('venue-external-url').value = v.external_url || '';
+
+        currentFeatures = Array.isArray(v.features) ? v.features : [];
+        renderFeaturesTags();
+      } else {
+        alert('Error cargando venue: ' + (data.error || 'Desconocido'));
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      alert('Error cargando datos: ' + err.message);
+    }
+  }
+
+  async function submitVenueForm(event) {
+    event.preventDefault();
+
+    const formData = new FormData(document.getElementById('venue-form'));
+    const data = Object.fromEntries(formData);
+
+    // Parsear features como array
+    data.features = JSON.parse(data.features);
+
+    const endpoint = formMode === 'edit'
+      ? `/api/admin/venues/${editingVenueId}`
+      : '/api/admin/venues/manual';
+
+    const method = formMode === 'edit' ? 'PUT' : 'POST';
+
+    const submitBtn = document.querySelector('#venue-form button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading-spinner"></span> Guardando...';
+
+    try {
+      const response = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('✅ ' + (result.message || 'Guardado correctamente'));
+        closeVenueForm();
+
+        // Reload o emit evento personalizado
+        if (window.onVenueFormSuccess) {
+          window.onVenueFormSuccess(result.venue);
+        } else {
+          location.reload();
+        }
+      } else {
+        alert('❌ Error: ' + (result.error || result.message || 'Desconocido'));
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      alert('❌ Error: ' + err.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = formMode === 'edit'
+        ? '💾 Actualizar'
+        : '✔️ Crear';
+    }
+  }
+
+  // Permitir cerrar modal con ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('venue-form-modal').classList.contains('hidden')) {
+      closeVenueForm();
+    }
+  });
+</script>

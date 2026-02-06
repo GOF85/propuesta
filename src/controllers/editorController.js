@@ -214,7 +214,7 @@ class EditorController {
 
   /**
    * POST /api/proposals/:id/calculate
-   * Recalcular totales de propuesta
+   * Recalcular totales de propuesta (Motor Financiero Completo)
    */
   async calculateTotals(req, res, next) {
     try {
@@ -229,24 +229,38 @@ class EditorController {
         });
       }
 
-      // Calcular totales (motor financiero)
-      const totals = await ProposalService.calculateTotals(id);
-
-      // Actualizar en DB
-      const conn = await require('../config/db').getConnection();
-      await conn.query(
-        'UPDATE proposals SET total_estimated = ? WHERE id = ?',
-        [totals, id]
-      );
-      conn.end();
+      // Calcular totales con el motor financiero completo
+      const totals = await ProposalService.calculateTotals(id, { 
+        persist: true, 
+        auditUserId: req.user.id 
+      });
 
       res.json({
         success: true,
-        total: totals,
-        formatted: new Intl.NumberFormat('es-ES', {
-          style: 'currency',
-          currency: 'EUR'
-        }).format(totals)
+        totals,
+        formatted: {
+          total_base: new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR'
+          }).format(totals.total_base),
+          total_discount: new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR'
+          }).format(totals.total_discount),
+          total_vat: new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR'
+          }).format(totals.total_vat),
+          total_final: new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR'
+          }).format(totals.total_final),
+          total_margin: new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR'
+          }).format(totals.total_margin),
+          margin_percentage: `${totals.margin_percentage.toFixed(2)}%`
+        }
       });
     } catch (err) {
       next(err);

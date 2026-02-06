@@ -315,4 +315,536 @@ router.delete(
   }
 );
 
+/**
+ * ════════════════════════════════════════════════════════════════
+ * RUTAS DE VENUES - VenueService + Puppeteer Scraping
+ * ════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * GET /api/venues
+ * Listar todos los venues con filtros opcionales
+ * Query params: ?search=xxx&minCapacity=100&features=wifi
+ */
+router.get('/api/venues', async (req, res, next) => {
+  try {
+    const VenueService = require('../services/VenueService');
+    const { search, minCapacity, features } = req.query;
+
+    const filters = {};
+    if (search) filters.search = search;
+    if (minCapacity) filters.minCapacity = parseInt(minCapacity);
+    if (features) filters.features = features;
+
+    const venues = await VenueService.getAll(filters);
+
+    res.json({
+      success: true,
+      count: venues.length,
+      venues
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /api/venues/:id
+ * Obtener venue específico
+ */
+router.get('/api/venues/:id', param('id').isInt().toInt(), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const VenueService = require('../services/VenueService');
+
+    const venue = await VenueService.getById(id);
+
+    res.json({
+      success: true,
+      venue
+    });
+  } catch (err) {
+    if (err.message.includes('no encontrado')) {
+      return res.status(404).json({
+        success: false,
+        error: err.message
+      });
+    }
+    next(err);
+  }
+});
+
+/**
+ * POST /api/admin/venues/scrape
+ * ADMIN ONLY: Ejecutar scraping de micecatering.com
+ * Timeout: 45s (Puppeteer tarda)
+ */
+router.post('/api/admin/venues/scrape', authenticateUser, async (req, res, next) => {
+  try {
+    if (req.session.user?.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo admin puede ejecutar scraping'
+      });
+    }
+
+    console.log('🚀 Admin solicitando scraping de venues...');
+    const VenueService = require('../services/VenueService');
+
+    // Ejecutar scraping + inserción
+    const result = await VenueService.syncVenuesFromWebsite();
+
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/admin/venues/manual
+ * ADMIN ONLY: Crear venue manualmente (fallback sin scraping)
+ * Body: {name, description, capacity_cocktail, capacity_banquet, capacity_theater, features[], address, external_url}
+ */
+router.post(
+  '/api/admin/venues/manual',
+  authenticateUser,
+  body('name').trim().isLength({ min: 2, max: 255 }),
+  body('description').optional().trim(),
+  body('capacity_cocktail').optional().isInt({ min: 0 }),
+  body('capacity_banquet').optional().isInt({ min: 0 }),
+  body('capacity_theater').optional().isInt({ min: 0 }),
+  body('address').optional().trim(),
+  body('external_url').optional().isURL(),
+  async (req, res, next) => {
+    try {
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Solo admin'
+        });
+      }
+
+      const errors = require('express-validator').validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array()
+        });
+      }
+
+      const VenueService = require('../services/VenueService');
+      const id = await VenueService.createManual(req.body);
+
+      const venue = await VenueService.getById(id);
+
+      res.json({
+        success: true,
+        message: 'Venue creado',
+        venue
+      });
+    } catch (err) {
+      if (err.message.includes('obligatorio')) {
+        return res.status(400).json({
+          success: false,
+          error: err.message
+        });
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * PUT /api/admin/venues/:id
+ * ADMIN ONLY: Actualizar venue existente
+ */
+router.put(
+  '/api/admin/venues/:id',
+  authenticateUser,
+  param('id').isInt().toInt(),
+  body('name').optional().trim().isLength({ min: 2, max: 255 }),
+  body('description').optional().trim(),
+  body('capacity_cocktail').optional().isInt({ min: 0 }),
+  body('capacity_banquet').optional().isInt({ min: 0 }),
+  body('capacity_theater').optional().isInt({ min: 0 }),
+  body('address').optional().trim(),
+  body('external_url').optional().isURL(),
+  async (req, res, next) => {
+    try {
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Solo admin'
+        });
+      }
+
+      const errors = require('express-validator').validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array()
+        });
+      }
+
+      const { id } = req.params;
+      const VenueService = require('../services/VenueService');
+
+      const venue = await VenueService.updateManual(id, req.body);
+
+      res.json({
+        success: true,
+        message: 'Venue actualizado',
+        venue
+      });
+    } catch (err) {
+      if (err.message.includes('no encontrado')) {
+        return res.status(404).json({
+          success: false,
+          error: err.message
+        });
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * DELETE /api/admin/venues/:id
+ * ADMIN ONLY: Eliminar venue
+ */
+router.delete(
+  '/api/admin/venues/:id',
+  authenticateUser,
+  param('id').isInt().toInt(),
+  async (req, res, next) => {
+    try {
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Solo admin'
+        });
+      }
+
+      const { id } = req.params;
+      const VenueService = require('../services/VenueService');
+
+      const deleted = await VenueService.delete(id);
+
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          error: 'Venue no encontrado'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Venue eliminado'
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * ============================================================================
+ * MOTOR FINANCIERO - Endpoints para cálculos, descuentos, márgenes
+ * ============================================================================
+ */
+
+/**
+ * GET /api/proposals/:id/totals
+ * Obtener totales detallados de una propuesta
+ */
+router.get(
+  '/api/proposals/:id/totals',
+  authenticateUser,
+  param('id').isInt().toInt(),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const ProposalService = require('../services/ProposalService');
+
+      // Verificar permisos
+      const proposal = await ProposalService.getProposalById(id);
+      if (!proposal || proposal.user_id !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'No permitido'
+        });
+      }
+
+      // Calcular totales sin persistir (para preview)
+      const totals = await ProposalService.calculateTotals(id, { 
+        persist: false, 
+        auditUserId: req.user.id 
+      });
+
+      res.json({
+        success: true,
+        totals
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/proposals/:id/discount
+ * Aplicar descuento manual a una propuesta
+ */
+router.post(
+  '/api/proposals/:id/discount',
+  authenticateUser,
+  param('id').isInt().toInt(),
+  body('discount_percentage').isFloat({ min: 0, max: 100 }),
+  body('reason').trim().isLength({ min: 3, max: 255 }),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { discount_percentage, reason } = req.body;
+      const ProposalService = require('../services/ProposalService');
+
+      // Verificar permisos
+      const proposal = await ProposalService.getProposalById(id);
+      if (!proposal || proposal.user_id !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'No permitido'
+        });
+      }
+
+      // Aplicar descuento
+      const totals = await ProposalService.applyManualDiscount(
+        id,
+        req.user.id,
+        discount_percentage,
+        reason
+      );
+
+      res.json({
+        success: true,
+        message: 'Descuento aplicado correctamente',
+        totals
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * DELETE /api/proposals/:id/discount
+ * Eliminar descuento manual
+ */
+router.delete(
+  '/api/proposals/:id/discount',
+  authenticateUser,
+  param('id').isInt().toInt(),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const ProposalService = require('../services/ProposalService');
+
+      // Verificar permisos
+      const proposal = await ProposalService.getProposalById(id);
+      if (!proposal || proposal.user_id !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'No permitido'
+        });
+      }
+
+      // Eliminar descuento (poner a 0)
+      const totals = await ProposalService.applyManualDiscount(
+        id,
+        req.user.id,
+        0,
+        'Descuento eliminado'
+      );
+
+      res.json({
+        success: true,
+        message: 'Descuento eliminado',
+        totals
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * GET /api/proposals/:id/margin-analysis
+ * Obtener análisis de márgenes detallado
+ */
+router.get(
+  '/api/proposals/:id/margin-analysis',
+  authenticateUser,
+  param('id').isInt().toInt(),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const ProposalService = require('../services/ProposalService');
+
+      // Verificar permisos
+      const proposal = await ProposalService.getProposalById(id);
+      if (!proposal || proposal.user_id !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'No permitido'
+        });
+      }
+
+      const analysis = await ProposalService.getMarginAnalysis(id);
+
+      res.json({
+        success: true,
+        analysis
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * GET /api/proposals/:id/audit-log
+ * Obtener historial de cambios de precio
+ */
+router.get(
+  '/api/proposals/:id/audit-log',
+  authenticateUser,
+  param('id').isInt().toInt(),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const ProposalService = require('../services/ProposalService');
+
+      // Verificar permisos
+      const proposal = await ProposalService.getProposalById(id);
+      if (!proposal || proposal.user_id !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          message: 'No permitido'
+        });
+      }
+
+      const auditLog = await ProposalService.getPriceAuditLog(id);
+
+      res.json({
+        success: true,
+        audit_log: auditLog
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * GET /api/volume-discounts
+ * Obtener configuración de descuentos por volumen
+ */
+router.get(
+  '/api/volume-discounts',
+  authenticateUser,
+  async (req, res, next) => {
+    try {
+      const ProposalService = require('../services/ProposalService');
+      const tiers = await ProposalService.getVolumeDiscountTiers();
+
+      res.json({
+        success: true,
+        tiers
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * PUT /api/volume-discounts/:tierId
+ * Actualizar tier de descuento por volumen (solo admin)
+ */
+router.put(
+  '/api/volume-discounts/:tierId',
+  authenticateUser,
+  param('tierId').isInt().toInt(),
+  body('min_pax').optional().isInt({ min: 0 }),
+  body('max_pax').optional().isInt({ min: 0 }),
+  body('discount_percentage').optional().isFloat({ min: 0, max: 100 }),
+  body('description').optional().trim(),
+  body('is_active').optional().isBoolean(),
+  async (req, res, next) => {
+    try {
+      // Solo admin puede modificar
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Solo administradores pueden modificar descuentos'
+        });
+      }
+
+      const { tierId } = req.params;
+      const ProposalService = require('../services/ProposalService');
+      
+      const success = await ProposalService.updateVolumeDiscountTier(tierId, req.body);
+
+      if (!success) {
+        return res.status(400).json({
+          success: false,
+          message: 'No hay cambios válidos'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Tier actualizado correctamente'
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/volume-discounts
+ * Crear nuevo tier de descuento por volumen (solo admin)
+ */
+router.post(
+  '/api/volume-discounts',
+  authenticateUser,
+  body('min_pax').isInt({ min: 0 }),
+  body('max_pax').optional().isInt({ min: 0 }),
+  body('discount_percentage').isFloat({ min: 0, max: 100 }),
+  body('description').optional().trim(),
+  async (req, res, next) => {
+    try {
+      // Solo admin puede crear
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Solo administradores pueden crear descuentos'
+        });
+      }
+
+      const ProposalService = require('../services/ProposalService');
+      const tierId = await ProposalService.createVolumeDiscountTier(req.body);
+
+      res.json({
+        success: true,
+        message: 'Tier creado correctamente',
+        tier_id: tierId
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 module.exports = router;
+

@@ -132,4 +132,46 @@ router.post('/proposal/:id/status', [
   DashboardController.updateStatus(req, res, next);
 });
 
+// ============ ADMIN PANEL ============
+
+/**
+ * GET /admin/venues
+ * ADMIN ONLY: Gestión de venues con scraping
+ * Requiere rol: admin
+ */
+router.get('/admin/venues',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getVenuesListPage(req, res, next);
+  }
+);
+
+/**
+ * GET /admin/dishes
+ * ADMIN ONLY: Gestión de platos del catálogo
+ */
+router.get('/admin/dishes',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getDishesPanel(req, res, next);
+  }
+);
+
+/**
+ * GET /admin/services
+ * ADMIN ONLY: Gestión de servicios
+ */
+router.get('/admin/services',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getServicesPanel(req, res, next);
+  }
+);
+
 module.exports = router;
