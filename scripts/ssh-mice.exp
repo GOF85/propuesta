@@ -1,0 +1,37 @@
+#!/usr/bin/expect -f
+# Script: SSH Helper for MICE Catering VPS
+# Purpose: Conectar sin pedir contraseña usando expect
+
+set timeout 30
+set user "root"
+set host "188.95.113.225"
+set password "Kbmef9Pke9u36VHh"
+
+# Obtener comando de argumentos
+set command [join [lrange $argv 0 end] " "]
+
+# Si no hay comando, iniciar shell interactivo
+if {$command eq ""} {
+    spawn ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=yes $user@$host
+    expect {
+        "password:" { send "$password\r" }
+        "assword:" { send "$password\r" }
+        timeout { puts "Timeout esperando contraseña"; exit 1 }
+    }
+    interact
+} else {
+    # Ejecutar comando específico
+    spawn ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=yes $user@$host $command
+    expect {
+        "password:" { 
+            send "$password\r"
+            expect eof
+        }
+        "assword:" { 
+            send "$password\r"
+            expect eof
+        }
+        eof { }
+        timeout { puts "Timeout"; exit 1 }
+    }
+}
