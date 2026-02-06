@@ -47,7 +47,7 @@
 ### Proposal Management
 
 | Route | Method | Handler | Purpose | Auth Required |
-|-------|--------|---------|---------|---------------|
+| ------ | ------ | --------- | ------ | --------------- |
 | `/dashboard` | GET | `DashboardController.getProposals()` | List all proposals with filters (status, search, pagination) | ✅ Yes |
 | `/proposal/new` | GET | `DashboardController.newProposal()` | Show new proposal form | ✅ Yes |
 | `/proposal` | POST | `DashboardController.createProposal()` | Create new proposal | ✅ Yes |
@@ -69,7 +69,7 @@
 ### Admin Panel Routes
 
 | Route | Method | Handler | Purpose | Auth Required | Role Required |
-|-------|--------|---------|---------|---------------|---------------|
+| ------ | ------ | --------- | ------ | --------------- | --------------- |
 | `/admin` | GET | `AdminController.getAdminDashboard()` | Admin dashboard home | ✅ Yes | `admin` |
 | `/admin/venues` | GET | `AdminController.getVenuesListPage()` | Manage venues (CRUD + Puppeteer scraping) | ✅ Yes | `admin` |
 | `/admin/dishes` | GET | `AdminController.getDishesPanel()` | Manage dishes catalog | ✅ Yes | `admin` |
@@ -83,7 +83,7 @@
 **Middleware:** `authenticateUser` (all routes)
 
 | Route | Method | Handler | Purpose | Auth Required |
-|-------|--------|---------|---------|---------------|
+| ------ | ------ | --------- | ------ | --------------- |
 | `/proposal/:id/edit` | GET | `EditorController.renderEditor()` | Render full editor form with venues/services/items | ✅ Yes |
 | `/proposal/:id/update` | POST | `EditorController.updateProposal()` | Save basic proposal fields (client_name, event_date, pax, conditions) | ✅ Yes |
 | `/proposal/:id/publish` | POST | `EditorController.publishProposal()` | Send proposal to client (status → 'sent') | ✅ Yes |
@@ -107,7 +107,7 @@
 ### Proposal Services Management
 
 | Route | Method | Handler | Purpose | Auth Required |
-|-------|--------|---------|---------|---------------|
+| ------ | ------ | --------- | ------ | --------------- |
 | `/api/proposals/:id/services` | POST | `EditorController.addService()` | Add service to proposal | ✅ Yes |
 | `/api/proposals/:id/services/:serviceId` | DELETE | `EditorController.removeService()` | Remove service from proposal | ✅ Yes |
 | `/api/proposals/:id/data` | GET | `EditorController (inline)` | Get full proposal data (JSON) | ✅ Yes |
@@ -127,7 +127,7 @@
 ### Venue Management
 
 | Route | Method | Handler | Purpose | Auth Required | Role Required |
-|-------|--------|---------|---------|---------------|---------------|
+| ------ | ------ | --------- | ------ | --------------- | --------------- |
 | `/api/proposals/:id/venues` | POST | `EditorController.addVenue()` | Add venue to proposal | ✅ Yes | - |
 | `/api/proposals/:id/venues/:venueId` | DELETE | `EditorController.removeVenue()` | Remove venue from proposal | ✅ Yes | - |
 | `/api/venues` | GET | `VenueService.getAll(filters)` | List venues with optional filters | ❌ No | - |
@@ -150,7 +150,7 @@
 ### Image Upload Routes
 
 | Route | Method | Handler | Purpose | Auth Required | Role Required |
-|-------|--------|---------|---------|---------------|---------------|
+| ------ | ------ | --------- | ------ | --------------- | --------------- |
 | `/api/admin/upload/image` | POST | `AdminController.uploadImage()` | Upload single image → Resize (1920px) → WebP → Save | ✅ Yes | `admin` |
 | `/api/admin/upload/logo` | POST | `AdminController.uploadClientLogo()` | Upload client logo + extract dominant color | ✅ Yes | `admin` |
 | `/api/admin/upload/batch` | POST | `AdminController.uploadBatch()` | Upload multiple images | ✅ Yes | `admin` |
@@ -165,7 +165,7 @@
 ### Financial Engine Routes
 
 | Route | Method | Handler | Purpose | Auth Required |
-|-------|--------|---------|---------|---------------|
+| ------ | ------ | --------- | ------ | --------------- |
 | `/api/proposals/:id/calculate` | POST | `EditorController.calculateTotals()` | Recalculate proposal totals (VAT, discounts, margins) | ✅ Yes |
 | `/api/proposals/:id/totals` | GET | `EditorController (inline)` | Get detailed totals breakdown | ✅ Yes |
 | `/api/proposals/:id/discount` | POST | `ProposalService.applyManualDiscount()` | Apply manual discount percentage | ✅ Yes |
@@ -190,7 +190,7 @@
 **Response Format:** HTML + JSON (for messages)
 
 | Route | Method | Handler | Purpose | Auth Required | Public |
-|-------|--------|---------|---------|---------------|--------|
+| ------ | ------ | --------- | ------ | --------------- | --------- |
 | `/p/:hash` | GET | `ClientController.viewProposal()` | View proposal (read-only, show if in maintenance mode) | ❌ No | ✅ Yes |
 | `/p/:hash/messages` | GET | `ClientController.getMessages()` | Fetch messages (AJAX polling, 30s interval) | ❌ No | ✅ Yes |
 | `/p/:hash/messages` | POST | `ClientController.sendMessage()` | Send message to proposer | ❌ No | ✅ Yes |
@@ -219,7 +219,7 @@
 Scattered across dashboard.js and app.js
 
 | Route | Method | Handler | Purpose | Auth Required | Role Required |
-|-------|--------|---------|---------|---------------|---------------|
+| ------ | ------ | --------- | ------ | --------------- | --------------- |
 | `/admin/dishes/import` | POST | `AdminController.importDishes()` | Import dishes from CSV | ✅ Yes | `admin` |
 | `/admin/dishes/export` | GET | `AdminController.exportDishes()` | Export dishes to CSV | ✅ Yes | `admin` |
 | `/admin/dishes/:id/delete` | POST | `AdminController.deleteDish()` | Delete dish from catalog | ✅ Yes | `admin` |
@@ -233,7 +233,7 @@ Scattered across dashboard.js and app.js
 **Location:** `views/commercial/`
 
 | View File | Purpose | Route |
-|-----------|---------|-------|
+| --------- | --------- | --------- |
 | `dashboard.ejs` | List proposals with filtering, search, pagination | `/dashboard` GET |
 | `editor.ejs` | Full proposal editor with venues/services/items/financials | `/proposal/:id/edit` GET |
 | `new-proposal.ejs` | New proposal form (basic client info) | `/proposal/new` GET |
@@ -243,7 +243,7 @@ Scattered across dashboard.js and app.js
 **Location:** `views/client/`
 
 | View File | Purpose | Route |
-|-----------|---------|-------|
+| --------- | --------- | --------- |
 | `proposal-view.ejs` | Read-only proposal view with decision buttons (accept/reject/modify) | `/p/:hash` GET |
 | `maintenance.ejs` | Waiting screen if is_editing=true | Conditional in `/p/:hash` |
 | `chat.ejs` | Message thread (embedded in proposal-view, polling) | `/p/:hash/messages` |
@@ -253,7 +253,7 @@ Scattered across dashboard.js and app.js
 **Location:** `views/auth/`
 
 | View File | Purpose | Route |
-|-----------|---------|-------|
+| --------- | --------- | --------- |
 | `login.ejs` | Login form (hardcoded HTML in route) | `/login` GET |
 | `register.ejs` | TODO: Register form | TODO |
 
@@ -262,7 +262,7 @@ Scattered across dashboard.js and app.js
 **Location:** `views/admin/`
 
 | View File | Purpose | Route |
-|-----------|---------|-------|
+| --------- | --------- | --------- |
 | `venues-list.ejs` | Venue CRUD management | `/admin/venues` GET |
 | `venue-form-modal.ejs` | Create/edit venue modal | Inline in venues-list |
 | `dishes-list.ejs` | Dish CRUD management | `/admin/dishes` GET |
@@ -273,7 +273,7 @@ Scattered across dashboard.js and app.js
 **Location:** `views/partials/`
 
 | Partial | Used In | Content |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | `header.ejs` | All commercial views | Navbar, user menu, logo, search |
 | `header-client.ejs` | Client views | Minimal header for public |
 | `footer.ejs` | All views | Company branding, copyright |
@@ -309,7 +309,7 @@ app.use(errorHandler);
 ### Authentication
 
 | TODO | Priority | Notes |
-|------|----------|-------|
+| ------ | --------- | --------- |
 | User registration endpoint | ⭐⭐⭐ | Phase 2: `/register` GET/POST with validation |
 | Password reset flow | ⭐⭐ | `/forgot-password`, `/reset-token/:token` |
 | Database user integration | ⭐⭐⭐ | Replace hardcoded test credentials |
@@ -318,7 +318,7 @@ app.use(errorHandler);
 ### Proposals
 
 | TODO | Priority | Notes |
-|------|----------|-------|
+| ------ | --------- | --------- |
 | `/proposal/:id/send-email` | ⭐⭐⭐ | Manual email send via Nodemailer |
 | `/proposal/:id/schedule-send` | ⭐⭐ | Schedule delivery for specific date/time |
 | `/proposal/:id/version-history` | ⭐ | Show edit history/versions |
@@ -327,7 +327,7 @@ app.use(errorHandler);
 ### Client Features
 
 | TODO | Priority | Notes |
-|------|----------|-------|
+| ------ | --------- | --------- |
 | `/p/:hash/signature` | ⭐⭐⭐ | Client signature capture (e-signature) |
 | `/p/:hash/counter-offer` | ⭐⭐ | Client can submit modified terms |
 | Rate limiting on magic links | ⭐⭐⭐ | 5 req/min per IP (security) |
@@ -336,7 +336,7 @@ app.use(errorHandler);
 ### Admin Panel
 
 | TODO | Priority | Notes |
-|------|----------|-------|
+| ------ | --------- | --------- |
 | `/admin/users` | ⭐⭐⭐ | User account management (CRUD) |
 | `/admin/settings` | ⭐⭐ | App settings (VAT rates, company info, email) |
 | `/admin/reports` | ⭐⭐ | Sales reports, margins by proposal, venue analysis |
@@ -346,7 +346,7 @@ app.use(errorHandler);
 ### Analytics & Reporting
 
 | TODO | Priority | Notes |
-|------|----------|-------|
+| ------ | --------- | --------- |
 | `/api/analytics/dashboard` | ⭐⭐ | Summary stats: proposals/month, conversion rate, avg deal size |
 | `/api/analytics/venues` | ⭐ | Popularity, capacity usage, revenue by venue |
 | `/api/analytics/financial` | ⭐⭐ | Revenue trends, margin analysis, discount usage |
@@ -354,7 +354,7 @@ app.use(errorHandler);
 ### Integrations
 
 | TODO | Priority | Notes |
-|------|----------|-------|
+| ------ | --------- | --------- |
 | `/api/integrate/salesforce` | ⭐ | CRM sync (POST/PATCH/DELETE) |
 | `/api/integrate/slack` | ⭐ | Notifications on proposal actions |
 | `/api/integrate/stripe` | ⭐⭐ | Payment processing (if billing added) |
@@ -366,7 +366,7 @@ app.use(errorHandler);
 ### Common Validators Used
 
 | Validator | Applied To | Rules |
-|-----------|-----------|-------|
+| --------- | --------- | --------- |
 | `.isEmail()` | Email fields | RFC 5322 format |
 | `.isInt()` | Numeric IDs | Integer only, parsed to number |
 | `.isDecimal()` | Prices, percentages | Float format |
@@ -394,7 +394,7 @@ app.use(errorHandler);
 ## Summary Statistics
 
 | Category | Count |
-|----------|-------|
+| --------- | --------- |
 | **Total Routes** | **52** |
 | GET routes | 22 |
 | POST routes | 22 |
