@@ -10,8 +10,8 @@ require('dotenv').config({ path: '.env.local' });
 const { v4: uuid } = require('uuid');
 const { pool } = require('../src/config/db');
 
-const testData = {
-  userId: 'test-user-001',
+let testData = {
+  userId: null, // Se asignará tras insertar el usuario
   proposals: [
     {
       id: uuid(),
@@ -50,31 +50,25 @@ async function seedData() {
     // PRIMERA CONEXIÓN: usuario
     conn = await pool.getConnection();
     console.log('🌱 Iniciando seed de datos de prueba...\n');
-    await conn.query(
-      'DELETE FROM users WHERE email = ? AND id != ?',
-      ['test@example.com', testData.userId]
+    
+    // Primero, obtén el usuario si existe
+    const userEmail = 'test@example.com';
+    const existingUser = await conn.query(
+      'SELECT id FROM users WHERE email = ?',
+      [userEmail]
     );
-    const userExists = await conn.query(
-      'SELECT id FROM users WHERE id = ?',
-      [testData.userId]
-    );
-    if (!userExists.length) {
-      console.log('👤 Insertando usuario de prueba...');
-      try {
-        await conn.query(
-          `INSERT INTO users (id, name, email, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, NOW())`,
-          [testData.userId, 'Test User', 'test@example.com', 'password123', 'commercial']
-        );
-        console.log('✅ Usuario creado: test@example.com\n');
-      } catch (err) {
-        if (err.code === 'ER_DUP_ENTRY' || (err.errno === 1062)) {
-          console.log('ℹ️  Usuario ya existe (email duplicado)\n');
-        } else {
-          throw err;
-        }
-      }
+    
+    if (existingUser.length) {
+      testData.userId = existingUser[0].id;
+      console.log(`ℹ️  Usuario ya existe con id: ${testData.userId}\n`);
     } else {
-      console.log('ℹ️  Usuario ya existe\n');
+      console.log('👤 Insertando usuario de prueba...');
+      const result = await conn.query(
+        `INSERT INTO users (name, email, password_hash, role, created_at) VALUES (?, ?, ?, ?, NOW())`,
+        ['Test User', userEmail, 'password123', 'commercial']
+      );
+      testData.userId = result.insertId;
+      console.log(`✅ Usuario creado: ${userEmail} (id: ${testData.userId})\n`);
     }
     await conn.end();
 

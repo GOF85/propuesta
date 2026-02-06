@@ -3,7 +3,7 @@
  * Inicializa DB, Express y escucha en el puerto configurado
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: '.env.local' });
 
 const app = require('./app');
 const { initializePool } = require('./config/db');
