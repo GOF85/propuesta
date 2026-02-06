@@ -4,7 +4,7 @@
  * Pattern: Prepared statements + Transaction support
  */
 
-const pool = require('../config/db');
+const { pool } = require('../config/db');
 const dayjs = require('dayjs');
 
 // ════════════════════════════════════════════════════════════════

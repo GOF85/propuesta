@@ -15,7 +15,7 @@ const https = require('https');
 const http = require('http');
 const { URL } = require('url');
 const ImageService = require('./ImageService');
-const pool = require('../config/db');
+const { pool } = require('../config/db');
 
 class VenueService {
   constructor() {
