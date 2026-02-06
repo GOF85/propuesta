@@ -175,59 +175,6 @@ app.get('/my-proposals', async (req, res, next) => {
   }
 });
 
-// ============ RUTAS DE ADMINISTRACIÓN ============
-// Solo admin puede acceder
-const requireAdmin = (req, res, next) => {
-  if (!req.session.user) return res.redirect('/login');
-  if (req.session.user.role !== 'admin') return res.status(403).send('Acceso denegado');
-  next();
-};
-
-// ============ DASHBOARD DE ADMIN ============
-app.get('/admin', requireAdmin, async (req, res, next) => {
-  try {
-    await AdminController.getDashboard(req, res);
-  } catch (err) {
-    console.error('Admin Dashboard Error:', err);
-    req.flash('error', 'Error al cargar panel administrativo');
-    res.redirect('/dashboard');
-  }
-});
-
-// ============ RUTAS ADMIN: VENUES ============
-app.get('/admin/venues', requireAdmin, async (req, res, next) => {
-  try {
-    await AdminController.getVenuesPanel(req, res);
-  } catch (err) {
-    console.error('Admin Venues Error:', err);
-    req.flash('error', 'Error al cargar panel de admin');
-    res.redirect('/dashboard');
-  }
-});
-
-app.post('/admin/venues/import', requireAdmin, (req, res) => {
-  AdminController.importVenues(req, res);
-});
-
-app.get('/admin/venues/export', requireAdmin, (req, res) => {
-  AdminController.exportVenues(req, res);
-});
-
-app.post('/admin/venues/:id/delete', requireAdmin, (req, res) => {
-  AdminController.deleteVenue(req, res);
-});
-
-// ============ RUTAS ADMIN: DISHES ============
-app.get('/admin/dishes', requireAdmin, async (req, res, next) => {
-  try {
-    await AdminController.getDishesPanel(req, res);
-  } catch (err) {
-    console.error('Admin Dishes Error:', err);
-    req.flash('error', 'Error al cargar panel de platos');
-    res.redirect('/dashboard');
-  }
-});
-
 app.post('/admin/dishes/import', requireAdmin, (req, res) => {
   AdminController.importDishes(req, res);
 });
@@ -251,15 +198,10 @@ app.get('/admin/services', requireAdmin, async (req, res, next) => {
   }
 });
 
-// ============ RUTAS API - Image Upload & Data ============
-const apiRoutes = require('./routes/api');
-app.use('/', apiRoutes);
-
-// RUTAS ANTIGUAS - COMENTADAS (Será reintegradas después)
-/*
+// ============ RUTAS - Orden importante ============
 const routes = require('./routes/index');
-const dashboardRoutes = require('./routes/dashboard');
 const authRoutes = require('./routes/auth');
+const dashboardRoutes = require('./routes/dashboard');
 const editorRoutes = require('./routes/editor');
 const apiRoutes = require('./routes/api');
 const clientRoutes = require('./routes/client');
@@ -267,11 +209,10 @@ const clientRoutes = require('./routes/client');
 // Orden IMPORTANTE: authRoutes primero para que /login y /logout funcionen
 app.use('/', authRoutes);
 app.use('/', routes);
-app.use('/', dashboardRoutes);
+app.use('/', dashboardRoutes);        // ← Incluye /admin, /admin/venues
 app.use('/', editorRoutes);
-app.use('/', apiRoutes);
-app.use('/', clientRoutes); // Magic link routes (public)
-*/
+app.use('/', apiRoutes);              // Image upload & data API endpoints
+app.use('/', clientRoutes);           // Magic link routes (public)
 
 // ============ MANEJO DE ERRORES ============
 
