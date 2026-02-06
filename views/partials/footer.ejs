@@ -1,47 +1,84 @@
 <!-- Footer -->
-<footer class="bg-gray-900 text-gray-400 py-8 mt-16 print:hidden">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <!-- Company Info -->
-            <div>
-                <div class="text-white font-bold text-lg mb-2">MICE CATERING</div>
-                <p class="text-sm text-gray-500">Gestión de propuestas comerciales para eventos MICE</p>
-            </div>
-            
-            <!-- Product -->
-            <div>
-                <h3 class="text-white font-semibold mb-3">Producto</h3>
-                <ul class="space-y-2 text-sm">
-                    <li><a href="#" class="hover:text-gray-300">Dashboard</a></li>
-                    <li><a href="#" class="hover:text-gray-300">Editor de Propuestas</a></li>
-                    <li><a href="#" class="hover:text-gray-300">Chat Integrado</a></li>
-                </ul>
-            </div>
-            
-            <!-- Company -->
-            <div>
-                <h3 class="text-white font-semibold mb-3">Empresa</h3>
-                <ul class="space-y-2 text-sm">
-                    <li><a href="#" class="hover:text-gray-300">Contacto</a></li>
-                    <li><a href="#" class="hover:text-gray-300">Privacidad</a></li>
-                    <li><a href="#" class="hover:text-gray-300">Términos</a></li>
-                </ul>
-            </div>
-            
-            <!-- Support -->
-            <div>
-                <h3 class="text-white font-semibold mb-3">Soporte</h3>
-                <ul class="space-y-2 text-sm">
-                    <li><a href="mailto:support@micecatering.eu" class="hover:text-gray-300">support@micecatering.eu</a></li>
-                    <li><a href="tel:+34912345678" class="hover:text-gray-300">+34 (91) 234-5678</a></li>
-                </ul>
-            </div>
+<footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300 py-12 mt-16 print:hidden border-t border-gray-700">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      
+      <!-- Company Info -->
+      <div>
+        <div class="flex items-center space-x-2 mb-3">
+          <span class="text-2xl">🍽️</span>
+          <h3 class="text-white font-bold text-lg">MICE CATERING</h3>
+        </div>
+        <p class="text-sm text-gray-400 leading-relaxed">
+          Plataforma profesional de gestión de propuestas comerciales para eventos corporativos.
+        </p>
+      </div>
+      
+      <!-- Producto -->
+      <div>
+        <h4 class="text-white font-semibold text-base mb-4">Producto</h4>
+        <ul class="space-y-3 text-sm">
+          <li><a href="/" class="text-gray-400 hover:text-white transition">Dashboard</a></li>
+          <li><a href="/" class="text-gray-400 hover:text-white transition">Editor de Propuestas</a></li>
+          <li><a href="/" class="text-gray-400 hover:text-white transition">Chat Integrado</a></li>
+          <li><a href="/" class="text-gray-400 hover:text-white transition">Reportes</a></li>
+        </ul>
+      </div>
+      
+      <!-- Empresa -->
+      <div>
+        <h4 class="text-white font-semibold text-base mb-4">Empresa</h4>
+        <ul class="space-y-3 text-sm">
+          <li><a href="#" class="text-gray-400 hover:text-white transition">Sobre Nosotros</a></li>
+          <li><a href="#" class="text-gray-400 hover:text-white transition">Blog</a></li>
+          <li><a href="#" class="text-gray-400 hover:text-white transition">Contacto</a></li>
+        </ul>
+      </div>
+      
+      <!-- Soporte -->
+      <div>
+        <h4 class="text-white font-semibold text-base mb-4">Soporte</h4>
+        <ul class="space-y-3 text-sm">
+          <li>
+            <a href="mailto:info@micecatering.eu" class="text-gray-400 hover:text-white transition flex items-center gap-2">
+              <span>✉️</span> info@micecatering.eu
+            </a>
+          </li>
+          <li>
+            <a href="tel:+34912345678" class="text-gray-400 hover:text-white transition flex items-center gap-2">
+              <span>📞</span> +34 (91) 234-5678
+            </a>
+          </li>
+          <li class="text-gray-500">
+            <span>🕐</span> Lun-Vie: 9:00 - 18:00
+          </li>
+        </ul>
+      </div>
+      
+    </div>
+    
+    <!-- Divider -->
+    <div class="border-t border-gray-700 pt-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <!-- Copyright -->
+        <p class="text-sm text-gray-500">
+          &copy; <%= new Date().getFullYear() %> MICE Catering. Todos los derechos reservados.
+        </p>
+        
+        <!-- Links -->
+        <div class="flex justify-center gap-6 text-sm">
+          <a href="#" class="text-gray-400 hover:text-white transition">Privacidad</a>
+          <a href="#" class="text-gray-400 hover:text-white transition">Términos</a>
+          <a href="#" class="text-gray-400 hover:text-white transition">Cookies</a>
         </div>
         
-        <div class="border-t border-gray-800 pt-6 text-sm text-center">
-            <p>&copy; <%= new Date().getFullYear() %> MICE Catering. Todos los derechos reservados.</p>
-        </div>
+        <!-- Version -->
+        <p class="text-right text-xs text-gray-600">
+          v1.0 • <span class="text-gray-500">Production Ready</span>
+        </p>
+      </div>
     </div>
+  </div>
 </footer>
 
 </body>
