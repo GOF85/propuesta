@@ -400,6 +400,40 @@ class AdminController {
   }
 
   /**
+   * GET /admin - Dashboard de administración
+   * Muestra acceso centralizado a todos los paneles admin
+   */
+  async getDashboard(req, res) {
+    try {
+      const conn = await pool.getConnection();
+      
+      // Contar venues
+      const venuesResult = await conn.query('SELECT COUNT(*) as count FROM venues');
+      const totalVenues = venuesResult[0]?.count || 0;
+      
+      // Contar platos
+      const dishesResult = await conn.query('SELECT COUNT(*) as count FROM dishes');
+      const totalDishes = dishesResult[0]?.count || 0;
+      
+      // Contar servicios
+      const servicesResult = await conn.query('SELECT COUNT(DISTINCT service_id) as count FROM proposal_services');
+      const totalServices = servicesResult[0]?.count || 0;
+      
+      conn.end();
+
+      res.render('admin/dashboard', {
+        totalVenues,
+        totalDishes,
+        totalServices
+      });
+    } catch (err) {
+      console.error('Error en getDashboard:', err);
+      req.flash('error', 'Error al cargar panel administrativo');
+      res.redirect('/dashboard');
+    }
+  }
+
+  /**
    * GET /admin/services - Panel de gestión de servicios/menús
    */
   async getServicesPanel(req, res) {

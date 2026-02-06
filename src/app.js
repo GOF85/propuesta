@@ -158,7 +158,18 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-app.get('/admin/venues', requireAdmin, async (req, res, next) => {
+// ============ DASHBOARD DE ADMIN ============
+app.get('/admin', requireAdmin, async (req, res, next) => {
+  try {
+    await AdminController.getDashboard(req, res);
+  } catch (err) {
+    console.error('Admin Dashboard Error:', err);
+    req.flash('error', 'Error al cargar panel administrativo');
+    res.redirect('/dashboard');
+  }
+});
+
+// ============ RUTAS ADMIN: VENUES ============
   try {
     await AdminController.getVenuesPanel(req, res);
   } catch (err) {

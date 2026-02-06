@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo - MICE Catering</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50" style="font-family: 'Inter', sans-serif;">
+
+<%- include('../partials/header') %>
+
+<main class="max-w-6xl mx-auto px-6 py-12">
+
+    <%- include('../partials/flash-messages') %>
+
+    <!-- Header -->
+    <div class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="text-4xl">⚙️</span>
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900">Panel Administrativo</h1>
+                <p class="text-gray-500 mt-2">Gestión centralizada de datos maestros y configuración</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-3 gap-4 mb-12 md:flex md:justify-start md:gap-6 md:mb-12">
+        <div class="bg-white rounded-lg border border-gray-200 p-6 text-center">
+            <div class="text-3xl font-bold text-blue-600"><%= totalVenues || 0 %></div>
+            <div class="text-sm text-gray-600 mt-1">Venues</div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-6 text-center">
+            <div class="text-3xl font-bold text-green-600"><%= totalDishes || 0 %></div>
+            <div class="text-sm text-gray-600 mt-1">Platos</div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-6 text-center">
+            <div class="text-3xl font-bold text-purple-600"><%= totalServices || 0 %></div>
+            <div class="text-sm text-gray-600 mt-1">Servicios</div>
+        </div>
+    </div>
+
+    <!-- Admin Sections Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <!-- VENUES MANAGEMENT -->
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-blue-300 transition hover:shadow-lg">
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+                <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <span>🏢</span> Gestión de Venues
+                </h2>
+            </div>
+
+            <div class="p-6">
+                <p class="text-gray-600 mb-6 text-sm">
+                    Administra tu catálogo de espacios, capacidades, ubicaciones y características de cada venue para incluir en propuestas.
+                </p>
+
+                <div class="space-y-3">
+                    <a href="/admin/venues" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📋</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Ver Lista</div>
+                                <div class="text-xs text-gray-600">Visualiza todos los venues</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                    </a>
+
+                    <a href="/admin/venues#tab-import" class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📥</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Importar CSV</div>
+                                <div class="text-xs text-gray-600">Sube datos desde archivo</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                    </a>
+
+                    <a href="/admin/venues#tab-template" class="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📄</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Descargar Plantilla</div>
+                                <div class="text-xs text-gray-600">Obtén archivo CSV de ejemplo</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISHES MANAGEMENT -->
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-green-300 transition hover:shadow-lg">
+            <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
+                <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <span>🍽️</span> Gestión de Platos
+                </h2>
+            </div>
+
+            <div class="p-6">
+                <p class="text-gray-600 mb-6 text-sm">
+                    Administra tu menú de platos con descripción, categoría, alérgenos, precios y otros atributos para propuestas culinarias.
+                </p>
+
+                <div class="space-y-3">
+                    <a href="/admin/dishes" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📋</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Ver Lista</div>
+                                <div class="text-xs text-gray-600">Visualiza todos los platos</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                    </a>
+
+                    <a href="/admin/dishes#tab-import" class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📥</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Importar CSV</div>
+                                <div class="text-xs text-gray-600">Sube datos desde archivo</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                    </a>
+
+                    <a href="/admin/dishes#tab-template" class="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📄</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Descargar Plantilla</div>
+                                <div class="text-xs text-gray-600">Obtén archivo CSV de ejemplo</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SERVICES MANAGEMENT -->
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-purple-300 transition hover:shadow-lg">
+            <div class="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
+                <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <span>🎯</span> Gestión de Servicios
+                </h2>
+            </div>
+
+            <div class="p-6">
+                <p class="text-gray-600 mb-6 text-sm">
+                    Administra los servicios adicionales que ofreces: bartender, animación, coordinación, etc.
+                </p>
+
+                <div class="space-y-3">
+                    <a href="/admin/services" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📋</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Ver Lista</div>
+                                <div class="text-xs text-gray-600">Visualiza todos los servicios</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                    </a>
+
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg opacity-50">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📥</span>
+                            <div>
+                                <div class="font-semibold text-gray-600">Importar CSV</div>
+                                <div class="text-xs text-gray-500">Próximamente</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-orange-300 transition hover:shadow-lg">
+            <div class="bg-gradient-to-r from-orange-50 to-orange-100 px-6 py-4 border-b border-orange-200">
+                <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <span>⚡</span> Acciones Rápidas
+                </h2>
+            </div>
+
+            <div class="p-6">
+                <p class="text-gray-600 mb-6 text-sm">
+                    Atajos a las funciones más importantes de administración.
+                </p>
+
+                <div class="space-y-3">
+                    <a href="/dashboard" class="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📊</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Dashboard Comercial</div>
+                                <div class="text-xs text-gray-600">Volver al dashboard principal</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                    </a>
+
+                    <a href="/logout" class="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🚪</span>
+                            <div>
+                                <div class="font-semibold text-gray-900">Cerrar Sesión</div>
+                                <div class="text-xs text-gray-600">Salir de la aplicación</div>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 group-hover:text-gray-600">→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Info Section -->
+    <div class="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            <span>ℹ️</span> Información sobre Panel Administrativo
+        </h3>
+        <p class="text-sm text-gray-600 leading-relaxed">
+            Este panel centraliza la gestión de datos maestros de tu negocio. Desde aquí puedes:
+        </p>
+        <ul class="mt-3 text-sm text-gray-600 space-y-1 ml-4">
+            <li>✓ Importar/exportar datos en formato CSV (compatible con Excel y Google Sheets)</li>
+            <li>✓ Gestionar venues, platos y servicios de tu catálogo</li>
+            <li>✓ Acceder rápidamente a las herramientas más usadas</li>
+            <li>✓ Ver estadísticas de tus datos maestros</li>
+        </ul>
+    </div>
+
+</main>
+
+<%- include('../partials/footer') %>
+
+</body>
+</html>
