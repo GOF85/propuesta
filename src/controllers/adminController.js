@@ -515,8 +515,9 @@ class AdminController {
 
   /**
    * POST /api/admin/upload/logo
-   * Subir logo del cliente (con extracción de color dominante)
-   * Usa ImageService para procesar + node-vibrant para color
+   * Subir logo del cliente (con extracción automática de color dominante + paleta)
+   * Query: proposal_id=123 (opcional)
+   * Response: {success, path, filename, brandColor, palette}
    */
   async uploadClientLogo(req, res) {
     try {
@@ -528,21 +529,33 @@ class AdminController {
       }
 
       const ImageService = require('../services/ImageService');
+      const ProposalService = require('../services/ProposalService');
       const imageBuffer = req.files.logo.data;
+      const proposalId = req.query.proposal_id || req.body.proposal_id;
 
-      // Procesar imagen
-      const result = await ImageService.processImage(imageBuffer, 'logo.png');
+      // Procesar logo con branding completo (resize + color + paleta)
+      const result = await ImageService.processLogoWithBranding(imageBuffer, 'logo.png');
 
-      // Extraer color dominante
-      const colorInfo = await ImageService.extractDominantColor(imageBuffer);
+      // Si se especifica proposal_id, actualizar la propuesta con el nuevo brand_color
+      if (proposalId) {
+        await ProposalService.update(proposalId, {
+          logo_url: result.path,
+          brand_color: result.brandColor
+        });
+
+        console.log(`✅ Propuesta #${proposalId} actualizada con branding: ${result.brandColor}`);
+      }
 
       res.json({
         success: true,
         path: result.path,
         filename: result.filename,
         hash: result.hash,
-        color: colorInfo,
-        message: 'Logo procesado correctamente'
+        brandColor: result.brandColor,
+        brandRgb: result.brandRgb,
+        vibrantPalette: result.vibrantPalette,
+        generatedPalette: result.generatedPalette,
+        message: 'Logo procesado con branding completo'
       });
     } catch (err) {
       console.error('❌ Error en uploadClientLogo:', err);

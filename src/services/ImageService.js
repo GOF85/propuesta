@@ -2,9 +2,11 @@
  * ImageService.js
  * Propósito: Procesar y optimizar imágenes usando Sharp
  * Pattern: Resizing → WebP conversion → Storage management
+ * BRANDING: Extraer colores dominantes con node-vibrant
  */
 
 const sharp = require('sharp');
+const Vibrant = require('node-vibrant');
 const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuid } = require('uuid');
@@ -110,34 +112,211 @@ class ImageService {
 
   /**
    * Extraer color dominante de logo (para branding)
-   * Requiere: npm install node-vibrant (opcional)
+   * Usa node-vibrant para análisis de paleta
    * @param {Buffer} imageBuffer
-   * @returns {Promise<Object>} {hex, rgb, hsl}
+   * @returns {Promise<Object>} {hex, rgb, palette}
    */
   async extractDominantColor(imageBuffer) {
     try {
-      // Reducir imagen a 150x150 para análisis rápido
-      const reduced = await sharp(imageBuffer)
-        .resize(150, 150)
+      console.log('🎨 Extrayendo color dominante del logo...');
+
+      // Generar PNG temporal para Vibrant (no soporta WebP directamente)
+      const pngBuffer = await sharp(imageBuffer)
+        .resize(400, 400, { fit: 'inside' })
+        .png()
         .toBuffer();
 
-      // Placeholder: en producción usar node-vibrant
-      // Para MVP, retornar color por defecto
-      console.log(`🎨 Color dominante: pendiente implementar node-vibrant`);
-      
+      // Extraer paleta con Vibrant
+      const palette = await Vibrant.from(pngBuffer).getPalette();
+
+      // Prioridad: Vibrant > DarkVibrant > Muted > LightVibrant
+      const primarySwatch = palette.Vibrant || palette.DarkVibrant || palette.Muted || palette.LightVibrant;
+
+      if (!primarySwatch) {
+        console.warn('⚠️  No se encontró color dominante, usando fallback');
+        return this._getFallbackColor();
+      }
+
+      const hex = primarySwatch.hex;
+      const rgb = primarySwatch.rgb;
+
+      console.log(`✅ Color dominante extraído: ${hex}`);
+      console.log(`   RGB: (${rgb[0]}, ${rgb[1]}, ${rgb[2]})`);
+
       return {
-        hex: '#0066cc',
-        rgb: { r: 0, g: 102, b: 204 },
-        hsl: { h: 210, s: 100, l: 40 }
+        hex: hex,
+        rgb: { r: Math.round(rgb[0]), g: Math.round(rgb[1]), b: Math.round(rgb[2]) },
+        palette: {
+          vibrant: palette.Vibrant?.hex || hex,
+          darkVibrant: palette.DarkVibrant?.hex || hex,
+          lightVibrant: palette.LightVibrant?.hex || hex,
+          muted: palette.Muted?.hex || hex,
+          darkMuted: palette.DarkMuted?.hex || hex,
+          lightMuted: palette.LightMuted?.hex || hex
+        }
       };
     } catch (err) {
-      console.error(`Warning: No se pudo extraer color: ${err.message}`);
-      return {
-        hex: '#0066cc',
-        rgb: { r: 0, g: 102, b: 204 },
-        hsl: { h: 210, s: 100, l: 40 }
-      };
+      console.error(`❌ Error extrayendo color: ${err.message}`);
+      return this._getFallbackColor();
     }
+  }
+
+  /**
+   * Generar paleta de colores derivada del color principal
+   * Útil para CSS variables (primary, hover, lighter, darker)
+   * @param {String} hexColor - Color base en formato #RRGGBB
+   * @returns {Object} Paleta completa con variantes
+   */
+  generateColorPalette(hexColor) {
+    try {
+      // Convertir HEX a RGB
+      const rgb = this._hexToRgb(hexColor);
+      if (!rgb) throw new Error('Color HEX inválido');
+
+      // Convertir RGB a HSL para manipular luminosidad/saturación
+      const hsl = this._rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+      // Generar variantes
+      const palette = {
+        primary: hexColor,
+        primaryRgb: `${rgb.r}, ${rgb.g}, ${rgb.b}`,
+        
+        // Hover: 10% más oscuro
+        hover: this._hslToHex(hsl.h, hsl.s, Math.max(0, hsl.l - 10)),
+        
+        // Light: 30% más claro
+        light: this._hslToHex(hsl.h, Math.max(0, hsl.s - 20), Math.min(100, hsl.l + 30)),
+        
+        // Dark: 20% más oscuro
+        dark: this._hslToHex(hsl.h, Math.min(100, hsl.s + 10), Math.max(0, hsl.l - 20)),
+        
+        // Complementario (opuesto en rueda de color)
+        complement: this._hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l),
+        
+        // Text: Blanco o negro según luminosidad
+        text: hsl.l > 50 ? '#000000' : '#FFFFFF'
+      };
+
+      console.log(`🎨 Paleta generada desde ${hexColor}:`);
+      console.log(`   Hover: ${palette.hover} | Light: ${palette.light} | Dark: ${palette.dark}`);
+
+      return palette;
+    } catch (err) {
+      console.error(`❌ Error generando paleta: ${err.message}`);
+      return this._getFallbackPalette();
+    }
+  }
+
+  /**
+   * Procesar logo con extracción de branding
+   * Combina: processImage + extractDominantColor + generateColorPalette
+   * @param {Buffer} imageBuffer
+   * @param {String} originalName
+   * @returns {Promise<Object>} {path, filename, brandColor, palette}
+   */
+  async processLogoWithBranding(imageBuffer, originalName = 'logo') {
+    try {
+      console.log('🏢 Procesando logo con análisis de branding...');
+
+      // 1. Procesar imagen (resize, WebP, save)
+      const imageResult = await this.processImage(imageBuffer, originalName);
+
+      // 2. Extraer color dominante
+      const colorData = await this.extractDominantColor(imageBuffer);
+
+      // 3. Generar paleta completa
+      const palette = this.generateColorPalette(colorData.hex);
+
+      console.log(`✅ Logo procesado con branding completo`);
+
+      return {
+        ...imageResult,
+        brandColor: colorData.hex,
+        brandRgb: colorData.rgb,
+        vibrantPalette: colorData.palette,
+        generatedPalette: palette
+      };
+    } catch (err) {
+      console.error(`❌ Error procesando logo: ${err.message}`);
+      throw err;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // MÉTODOS AUXILIARES (Color Conversion)
+  // ═══════════════════════════════════════════════════════════════
+
+  _getFallbackColor() {
+    return {
+      hex: '#0066cc',
+      rgb: { r: 0, g: 102, b: 204 },
+      palette: {
+        vibrant: '#0066cc',
+        darkVibrant: '#004c99',
+        lightVibrant: '#3399ff',
+        muted: '#4d7fa6',
+        darkMuted: '#33577a',
+        lightMuted: '#7fa6cc'
+      }
+    };
+  }
+
+  _getFallbackPalette() {
+    return {
+      primary: '#0066cc',
+      primaryRgb: '0, 102, 204',
+      hover: '#0052a3',
+      light: '#66a3e0',
+      dark: '#004080',
+      complement: '#cc6600',
+      text: '#ffffff'
+    };
+  }
+
+  _hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  }
+
+  _rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100)
+    };
+  }
+
+  _hslToHex(h, s, l) {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = n => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
   }
 
   /**

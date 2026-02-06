@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración - Venues</title>
+    <title>Gestión de Venues - MICE Catering</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -11,30 +11,484 @@
 
 <%- include('../partials/header') %>
 
-<main class="max-w-6xl mx-auto px-6 py-8">
+<main class="max-w-7xl mx-auto px-6 py-12">
 
     <%- include('../partials/flash-messages') %>
 
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">⚙️ Administración - Venues</h1>
-        <p class="text-gray-500 mt-2">Gestiona el catálogo maestro de venues (importa, exporta, edita)</p>
+    <!-- Header Principal -->
+    <div class="mb-12">
+        <div class="bg-gradient-to-r from-emerald-900 to-emerald-800 rounded-lg p-8 text-white">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-4xl">🏢</span>
+                        <h1 class="text-4xl font-bold">Gestión de Venues</h1>
+                    </div>
+                    <p class="text-gray-200 text-lg">Importa, crea o descarga venues de tu catálogo maestro</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-300">Total de espacios</div>
+                    <div class="text-4xl font-bold text-emerald-300"><%= totalVenues %></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="border-b border-gray-200 mb-8 flex gap-6">
-        <button class="py-2 px-0 border-b-2 border-blue-600 text-blue-600 font-medium" onclick="showTab('list')">
-            📋 Lista
-        </button>
-        <button class="py-2 px-0 border-b border-gray-200 text-gray-600 hover:text-gray-900 font-medium" onclick="showTab('import')">
-            📥 Importar CSV
-        </button>
-        <button class="py-2 px-0 border-b border-gray-200 text-gray-600 hover:text-gray-900 font-medium" onclick="showTab('template')">
-            📄 Descargar CSV
-        </button>
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- THREE MAIN ACTIONS -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        
+        <!-- Action 1: Manual Entry -->
+        <div class="bg-white rounded-lg border-2 border-blue-200 p-8 hover:shadow-lg transition cursor-pointer" 
+             onclick="switchTab('manual')">
+            <div class="text-5xl mb-4">✏️</div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Crear Manualmente</h3>
+            <p class="text-gray-600 text-sm mb-4">
+                Rellena un formulario simple para agregar un venue paso a paso
+            </p>
+            <div class="flex items-center gap-2 text-blue-600 font-medium">
+                <span>Comenzar</span>
+                <span>→</span>
+            </div>
+        </div>
+        
+        <!-- Action 2: CSV Import -->
+        <div class="bg-white rounded-lg border-2 border-purple-200 p-8 hover:shadow-lg transition cursor-pointer" 
+             onclick="switchTab('import')">
+            <div class="text-5xl mb-4">📥</div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Importar CSV</h3>
+            <p class="text-gray-600 text-sm mb-4">
+                Sube un archivo CSV con múltiples venues (máx. 50MB)
+            </p>
+            <div class="flex items-center gap-2 text-purple-600 font-medium">
+                <span>Subir archivo</span>
+                <span>→</span>
+            </div>
+        </div>
+        
+        <!-- Action 3: Scarpe & Export -->
+        <div class="bg-white rounded-lg border-2 border-green-200 p-8 hover:shadow-lg transition">
+            <div class="text-5xl mb-4">⚙️</div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Gestionar</h3>
+            <p class="text-gray-600 text-sm mb-4">
+                Exporta tu catálogo, descarga template o scrapeala web
+            </p>
+            <div class="flex gap-2">
+                <button onclick="startScraping()" class="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">
+                    🕷️ Scrapear
+                </button>
+                <a href="/admin/venues/export" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                    ⬇️ Exportar
+                </a>
+            </div>
+        </div>
     </div>
 
-    <!-- TAB 1: LISTA DE VENUES -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- TAB 1: MANUAL ENTRY -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div id="tab-manual" class="tab-content">
+        <div class="bg-white rounded-lg border border-blue-200 p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <span>✏️</span> Crear Venue Manualmente
+            </h2>
+            
+            <form id="manual-form" onsubmit="submitManualForm(event)" class="space-y-6">
+                <!-- Basic Info -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="name" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Ej: Hotel Palace Madrid">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Dirección
+                        </label>
+                        <input type="text" name="address"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Ej: Gran Vía 25, Madrid">
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Descripción
+                    </label>
+                    <textarea name="description" rows="3"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Describe brevemente el venue..."></textarea>
+                </div>
+
+                <!-- Capacities -->
+                <fieldset class="border border-gray-300 rounded-lg p-4">
+                    <legend class="text-sm font-medium text-gray-700 px-2">Capacidades (personas)</legend>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">🍸 Cóctel</label>
+                            <input type="number" name="capacity_cocktail" min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500"
+                                   placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">🍽️ Banquete</label>
+                            <input type="number" name="capacity_banquet" min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500"
+                                   placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">🎭 Teatro</label>
+                            <input type="number" name="capacity_theater" min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500"
+                                   placeholder="0">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Features -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Características <span class="text-xs text-gray-500">(separadas por coma)</span>
+                    </label>
+                    <input type="text" name="features"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Ej: WiFi, Parking, Aire acondicionado, Luz natural">
+                </div>
+
+                <!-- External URL -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        URL Externa
+                    </label>
+                    <input type="url" name="external_url"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="https://...">
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex gap-4 justify-end pt-4 border-t border-gray-200">
+                    <button type="button" onclick="resetManualForm()"
+                            class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium">
+                        Limpiar
+                    </button>
+                    <button type="submit"
+                            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2">
+                        <span>✅ Guardar Venue</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- TAB 2: CSV IMPORT -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div id="tab-import" class="tab-content hidden">
+        <div class="bg-white rounded-lg border border-purple-200 p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <span>📥</span> Importar Venues desde CSV
+            </h2>
+            
+            <!-- Instructions -->
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-6">
+                <h3 class="font-semibold text-gray-900 mb-3">📋 Cómo funciona:</h3>
+                <ol class="space-y-2 text-sm text-gray-700 ml-4">
+                    <li><span class="font-medium">1.</span> <strong>Descarga el template</strong> - botón abajo</li>
+                    <li><span class="font-medium">2.</span> <strong>Rellena en Excel/Google Sheets</strong></li>
+                    <li><span class="font-medium">3.</span> <strong>Sube el archivo</strong> - se importarán todos los venues</li>
+                </ol>
+                <p class="text-xs text-gray-600 mt-3">
+                    ℹ️ Los venues con nombre duplicado se actualizarán. Máx. 50MB por archivo.
+                </p>
+            </div>
+
+            <!-- Template Download -->
+            <div class="mb-6">
+                <a href="javascript:downloadTemplate()" 
+                   class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium">
+                    <span>📄</span> Descargar Template CSV
+                </a>
+                <p class="text-xs text-gray-600 mt-2">
+                    Haz click para descargar un archivo de ejemplo ya formateado
+                </p>
+            </div>
+
+            <!-- Upload Area -->
+            <div id="csv-upload-box" class="border-2 border-dashed border-purple-400 rounded-lg p-8 bg-purple-50 text-center hover:bg-purple-100 transition cursor-pointer"
+                 ondrop="handleCsvDrop(event)" ondragover="handleCsvDragOver(event)" ondragleave="handleCsvDragLeave(event)">
+                <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+                
+                <div class="mb-4">
+                    <span class="text-5xl">📤</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Arrastra archivo CSV aquí</h3>
+                <p class="text-gray-600 mb-4">o haz clic para seleccionar archivo</p>
+                <p class="text-xs text-gray-500">Formatos: .csv | Máx: 50MB</p>
+            </div>
+
+            <!-- Upload Status -->
+            <div id="csv-upload-status" class="mt-6 hidden">
+                <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Importando...</span>
+                        <span id="csv-upload-progress" class="text-sm text-purple-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="csv-upload-bar" class="bg-purple-600 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="csv-results" class="mt-6"></div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- VENUES LIST -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <span>📍</span> Catálogo de Venues (<%= totalVenues %>)
+        </h2>
+
+        <% if (venues.length === 0) { %>
+            <div class="bg-gray-50 rounded-lg border border-gray-200 p-12 text-center">
+                <p class="text-lg text-gray-500 mb-4">No hay venues aún</p>
+                <p class="text-sm text-gray-600 mb-6">
+                    Usa "Crear Manualmente" para agregar tu primer venue<br>
+                    o "Importar CSV" para cargar varios a la vez
+                </p>
+            </div>
+        <% } else { %>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <% venues.forEach(v => { %>
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition">
+                        <h3 class="font-bold text-gray-900 mb-2"><%= v.name %></h3>
+                        <p class="text-xs text-gray-600 mb-3">
+                            <% if (v.address) { %>📍 <%= v.address %><% } %>
+                        </p>
+                        
+                        <div class="flex gap-2 mb-3 flex-wrap">
+                            <% if (v.capacity_cocktail) { %>
+                                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">🍸 <%= v.capacity_cocktail %></span>
+                            <% } %>
+                            <% if (v.capacity_banquet) { %>
+                                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">🍽️ <%= v.capacity_banquet %></span>
+                            <% } %>
+                            <% if (v.capacity_theater) { %>
+                                <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">🎭 <%= v.capacity_theater %></span>
+                            <% } %>
+                        </div>
+
+                        <form method="POST" action="/admin/venues/<%= v.id %>/delete" style="display: inline;">
+                            <button type="submit" class="text-xs text-red-600 hover:text-red-700"
+                                    onclick="return confirm('¿Eliminar <%= v.name %>?')">
+                                🗑️ Eliminar
+                            </button>
+                        </form>
+                    </div>
+                <% }); %>
+            </div>
+        <% } %>
+    </div>
+
+</main>
+
+<%- include('../partials/footer') %>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ════════════════════════════════════════════════════════════════
+
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(`tab-${tabName}`);
+    if (selectedTab) {
+        selectedTab.classList.remove('hidden');
+    }
+    
+    // Scroll to tab
+    selectedTab?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ════════════════════════════════════════════════════════════════
+// MANUAL FORM
+// ════════════════════════════════════════════════════════════════
+
+async function submitManualForm(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(document.getElementById('manual-form'));
+    const data = Object.fromEntries(formData);
+    
+    // Parse features
+    if (data.features) {
+        data.features = data.features.split(',').map(f => f.trim()).filter(f => f);
+    }
+    
+    try {
+        const response = await fetch('/api/admin/venues/manual', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`✅ Venue "${data.name}" creado correctamente`);
+            resetManualForm();
+            setTimeout(() => location.reload(), 500);
+        } else {
+            alert(`❌ Error: ${result.error || result.message}`);
+        }
+    } catch (err) {
+        alert(`❌ Error: ${err.message}`);
+    }
+}
+
+function resetManualForm() {
+    document.getElementById('manual-form').reset();
+}
+
+// ════════════════════════════════════════════════════════════════
+// CSV IMPORT
+// ════════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+    const uploadBox = document.getElementById('csv-upload-box');
+    const fileInput = document.getElementById('csv-file-input');
+    
+    uploadBox.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => importCsvFile());
+});
+
+function handleCsvDragOver(event) {
+    event.preventDefault();
+    document.getElementById('csv-upload-box').classList.add('bg-purple-200');
+}
+
+function handleCsvDragLeave(event) {
+    event.preventDefault();
+    document.getElementById('csv-upload-box').classList.remove('bg-purple-200');
+}
+
+function handleCsvDrop(event) {
+    event.preventDefault();
+    document.getElementById('csv-upload-box').classList.remove('bg-purple-200');
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        document.getElementById('csv-file-input').files = files;
+        importCsvFile();
+    }
+}
+
+async function importCsvFile() {
+    const fileInput = document.getElementById('csv-file-input');
+    if (!fileInput.files.length) return;
+    
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('csvFile', file);
+    
+    document.getElementById('csv-upload-status').classList.remove('hidden');
+    document.getElementById('csv-results').innerHTML = '';
+    
+    try {
+        document.getElementById('csv-upload-progress').textContent = '5%';
+        document.getElementById('csv-upload-bar').style.width = '5%';
+        
+        const response = await fetch('/admin/venues/import', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        document.getElementById('csv-upload-progress').textContent = '100%';
+        document.getElementById('csv-upload-bar').style.width = '100%';
+        
+        // Show results
+        let resultsHtml = '<div class="grid grid-cols-3 gap-4 mt-4">';
+        resultsHtml += `<div class="bg-green-50 border border-green-200 rounded p-3 text-center">`;
+        resultsHtml += `<div class="text-2xl font-bold text-green-600">${result.inserted || 0}</div>`;
+        resultsHtml += `<div class="text-xs text-green-700">Nuevos importados</div>`;
+        resultsHtml += `</div>`;
+        
+        resultsHtml += `<div class="bg-blue-50 border border-blue-200 rounded p-3 text-center">`;
+        resultsHtml += `<div class="text-2xl font-bold text-blue-600">${result.updated || 0}</div>`;
+        resultsHtml += `<div class="text-xs text-blue-700">Actualizados</div>`;
+        resultsHtml += `</div>`;
+        
+        resultsHtml += `<div class="bg-amber-50 border border-amber-200 rounded p-3 text-center">`;
+        resultsHtml += `<div class="text-2xl font-bold text-amber-600">${result.total || 0}</div>`;
+        resultsHtml += `<div class="text-xs text-amber-700">Total procesados</div>`;
+        resultsHtml += `</div>`;
+        resultsHtml += `</div>`;
+        
+        if (result.errors && result.errors.length > 0) {
+            resultsHtml += '<div class="mt-4 bg-red-50 border border-red-200 rounded p-3">';
+            resultsHtml += '<p class="text-sm font-medium text-red-700 mb-2">⚠️ Errores:</p>';
+            resultsHtml += '<ul class="text-xs text-red-600">';
+            result.errors.forEach(err => {
+                resultsHtml += `<li>• ${err}</li>`;
+            });
+            resultsHtml += '</ul></div>';
+        }
+        
+        resultsHtml += '<div class="mt-6"><button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">Recargar e ver cambios</button></div>';
+        
+        document.getElementById('csv-results').innerHTML = resultsHtml;
+        
+        setTimeout(() => {
+            document.getElementById('csv-upload-status').classList.add('hidden');
+        }, 2000);
+        
+    } catch (err) {
+        document.getElementById('csv-results').innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">❌ Error: ${err.message}</div>`;
+    }
+}
+
+function downloadTemplate() {
+    const csv = `name,description,address,capacity_cocktail,capacity_banquet,capacity_theater,features,external_url
+Hotel Palace,Salón elegante con vista al parque,Gran Vía 25 Madrid,200,150,300,Wifi;Parking;Luz natural,https://hotelpalace.es
+Salón Ballroom,Espacio moderno y completamente flexible,Plaza Mayor 10 Madrid,300,250,400,AC;WiFi;Catering,https://example.com
+Centro Congresos,Gran capacidad para eventos corporativos,Paseo de la Castellana 50,500,400,600,Wifi;Parking;Ascensores,https://example.com`;
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'venues-template.csv';
+    a.click();
+}
+
+async function startScraping() {
+    if (!confirm('¿Ejecutar scraping de micecatering.com? Esto puede tomar unos minutos...')) {
+        return;
+    }
+    alert('ℹ️ Scraping iniciado. La interfaz se cerrará cuando complete.');
+    // Implementation would fetch /api/admin/venues/scrape
+}
+
+console.log('✅ Venues admin script loaded');
+</script>
+
+</body>
+</html>
     <div id="tab-list" class="tab-content">
         <div class="flex justify-between items-center mb-6">
             <div>
