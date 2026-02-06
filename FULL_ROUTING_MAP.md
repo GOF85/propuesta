@@ -32,6 +32,7 @@
 | `/logout` | GET | `authRoutes (inline)` | Destroy session | ✅ Yes* |
 
 **Notes:**
+
 - Currently hardcoded: `test@example.com / password123`
 - Session stored in memory (express-session)
 - TODO: Integrate with user database table
@@ -55,6 +56,7 @@
 | `/proposal/:id/status` | POST | `DashboardController.updateStatus()` | Update proposal status (draft→sent→accepted) | ✅ Yes |
 
 **Validation:**
+
 - `status`: Must be in `['all', 'draft', 'sent', 'accepted']`
 - `search`: Max 100 chars
 - `page`: Integer, min 1
@@ -88,6 +90,7 @@
 | `/proposal/:id/archive` | POST | `EditorController.archiveProposal()` | Archive proposal (status → 'archived') | ✅ Yes |
 
 **Validation:**
+
 - `client_name`: 2-255 chars
 - `event_date`: Optional ISO8601
 - `pax`: Optional integer ≥ 0
@@ -112,6 +115,7 @@
 | `/api/proposals/:id/options/:optionId` | DELETE | `EditorController (inline)` | Delete service option | ✅ Yes |
 
 **Body Validation:**
+
 - `title`: 2-255 chars
 - `type`: Must be in `['gastronomy', 'logistics', 'staff', 'other']`
 - `vat_rate`: Optional decimal
@@ -134,6 +138,7 @@
 | `/api/admin/venues/:id` | DELETE | `VenueService.delete()` | Delete venue | ✅ Yes | `admin` |
 
 **Venue Fields (POST/PUT):**
+
 - `name`: 2-255 chars (required)
 - `description`: Optional text
 - `capacity_cocktail`: Optional integer ≥ 0
@@ -152,6 +157,7 @@
 | `/api/admin/image/:hash` | DELETE | `AdminController.deleteImage()` | Delete image by 12-char hash | ✅ Yes | `admin` |
 
 **File Upload:**
+
 - Max file size: 50MB
 - Formats supported: JPG, PNG, GIF, WebP, SVG
 - Processed with Sharp: max 1920px width → WebP conversion
@@ -171,6 +177,7 @@
 | `/api/volume-discounts/:tierId` | PUT | `ProposalService.updateVolumeDiscountTier()` | Update tier | ✅ Yes | `admin` |
 
 **Discount Body:**
+
 - `discount_percentage`: 0-100 float
 - `reason`: 3-255 chars
 
@@ -194,11 +201,13 @@
 | `/p/:hash/modifications` | POST | `ClientController.requestModifications()` | Request changes (create chat message) | ❌ No | ✅ Yes |
 
 **Magic Link Hash:**
+
 - Length: 32-64 chars (typically 64-char UUID hash)
 - Rate limiting: TODO (5 req/min per IP recommended)
 - Timeout: Configurable (suggest 30 days)
 
 **Message Body:**
+
 - `message_body`: 1-2000 chars
 - `reason`: Optional, max 500 chars
 - `modifications`: 10-2000 chars
@@ -298,6 +307,7 @@ app.use(errorHandler);
 ## Missing/TODO Routes
 
 ### Authentication
+
 | TODO | Priority | Notes |
 |------|----------|-------|
 | User registration endpoint | ⭐⭐⭐ | Phase 2: `/register` GET/POST with validation |
@@ -306,6 +316,7 @@ app.use(errorHandler);
 | JWT/Session timeout handling | ⭐⭐ | Refresh tokens, logout on inactivity |
 
 ### Proposals
+
 | TODO | Priority | Notes |
 |------|----------|-------|
 | `/proposal/:id/send-email` | ⭐⭐⭐ | Manual email send via Nodemailer |
@@ -314,6 +325,7 @@ app.use(errorHandler);
 | `/proposal/:id/share-link` | ⭐⭐ | Generate shareable link (magic hash) |
 
 ### Client Features
+
 | TODO | Priority | Notes |
 |------|----------|-------|
 | `/p/:hash/signature` | ⭐⭐⭐ | Client signature capture (e-signature) |
@@ -322,6 +334,7 @@ app.use(errorHandler);
 | `/p/:hash/schedule-call` | ⭐ | Calendar integration for follow-up |
 
 ### Admin Panel
+
 | TODO | Priority | Notes |
 |------|----------|-------|
 | `/admin/users` | ⭐⭐⭐ | User account management (CRUD) |
@@ -331,6 +344,7 @@ app.use(errorHandler);
 | `/admin/email-templates` | ⭐⭐ | Customize email notifications |
 
 ### Analytics & Reporting
+
 | TODO | Priority | Notes |
 |------|----------|-------|
 | `/api/analytics/dashboard` | ⭐⭐ | Summary stats: proposals/month, conversion rate, avg deal size |
@@ -338,6 +352,7 @@ app.use(errorHandler);
 | `/api/analytics/financial` | ⭐⭐ | Revenue trends, margin analysis, discount usage |
 
 ### Integrations
+
 | TODO | Priority | Notes |
 |------|----------|-------|
 | `/api/integrate/salesforce` | ⭐ | CRM sync (POST/PATCH/DELETE) |

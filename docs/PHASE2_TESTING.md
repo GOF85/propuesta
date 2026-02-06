@@ -4,7 +4,6 @@
 
 Before running tests, ensure:
 
-
 1. **Environment Setup**
 
   ```bash
@@ -15,8 +14,7 @@ Before running tests, ensure:
   nano .env.local
   ```
 
-
-2. **Database Ready**
+1. **Database Ready**
 
   ```bash
   # Import schema
@@ -26,8 +24,7 @@ Before running tests, ensure:
   mysql -u catering_user -p catering_proposals -e "SHOW TABLES;"
   ```
 
-
-3. **Dependencies Installed**
+1. **Dependencies Installed**
 
   ```bash
   npm install
@@ -38,11 +35,13 @@ Before running tests, ensure:
 ## 🚀 Running Tests
 
 ### Step 1: Seed Test Data
+
 ```bash
 npm run seed
 ```
 
 **Expected Output:**
+
 ```
 🌱 Iniciando seed de datos de prueba...
 
@@ -67,11 +66,13 @@ npm run seed
 ```
 
 ### Step 2: Start Development Server
+
 ```bash
 npm run dev
 ```
 
 **Expected Output:**
+
 ```
 🚀 Servidor iniciado en puerto 3000
 ✅ Base de datos conectada (pool: 5 conexiones)
@@ -85,12 +86,14 @@ Presiona Ctrl+C para detener el servidor
 ### Step 3: Test Dashboard Access
 
 #### Test 3A: Login Page
-- **URL:** http://localhost:3000/
+
+- **URL:** <http://localhost:3000/>
 - **Expected:** Login form visible
 - **Verify:** Header says "Iniciar Sesión", footer with branding
 - **Status:** ✅ or ❌
 
 #### Test 3B: Login with Test User
+
 - **Action:** Enter credentials:
   - Email: `test@example.com`
   - Password: `password123`
@@ -99,7 +102,8 @@ Presiona Ctrl+C para detener el servidor
 - **Status:** ✅ or ❌
 
 #### Test 3C: Dashboard Main View
-- **URL:** http://localhost:3000/dashboard
+
+- **URL:** <http://localhost:3000/dashboard>
 - **Expected Elements:**
   - ✅ Header with "Propuestas" title
   - ✅ "Nueva Propuesta" button (top right)
@@ -108,7 +112,6 @@ Presiona Ctrl+C para detener el servidor
   - ✅ Table with 4 proposals
   - ✅ Stats cards showing: count by status + total revenue
   - ✅ Footer visible
-
 
 **Table Content Check:**
 
@@ -122,20 +125,23 @@ Presiona Ctrl+C para detener el servidor
 **Status:** ✅ or ❌
 
 #### Test 3D: Filter by Status
+
 - **Action:** Click "Borradores" tab
 - **Expected:** Only 2 proposals shown (Amazon + Telefónica)
-- **URL:** http://localhost:3000/dashboard?status=draft
+- **URL:** <http://localhost:3000/dashboard?status=draft>
 - **Status:** ✅ or ❌
 
 #### Test 3E: Search Functionality
+
 - **Action:** Type "google" in search box, press Enter
 - **Expected:** Only Google Spain proposal visible
-- **URL:** http://localhost:3000/dashboard?search=google
+- **URL:** <http://localhost:3000/dashboard?search=google>
 - **Status:** ✅ or ❌
 
 #### Test 3F: Action Buttons (Hover)
+
 - **Action:** Hover over a proposal row
-- **Expected:** 
+- **Expected:**
   - ✏️ Edit button (navigates to editor)
   - 📋 Duplicate button
   - 💬 Chat button
@@ -143,8 +149,9 @@ Presiona Ctrl+C para detener el servidor
 - **Status:** ✅ or ❌
 
 #### Test 3G: New Proposal Form
+
 - **Action:** Click "Nueva Propuesta" button
-- **URL:** http://localhost:3000/proposal/new
+- **URL:** <http://localhost:3000/proposal/new>
 - **Expected Elements:**
   - ✅ Form with fields: Client Name, Event Name, Date, Pax
   - ✅ "Crear Propuesta" button
@@ -153,48 +160,55 @@ Presiona Ctrl+C para detener el servidor
 - **Status:** ✅ or ❌
 
 #### Test 3H: Create New Proposal
+
 - **Action:** Fill form:
   - Client Name: "Test Client Company"
   - Event Name: "Team Lunch"
   - Date: 2026-06-15
   - Pax: 50
 - **Click:** "Crear Propuesta" button
-- **Expected:** 
+- **Expected:**
   - ✅ Flash message: "Propuesta creada exitosamente"
   - ✅ Redirect to dashboard
   - ✅ New proposal appears in list (draft status)
 - **Status:** ✅ or ❌
 
 #### Test 3I: Duplicate Proposal
+
 - **Action:** Hover over a proposal row, click "📋 Duplicate"
 - **Expected:**
   - ✅ Flash message: "Propuesta duplicada"
   - ✅ New proposal appears in list with same data but new ID
   - ✅ Status is "draft"
-- **Verify DB:** 
+- **Verify DB:**
 
   ```bash
   mysql -u catering_user -p catering_proposals -e "SELECT id, client_name, status FROM proposals ORDER BY created_at DESC LIMIT 2;"
   ```
+
 - **Status:** ✅ or ❌
 
 #### Test 3J: Delete Proposal
+
 - **Action:** Hover, click "🗑️ Delete"
 - **Expected:** Confirmation message
 - **Verify:** Proposal removed from list
-- **DB Check:** 
+- **DB Check:**
 
   ```bash
   mysql -u catering_user -p catering_proposals -e "SELECT COUNT(*) FROM proposals WHERE status = 'draft';"
   ```
+
 - **Status:** ✅ or ❌
 
 #### Test 3K: Pagination (If >10 proposals)
+
 - **Action:** Create 10+ proposals, check if pagination appears
 - **Expected:** "Siguiente" button when proposals > 10
 - **Status:** ✅ or ❌ (Optional)
 
 #### Test 3L: Print View
+
 - **Action:** Press `Ctrl+P` on dashboard
 - **Expected:**
   - ✅ Buttons hidden (print:hidden)
@@ -208,6 +222,7 @@ Presiona Ctrl+C para detener el servidor
 ## 🔍 API Endpoint Tests (Using curl)
 
 ### Test API-1: Get Dashboard Data
+
 ```bash
 curl -H "Cookie: sessionid=YOUR_SESSION" \
   http://localhost:3000/dashboard?status=draft
@@ -216,6 +231,7 @@ curl -H "Cookie: sessionid=YOUR_SESSION" \
 **Expected:** 200 OK + HTML response with draft proposals
 
 ### Test API-2: Create Proposal
+
 ```bash
 curl -X POST http://localhost:3000/proposal \
   -H "Content-Type: application/json" \
@@ -231,6 +247,7 @@ curl -X POST http://localhost:3000/proposal \
 **Expected:** 201 Created + redirect to dashboard
 
 ### Test API-3: Update Status (AJAX)
+
 ```bash
 curl -X POST http://localhost:3000/proposal/PROPOSAL_ID/status \
   -H "Content-Type: application/json" \
@@ -282,6 +299,7 @@ SELECT SUM(total_estimated) FROM proposals WHERE status = 'accepted';
 ## 🐛 Troubleshooting
 
 ### Issue: "Database connection failed"
+
 ```bash
 # Verify MariaDB running
 mysql -u root -p -e "SELECT VERSION();"
@@ -291,11 +309,13 @@ cat .env.local | grep DB_
 ```
 
 ### Issue: "Cannot find module 'mariadb'"
+
 ```bash
 npm install mariadb
 ```
 
 ### Issue: "EJS template not found"
+
 ```bash
 # Verify file exists
 ls -la views/commercial/dashboard.ejs
@@ -303,16 +323,19 @@ ls -la views/partials/header.ejs
 ```
 
 ### Issue: "Session/Cookie not set"
+
 - Check browser DevTools → Application → Cookies
 - Verify `sessionid` cookie present with httpOnly flag
 - Check `.env.local` has `SESSION_SECRET` set
 
 ### Issue: "Flash messages not appearing"
+
 - Verify `connect-flash` middleware in app.js
 - Check `res.locals.messages` in controller
 - Verify partial: `views/partials/flash-messages.ejs`
 
 ### Issue: "Styling broken (no Tailwind)"
+
 - Verify `<script src="https://cdn.tailwindcss.com"></script>` in header.ejs
 - Check browser DevTools → Network → tailwindcss CDN loaded
 - Manually add inline styles if CDN fails
@@ -343,6 +366,7 @@ ls -la views/partials/header.ejs
 ## 🎯 Success Criteria
 
 **Phase 2 Dashboard is COMPLETE when:**
+
 - ✅ All 16 tests pass
 - ✅ Dashboard renders 4 proposals from seed data
 - ✅ All CRUD operations work (Create, Read, Update, Delete)

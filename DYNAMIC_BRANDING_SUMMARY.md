@@ -10,24 +10,28 @@
 
 ✅ **Installed node-vibrant** - AI-powered color extraction library  
 ✅ **Enhanced ImageService** - 3 new methods for branding automation:
-   - `extractDominantColor()` - Extracts primary color from logo
-   - `generateColorPalette()` - Creates 7-color palette (hover, light, dark, etc.)
-   - `processLogoWithBranding()` - One-shot: process + extract + store
+
+- `extractDominantColor()` - Extracts primary color from logo
+- `generateColorPalette()` - Creates 7-color palette (hover, light, dark, etc.)
+- `processLogoWithBranding()` - One-shot: process + extract + store
 
 ✅ **Updated API Endpoint** - `/api/admin/upload/logo?proposal_id=X`
-   - Automatically updates `proposals.brand_color` in database
-   - Returns complete palette JSON
+
+- Automatically updates `proposals.brand_color` in database
+- Returns complete palette JSON
 
 ✅ **Dynamic CSS Injection** - Client views now use CSS variables
-   - `:root { --brand-primary: #FF5733; }`
-   - Tailwind-compatible utility classes: `.brand-bg`, `.brand-text`, etc.
-   - Logo displayed in header if available
+
+- `:root { --brand-primary: #FF5733; }`
+- Tailwind-compatible utility classes: `.brand-bg`, `.brand-text`, etc.
+- Logo displayed in header if available
 
 ✅ **Comprehensive Documentation** - `docs/DYNAMIC_BRANDING.md`
-   - Architecture diagrams
-   - API examples
-   - Testing guide
-   - Troubleshooting
+
+- Architecture diagrams
+- API examples
+- Testing guide
+- Troubleshooting
 
 ---
 
@@ -68,11 +72,13 @@ proposals.logo_url VARCHAR(255)
 ## User Experience
 
 ### Before
+
 - Static blue colors for all clients
 - No logo support in client view
 - Manual color selection in editor
 
 ### After
+
 - **Automatic brand color extraction** from logo upload
 - **Dynamic theming** - each client sees their brand colors
 - **Professional presentation** - logo + matching colors throughout
@@ -112,7 +118,7 @@ proposals.logo_url VARCHAR(255)
 ## Performance
 
 | Metric | Value |
-|--------|-------|
+| --------|-------|
 | Logo processing | ~800ms (5MB file) |
 | Color extraction | ~150ms (node-vibrant) |
 | Palette generation | ~2ms (pure math) |

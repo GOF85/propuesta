@@ -8,30 +8,34 @@
 
 **Features:**
 
-  - Proposal acceptance
-  - Proposal rejection
-  - Modification requests
-  - Proposal ready (sent to client)
+- Proposal acceptance
+- Proposal rejection
+- Modification requests
+- Proposal ready (sent to client)
 
 ---
 
 ## 🔒 SECURITY MEASURES
 
 ✅ **Magic Link Security:**
+
 - Hash validation (format check)
 - Proposal lookup by hash
 - No password stored
 
 ✅ **Input Validation:**
+
 - express-validator chains
 - Type checking
 
 ✅ **Data Protection:**
+
 - All SQL queries use prepared statements
 - Maintenance mode check (prevents editing visibility)
 - Error messages don't leak info
 
 ✅ **Rate Limiting Ready:**
+
 - Simple to add rate limiting middleware
 - Suggested: 5 requests/min per IP for /p/:hash endpoints
 
@@ -42,11 +46,13 @@
 ### Phase 4 Test Cases (20 tests)
 
 **Magic Link Tests (3):**
+
 - [ ] Access proposal via valid hash
 - [ ] Reject access with invalid hash
 - [ ] Check maintenance mode display
 
 **Client Actions (5):**
+
 - [ ] Accept proposal
 - [ ] Reject proposal
 - [ ] Request modifications
@@ -54,6 +60,7 @@
 - [ ] Verify emails sent
 
 **Messaging Tests (5):**
+
 - [ ] Send message from client
 - [ ] Receive message (polling)
 - [ ] Mark messages as read
@@ -61,6 +68,7 @@
 - [ ] Check message timestamps
 
 **UI/UX Tests (5):**
+
 - [ ] Modal displays correctly
 - [ ] Form validation works
 - [ ] Notifications appear
@@ -68,6 +76,7 @@
 - [ ] Mobile responsiveness
 
 **Integration Tests (2):**
+
 - [ ] Phase 2 → Phase 3 → Phase 4 workflow
 - [ ] Email notifications working
 
@@ -141,27 +150,32 @@
 ## 🚀 DEPLOYMENT CHECKLIST
 
 ✅ **Code Complete**
+
 - All 48 files created and tested
 - 8,069 lines of production code
 - Security measures in place
 
 ✅ **Database Ready**
+
 - Complete schema (database.sql)
 - All tables created
 - Relationships defined
 
 ✅ **Configuration Ready**
+
 - .env.example provided
 - All settings configurable
 - Email setup documented
 
 ✅ **Security Verified**
+
 - Prepared statements (100%)
 - Permission checks (100%)
 - Input validation (100%)
 - Error handling (100%)
 
 ⏳ **Next Steps:**
+
 1. Full integration testing
 2. Performance tuning
 3. Email provider setup (Gmail)
@@ -174,12 +188,14 @@
 ## 📚 QUICK REFERENCE
 
 ### Start Application
+
 ```bash
 npm start
 # Server on http://localhost:3000
 ```
 
 ### Test Phase 4 (Client View)
+
 1. Go to Dashboard
 2. Create/Select Proposal
 3. Click "Edit" → Edit → Click "Enviar a Cliente"
@@ -188,11 +204,13 @@ npm start
 6. Test accept/reject/modify actions
 
 ### Email Testing
+
 - Configure .env with Gmail credentials
 - Run: `npm run test-email` (to be implemented)
 - Check spam folder for notifications
 
 ### Debug Polling
+
 - Open browser DevTools (F12)
 - Go to Network tab
 - Watch for requests to `/p/{hash}/messages` every 30s

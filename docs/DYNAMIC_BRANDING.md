@@ -50,14 +50,17 @@ Client View Rendering (GET /p/:hash)
 #### Métodos Principales
 
 ##### `processLogoWithBranding(buffer, name)`
+
 Procesa logo completo con extracción de branding.
 
 **Input:**
+
 ```javascript
 const buffer = req.files.logo.data;
 ```
 
 **Output:**
+
 ```javascript
 {
   path: '/uploads/abc123/logo.webp',
@@ -86,9 +89,11 @@ const buffer = req.files.logo.data;
 ```
 
 ##### `extractDominantColor(buffer)`
+
 Extrae color dominante usando node-vibrant.
 
 **Algoritmo:**
+
 1. Reduce imagen a 400x400 con Sharp (performance)
 2. Convierte a PNG (Vibrant no soporta WebP)
 3. Extrae paleta con Vibrant.from(buffer).getPalette()
@@ -99,9 +104,11 @@ Extrae color dominante usando node-vibrant.
 Si falla → `#0066cc` (azul corporativo)
 
 ##### `generateColorPalette(hexColor)`
+
 Genera paleta de variantes desde un color base.
 
 **Transformaciones:**
+
 - **Hover:** -10% luminosidad
 - **Light:** +30% luminosidad, -20% saturación
 - **Dark:** -20% luminosidad, +10% saturación
@@ -109,6 +116,7 @@ Genera paleta de variantes desde un color base.
 - **Text:** Blanco o negro según luminosidad (threshold 50%)
 
 **Conversiones:**
+
 ```
 HEX → RGB → HSL → Manipulate → HSL → HEX
 ```
@@ -122,6 +130,7 @@ HEX → RGB → HSL → Manipulate → HSL → HEX
 **Auth:** Admin only
 
 **Request:**
+
 ```bash
 curl -X POST \
   https://propuestas.micecatering.eu/api/admin/upload/logo?proposal_id=5 \
@@ -130,9 +139,11 @@ curl -X POST \
 ```
 
 **Query Params:**
+
 - `proposal_id` (opcional): Si se especifica, actualiza automáticamente `proposals.brand_color` y `proposals.logo_url`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -234,6 +245,7 @@ WHERE id = 5;
 ### Flujo Completo
 
 1. **Upload Logo:** Comercial sube logo en editor
+
    ```javascript
    POST /api/admin/upload/logo?proposal_id=5
    ```
@@ -241,6 +253,7 @@ WHERE id = 5;
 2. **Procesamiento:** ImageService extrae color + genera paleta
 
 3. **Persistencia:** ProposalService actualiza DB
+
    ```javascript
    await ProposalService.update(5, {
      logo_url: '/uploads/abc123/logo.webp',
@@ -321,6 +334,7 @@ describe('ImageService - Dynamic Branding', () => {
 ```
 
 **Instalación:**
+
 ```bash
 npm install node-vibrant
 ```
@@ -379,6 +393,7 @@ const primarySwatch = palette.DarkVibrant || palette.Vibrant || palette.Muted;
 ### CSS Variables no aplicadas
 
 **Verificar:**
+
 1. ¿`proposal.brand_color` tiene valor en DB? → Query directo
 2. ¿`generateColorPalette()` retorna paleta? → Console.log en EJS
 3. ¿Hay conflictos con Tailwind? → Usar `!important`
@@ -391,6 +406,7 @@ const primarySwatch = palette.DarkVibrant || palette.Vibrant || palette.Muted;
 ### Logo no aparece en vista cliente
 
 **Verificar:**
+
 1. `proposal.logo_url` en DB tiene valor correcto
 2. Archivo existe en `/public/uploads/HASH/`
 3. Permisos de lectura en carpeta uploads
@@ -434,10 +450,10 @@ ls -la public/uploads/
 
 ## 📚 REFERENCIAS
 
-- **node-vibrant:** https://github.com/Vibrant-Colors/node-vibrant
-- **Sharp:** https://sharp.pixelplumbing.com/
-- **CSS Custom Properties:** https://developer.mozilla.org/en-US/docs/Web/CSS/--*
-- **HSL Color Model:** https://en.wikipedia.org/wiki/HSL_and_HSV
+- **node-vibrant:** <https://github.com/Vibrant-Colors/node-vibrant>
+- **Sharp:** <https://sharp.pixelplumbing.com/>
+- **CSS Custom Properties:** <https://developer.mozilla.org/en-US/docs/Web/CSS/-->*
+- **HSL Color Model:** <https://en.wikipedia.org/wiki/HSL_and_HSV>
 
 ---
 

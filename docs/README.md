@@ -370,4 +370,4 @@ bash scripts/verify-complete.sh
 
 **Last Updated:** Febrero 2026  
 **Maintained By:** Guillermo  
-**For Inquiries:** guillermo@micecatering.eu
+**For Inquiries:** <guillermo@micecatering.eu>

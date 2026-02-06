@@ -14,6 +14,7 @@
 ## 🎯 Test Suite Completa
 
 Total de casos: **56 tests**
+
 - Fase 2: 16 tests
 - Fase 3: 20 tests
 - Fase 4: 20 tests
@@ -38,6 +39,7 @@ npm test
 ### 1. **Autenticación**
 
 #### TC-2.1: Login Usuario Válido
+
 - **Pasos:**
   1. Ir a `/auth/login`
   2. Ingresar: email=`test@micecatering.eu`, password=`password123`
@@ -48,6 +50,7 @@ npm test
   - Email visible en header
 
 #### TC-2.2: Login Email Inválido
+
 - **Pasos:**
   1. Ir a `/auth/login`
   2. Ingresar: email=`invalid@email.com`, password=`anything`
@@ -57,6 +60,7 @@ npm test
   - Redirección a `/auth/login`
 
 #### TC-2.3: Login Contraseña Incorrecta
+
 - **Pasos:**
   1. Ir a `/auth/login`
   2. Ingresar: email=`test@micecatering.eu`, password=`wrong`
@@ -66,6 +70,7 @@ npm test
   - Formulario vacío (no expone datos)
 
 #### TC-2.4: Logout
+
 - **Pasos:**
   1. Estar logeado
   2. Hacer clic en "Salir" (top-right menu)
@@ -77,6 +82,7 @@ npm test
 ### 2. **Listar Propuestas**
 
 #### TC-2.5: Cargar Dashboard (Sin Propuestas)
+
 - **Pasos:**
   1. Login con usuario nuevo
   2. Ir a `/dashboard`
@@ -86,6 +92,7 @@ npm test
   - Filtros disponibles
 
 #### TC-2.6: Cargar Dashboard (Con Propuestas)
+
 - **Pasos:**
   1. Ejecutar `npm run seed` (carga datos de prueba)
   2. Login
@@ -96,6 +103,7 @@ npm test
   - Estados con badges de color
 
 #### TC-2.7: Filtrar por Estado
+
 - **Pasos:**
   1. En `/dashboard`, hacer clic en dropdown "Estado"
   2. Seleccionar "Borrador"
@@ -106,6 +114,7 @@ npm test
   - Contador actualizado
 
 #### TC-2.8: Buscar por Cliente
+
 - **Pasos:**
   1. En `/dashboard`, ingresar en buscador: "Juan Pérez"
   2. Presionar Enter o hacer clic en "Buscar"
@@ -117,6 +126,7 @@ npm test
 ### 3. **Crear Propuesta**
 
 #### TC-2.9: Crear Nueva Propuesta
+
 - **Pasos:**
   1. En `/dashboard`, hacer clic en "Nueva Propuesta"
   2. Rellenar: Nombre Cliente, Fecha Evento, PAX
@@ -127,6 +137,7 @@ npm test
   - Hash único generado (en DB)
 
 #### TC-2.10: Validación de Campos Requeridos
+
 - **Pasos:**
   1. Hacer clic en "Nueva Propuesta"
   2. Dejar campos vacíos
@@ -139,6 +150,7 @@ npm test
 ### 4. **Editar Propuesta**
 
 #### TC-2.11: Abrir Propuesta para Editar
+
 - **Pasos:**
   1. En `/dashboard`, hacer clic en propuesta (ícono "Editar")
   2. O directo a `/editor/1`
@@ -148,6 +160,7 @@ npm test
   - Formulario interactivo
 
 #### TC-2.12: Cambiar Estado
+
 - **Pasos:**
   1. En `/editor/:id`, cambiar estado a "Enviada"
   2. Guardar
@@ -159,6 +172,7 @@ npm test
 ### 5. **Eliminar Propuesta**
 
 #### TC-2.13: Eliminar Propuesta
+
 - **Pasos:**
   1. En `/dashboard`, hacer clic en icono "Papelera"
   2. Confirmar en diálogo
@@ -168,6 +182,7 @@ npm test
   - Fila desaparece de tabla
 
 #### TC-2.14: Cancelar Eliminación
+
 - **Pasos:**
   1. En `/dashboard`, hacer clic en "Papelera"
   2. Hacer clic en "Cancelar"
@@ -179,6 +194,7 @@ npm test
 ### 6. **Información de Usuario**
 
 #### TC-2.15: Ver Perfil
+
 - **Pasos:**
   1. Hacer clic en avatar (top-right)
   2. Seleccionar "Mi Perfil"
@@ -188,6 +204,7 @@ npm test
   - Botón "Editar Perfil"
 
 #### TC-2.16: Editar Perfil
+
 - **Pasos:**
   1. En perfil, hacer clic en "Editar"
   2. Cambiar: teléfono, nombre
@@ -204,6 +221,7 @@ npm test
 ### 1. **Gestión de Venues**
 
 #### TC-3.1: Agregar Venue a Propuesta
+
 - **Pasos:**
   1. En `/editor/:id`, sección "Venues"
   2. Hacer clic en "Agregar Venue"
@@ -215,6 +233,7 @@ npm test
   - Precio y capacidad visible
 
 #### TC-3.2: Remover Venue
+
 - **Pasos:**
   1. En propuesta con venues, hacer clic en icono "X"
   2. Confirmar
@@ -224,6 +243,7 @@ npm test
   - Total de propuesta recalculado
 
 #### TC-3.3: Marcar Venue como Seleccionado
+
 - **Pasos:**
   1. En editor, hacer clic en checkbox del venue
   2. Guardar
@@ -234,6 +254,7 @@ npm test
 ### 2. **Gestión de Servicios**
 
 #### TC-3.4: Agregar Servicio
+
 - **Pasos:**
   1. En `/editor/:id`, sección "Servicios"
   2. Hacer clic en "Agregar Servicio"
@@ -245,6 +266,7 @@ npm test
   - Timeline se ordena cronológicamente
 
 #### TC-3.5: Servicio sin Opciones
+
 - **Pasos:**
   1. Agregar servicio "Almuerzo de Trabajo"
   2. Dejar sin opciones alternativas (solo una opción)
@@ -253,6 +275,7 @@ npm test
   - No hay radio buttons para cliente (opción única)
 
 #### TC-3.6: Servicio con Opciones (Multichoice)
+
 - **Pasos:**
   1. Agregar servicio con: is_multichoice = true
   2. Ingresar Opción A: "Menú Premium" (50€/pax)
@@ -264,6 +287,7 @@ npm test
   - Precio se calcula según opción seleccionada
 
 #### TC-3.7: Cambiar VAT Rate
+
 - **Pasos:**
   1. En servicio gastronómico, cambiar VAT a 21%
   2. Guardar
@@ -275,6 +299,7 @@ npm test
 ### 3. **Gestión de Platos**
 
 #### TC-3.8: Agregar Plato a Opción de Servicio
+
 - **Pasos:**
   1. En servicio con opción, hacer clic en "Agregar Plato"
   2. Seleccionar "Ensalada César" del catálogo
@@ -285,6 +310,7 @@ npm test
   - Alergenos visibles
 
 #### TC-3.9: Editar Descripción de Plato
+
 - **Pasos:**
   1. En propuesta, hace clic en plato
   2. Cambiar descripción a: "Con croutons caseros"
@@ -295,6 +321,7 @@ npm test
   - Cambio visible en cliente view
 
 #### TC-3.10: Remover Plato de Propuesta
+
 - **Pasos:**
   1. En editor, hacer clic en icono "X" del plato
   2. Confirmar
@@ -306,6 +333,7 @@ npm test
 ### 4. **Cálculo de Precios**
 
 #### TC-3.11: Calcular Total sin Descuentos
+
 - **Pasos:**
   1. Propuesta con:
      - 50 PAX
@@ -318,6 +346,7 @@ npm test
   Total Bruto: 4070€
 
 #### TC-3.12: Descuento por PAX (Cantidad)
+
 - **Pasos:**
   1. En servicio, ingresar descuento: -2€/pax para 50+ pax
   2. Calcular
@@ -329,6 +358,7 @@ npm test
   Total: 2299€
 
 #### TC-3.13: Cambiar PAX (Recálculo Dinámico)
+
 - **Pasos:**
   1. Cambiar PAX de 50 a 60 en propuesta
   2. Sistema recalcula automáticamente
@@ -338,6 +368,7 @@ npm test
   - JSON con nuevos valores retornado
 
 #### TC-3.14: VAT Diferenciado por Servicio
+
 - **Pasos:**
   1. Propuesta con servicios:
      - "Catering" → VAT 10%
@@ -351,9 +382,10 @@ npm test
 ### 5. **Gestión de Venues Adicionales (Scraping)**
 
 #### TC-3.15: Scrape Venue desde URL Externa
+
 - **Pasos:**
   1. En editor, hacer clic en "Importar Venue"
-  2. Ingresar URL: https://micecatering.com/venues/salones
+  2. Ingresar URL: <https://micecatering.com/venues/salones>
   3. Hacer clic en "Scrapear"
 - **Resultado Esperado:**
   - Puppeteer carga página
@@ -362,6 +394,7 @@ npm test
   - Venue agregado al catálogo
 
 #### TC-3.16: Scraping sin Imagen (Fallback)
+
 - **Pasos:**
   1. Scrapear venue sin foto
   2. Guardar
@@ -374,6 +407,7 @@ npm test
 ### 6. **Vistas Previas**
 
 #### TC-3.17: Vista Previa de Propuesta
+
 - **Pasos:**
   1. En editor, hacer clic en "Vista Previa"
 - **Resultado Esperado:**
@@ -382,6 +416,7 @@ npm test
   - No hay controles de edición
 
 #### TC-3.18: Exportar a PDF (Placeholder)
+
 - **Pasos:**
   1. En editor, hacer clic en "Descargar PDF"
 - **Resultado Esperado:**
@@ -392,6 +427,7 @@ npm test
 ### 7. **Persistencia y Transacciones**
 
 #### TC-3.19: Guardar Múltiples Cambios (Transacción)
+
 - **Pasos:**
   1. En editor:
      - Agregar venue
@@ -405,6 +441,7 @@ npm test
   - Notificación de éxito
 
 #### TC-3.20: Validación de Integridad
+
 - **Pasos:**
   1. Intentar guardar propuesta sin venues ni servicios
   2. Hacer clic en "Validar"
@@ -420,9 +457,10 @@ npm test
 ### 1. **Magic Link Access**
 
 #### TC-4.1: Acceso Cliente sin Login
+
 - **Pasos:**
   1. Comercial genera propuesta
-  2. Envía a cliente: https://propuestas.micecatering.eu/p/abc123xyz...
+  2. Envía a cliente: <https://propuestas.micecatering.eu/p/abc123xyz>...
   3. Cliente abre link (sin login)
 - **Resultado Esperado:**
   - Propuesta se carga sin autenticación
@@ -430,14 +468,16 @@ npm test
   - Interactividad limitada (solo lectura + chat)
 
 #### TC-4.2: Hash Inválido
+
 - **Pasos:**
-  1. Ir a: https://propuestas.micecatering.eu/p/invalid-hash
+  1. Ir a: <https://propuestas.micecatering.eu/p/invalid-hash>
 - **Resultado Esperado:**
   - Error 404: "Propuesta no encontrada"
   - Sin exponer detalles del error
   - Redirección a página de error amigable
 
 #### TC-4.3: Propuesta en Modo Edición
+
 - **Pasos:**
   1. Comercial está editando (is_editing = true)
   2. Cliente abre magic link
@@ -450,6 +490,7 @@ npm test
 ### 2. **Ver Propuesta (Cliente)**
 
 #### TC-4.4: Cargar Propuesta Completa
+
 - **Pasos:**
   1. Cliente abre magic link válido
   2. Propuesta con venues, servicios, platos
@@ -462,6 +503,7 @@ npm test
   - Botones de acción (Aceptar, Modificar, Rechazar)
 
 #### TC-4.5: Información del Evento
+
 - **Pasos:**
   1. En propuesta cliente, revisar tarjeta "Evento"
 - **Resultado Esperado:**
@@ -471,6 +513,7 @@ npm test
   - Información de contacto comercial (opcional)
 
 #### TC-4.6: Desglose de Servicios
+
 - **Pasos:**
   1. En propuesta cliente, revisar tabla de servicios
 - **Resultado Esperado:**
@@ -479,6 +522,7 @@ npm test
   | Almuerzo | 40€ | 50 | 2000€ | +21% | 2420€ |
 
 #### TC-4.7: Cálculo de Total Correcto
+
 - **Pasos:**
   1. Sumar todos los servicios (con VAT)
   2. Verificar "Total" en sidebar
@@ -490,6 +534,7 @@ npm test
 ### 3. **Aceptar Propuesta**
 
 #### TC-4.8: Aceptar Propuesta (Workflow)
+
 - **Pasos:**
   1. Cliente hace clic en "Aceptar Propuesta"
   2. Modal de confirmación aparece
@@ -502,6 +547,7 @@ npm test
   - Cliente ve: "Propuesta aceptada" (mensaje verde)
 
 #### TC-4.9: Email de Aceptación
+
 - **Pasos:**
   1. Cliente acepta propuesta
   2. Revisar email del comercial
@@ -514,6 +560,7 @@ npm test
 ### 4. **Rechazar Propuesta**
 
 #### TC-4.10: Rechazar con Motivo
+
 - **Pasos:**
   1. Cliente hace clic en "Rechazar Propuesta"
   2. Modal: Ingresa motivo: "Presupuesto muy alto"
@@ -525,6 +572,7 @@ npm test
   - Cliente ve: "Propuesta rechazada" (mensaje rojo)
 
 #### TC-4.11: Motivo Requerido
+
 - **Pasos:**
   1. Hacer clic en "Rechazar"
   2. Dejar motivo vacío
@@ -537,6 +585,7 @@ npm test
 ### 5. **Solicitar Modificaciones**
 
 #### TC-4.12: Solicitar Cambios
+
 - **Pasos:**
   1. Cliente hace clic en "Solicitar Cambios"
   2. Ingresa: "Cambiar almuerzo a opción vegana"
@@ -548,6 +597,7 @@ npm test
   - Cliente ve: "Cambios solicitados" (mensaje amarillo)
 
 #### TC-4.13: Comentario de Modificación
+
 - **Pasos:**
   1. Solicitar cambios con texto largo (500 caracteres)
   2. Verificar en cliente
@@ -560,6 +610,7 @@ npm test
 ### 6. **Sistema de Chat**
 
 #### TC-4.14: Enviar Mensaje (Cliente)
+
 - **Pasos:**
   1. Cliente en propuesta, sección "Chat"
   2. Escribir: "¿Puedo cambiar las bebidas?"
@@ -571,6 +622,7 @@ npm test
   - Mensaje grabado en DB
 
 #### TC-4.15: Recibir Mensaje (Polling)
+
 - **Pasos:**
   1. Comercial envía mensaje desde dashboard
   2. Esperar 30 segundos
@@ -582,16 +634,18 @@ npm test
   - Sin necesidad de recargar
 
 #### TC-4.16: Email Notificación de Mensaje
+
 - **Pasos:**
   1. Comercial envía mensaje
   2. Cliente recibe email
 - **Resultado Esperado:**
   - Email enviado a cliente (EMAIL de propuesta.user)
-  3. Asunto: "Nuevo mensaje sobre tu propuesta"
+  1. Asunto: "Nuevo mensaje sobre tu propuesta"
   - Body: Preview del mensaje
   - Enlace a propuesta
 
 #### TC-4.17: Historial de Chat
+
 - **Pasos:**
   1. Propuesta con 20+ mensajes
   2. Abrir chat
@@ -602,6 +656,7 @@ npm test
   - Sin latencia perceptible
 
 #### TC-4.18: Validación de Mensajes
+
 - **Pasos:**
   1. Intentar enviar mensaje vacío
   2. Intentar enviar texto de 10,000 caracteres
@@ -613,6 +668,7 @@ npm test
 ### 7. **Print & Descargas**
 
 #### TC-4.19: Imprimir Propuesta
+
 - **Pasos:**
   1. Cliente presiona Ctrl+P (o botón "Imprimir")
   2. Vista de print se abre
@@ -623,6 +679,7 @@ npm test
   - PDF generado correctamente
 
 #### TC-4.20: Descargar Propuesta (PDF)
+
 - **Pasos:**
   1. Cliente hace clic en "Descargar PDF"
   2. Esperar generación con Puppeteer

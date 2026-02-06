@@ -28,10 +28,12 @@ All **admin panels converted from JSON import/export to CSV format** - making da
 ### Venues Admin Panel (`/admin/venues`)
 
 **Tab 1: Lista**
+
 - Show all venues in table format
 - Export button downloads venues as CSV
 
 **Tab 2: Importar CSV** ← NEW
+
 - ✅ File drag-drop area (visual feedback)
 - ✅ File selection via click
 - ✅ Automatic file name display
@@ -39,6 +41,7 @@ All **admin panels converted from JSON import/export to CSV format** - making da
 - ✅ Success/error message feedback
 
 **Tab 3: Descargar CSV** ← UPDATED
+
 - ✅ CSV template in `<pre>` tag (copy-friendly)
 - ✅ "📋 Copiar Plantilla" button
 - ✅ "⬇️ Descargar CSV" button (downloads template automatically)
@@ -75,18 +78,21 @@ Success message + reload
 ## 📝 CSV Format
 
 ### Venues CSV Example
+
 ```csv
 name,description,capacity_cocktail,capacity_banquet,capacity_theater,features,address,map_iframe,external_url,images
 "Sala Modernista Barcelona","Espacio diáfano...",200,120,150,"Luz natural|Wifi|Proyector 4K","Passeig de Gràcia 85, Barcelona","https://maps.google.com/?q=Barcelona","https://ejemplo.com","uploads/barcelona.webp"
 ```
 
 ### Dishes CSV Example
+
 ```csv
 name,description,category,allergens,badges,image_url,base_price
 "Ensalada César","Lechuga romana...","entrante","gluten|lacteos|huevo","","uploads/ensalada.webp",8.50
 ```
 
 **Key Format Rules:**
+
 - `|` = array separator (features, allergens, badges)
 - All strings quoted
 - Decimals with `.` not `,`
@@ -96,6 +102,7 @@ name,description,category,allergens,badges,image_url,base_price
 ## 🚀 Deployment Status
 
 ### ✅ LOCAL DEVELOPMENT COMPLETE
+
 - [x] venues.ejs finalized (279 lines)
 - [x] dishes.ejs finalized (284 lines)
 - [x] JavaScript event handlers for file upload
@@ -104,11 +111,13 @@ name,description,category,allergens,badges,image_url,base_price
 - [x] Git committed (Commit: 0870351)
 
 ### ⏳ PRODUCTION DEPLOYMENT NEEDED
+
 Files ready to upload to: `188.95.113.225`
 
 **Manual Deployment Steps:**
 
 1. **Via SFTP (Recommended)**
+
    ```bash
    sftp guiyo@188.95.113.225
    cd /var/www/vhosts/micecatering.eu/propuesta.micecatering.eu
@@ -118,6 +127,7 @@ Files ready to upload to: `188.95.113.225`
    ```
 
 2. **Restart Node.js**
+
    ```bash
    ssh guiyo@188.95.113.225
    cd /var/www/vhosts/micecatering.eu/propuesta.micecatering.eu
@@ -126,8 +136,8 @@ Files ready to upload to: `188.95.113.225`
    ```
 
 3. **Verify** - Visit:
-   - https://propuesta.micecatering.eu/admin/venues
-   - https://propuesta.micecatering.eu/admin/dishes
+   - <https://propuesta.micecatering.eu/admin/venues>
+   - <https://propuesta.micecatering.eu/admin/dishes>
 
 ---
 
@@ -136,6 +146,7 @@ Files ready to upload to: `188.95.113.225`
 After deployment, test:
 
 ### Venues Admin
+
 - [ ] /admin/venues loads
 - [ ] Tab 2: Can drag CSV file to dropzone
 - [ ] Tab 2: Can click to select file
@@ -147,6 +158,7 @@ After deployment, test:
 - [ ] Tab 1: Export button downloads current venues as CSV
 
 ### Dishes Admin
+
 - [ ] /admin/dishes loads
 - [ ] Same tests as Venues
 - [ ] Template downloads as `dishes-template.csv`
@@ -156,6 +168,7 @@ After deployment, test:
 ## 📦 Files Archive
 
 Created for reference:
+
 - **admin-csv-updates.tar.gz** (4.8K)
   - Contains: venues.ejs, dishes.ejs
 

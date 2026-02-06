@@ -13,6 +13,7 @@
 Located in `/views/admin/dashboard.ejs`:
 
 **Features:**
+
 - ✅ Drag & Drop upload area (large, visually appealing)
 - ✅ Click to browse file selector
 - ✅ Real-time progress bar (0-100%)
@@ -21,6 +22,7 @@ Located in `/views/admin/dashboard.ejs`:
 - ✅ Responsive grid layout (adapts to mobile/tablet/desktop)
 
 **UI Components:**
+
 ```html
 <!-- Upload Zone -->
 <div id="imageUploadBox" class="border-2 border-dashed...">
@@ -46,6 +48,7 @@ Located in `/views/admin/dashboard.ejs`:
 Grid display of uploaded images:
 
 **Per Image Card Shows:**
+
 - 📸 Image dimensions (width×height px)
 - 📝 Filename (truncated)
 - 📊 File size in KB (after WebP compression)
@@ -54,6 +57,7 @@ Grid display of uploaded images:
 - 🗑️ Delete button (appears on hover)
 
 **Delete Functionality:**
+
 - Confirmation dialog before deletion
 - Sends DELETE to `/api/admin/image/:hash`
 - Removes from UI immediately
@@ -91,6 +95,7 @@ deleteImage(hash)                // Remove image
 ```
 
 **Upload Flow:**
+
 ```
 1. User drags/selects files → handleFiles()
 2. Show progress bar (5%)
@@ -108,6 +113,7 @@ deleteImage(hash)                // Remove image
 ### 4. **Backend Integration**
 
 **Already Implemented (Previous Commit):**
+
 - POST `/api/admin/upload/batch` - Batch image upload
 - DELETE `/api/admin/image/:hash` - Delete image
 - Admin role validation on both endpoints
@@ -116,6 +122,7 @@ deleteImage(hash)                // Remove image
 **Request/Response:**
 
 **POST /api/admin/upload/batch**
+
 ```json
 Request: FormData with multiple 'files'
 Response: {
@@ -138,6 +145,7 @@ Response: {
 ```
 
 **DELETE /api/admin/image/:hash**
+
 ```json
 Request: DELETE /api/admin/image/abc123def456
 Response: {
@@ -153,14 +161,17 @@ Response: {
 ### Layout Responsiveness
 
 **Desktop (1200px+)**
+
 - 3-column grid: Upload area (2 cols) + Stats card (1 col)
 - Images gallery: 4 columns
 
 **Tablet (768px-1199px)**
+
 - 2-column grid for stats
 - Images gallery: 2 columns
 
 **Mobile (< 768px)**
+
 - Single column layout
 - Full-width upload area
 - Gallery: 1-2 columns
@@ -206,6 +217,7 @@ Example: 200MB → 40MB = 160MB saved (80% reduction)
 ## 🚀 Testing Checklist
 
 ✅ **Frontend**
+
 - [x] Drag & drop files
 - [x] Click to select files
 - [x] Multiple files at once
@@ -217,6 +229,7 @@ Example: 200MB → 40MB = 160MB saved (80% reduction)
 - [x] Statistics update
 
 ✅ **Backend Integration**
+
 - [x] Batch upload endpoint responds
 - [x] Images processed to WebP
 - [x] Paths return correctly
@@ -224,6 +237,7 @@ Example: 200MB → 40MB = 160MB saved (80% reduction)
 - [x] Auth checks (admin role)
 
 ⏳ **Manual Testing Needed**
+
 - [ ] Test with large images (5MB+)
 - [ ] Test with 10+ images batch
 - [ ] Test delete confirmation
@@ -248,6 +262,7 @@ Example: 200MB → 40MB = 160MB saved (80% reduction)
 ## 🔄 Integration Points
 
 ### Dashboard Entry Point
+
 ```
 /admin → AdminController.getDashboard()
   ↓
@@ -257,12 +272,14 @@ Example: 200MB → 40MB = 160MB saved (80% reduction)
 ```
 
 ### API Endpoints Used
+
 ```
 POST /api/admin/upload/batch
 DELETE /api/admin/image/:hash
 ```
 
 ### Database (Logs only, no DB storage yet)
+
 - Sharp optimization metrics logged to console
 - Image hashes stored in client-side JS array (session-only)
 
@@ -325,6 +342,7 @@ DELETE /api/admin/image/:hash
 ## 🎓 Technical Notes
 
 ### Image Processing Pipeline (Recap)
+
 ```
 Browser FormData
   ↓ (Upload)
@@ -345,6 +363,7 @@ JavaScript Gallery Rendering
 ```
 
 ### Security
+
 - ✅ Admin role required (middleware check)
 - ✅ File upload size limit (50MB)
 - ✅ Valid image validation (Sharp metadata check)
@@ -352,6 +371,7 @@ JavaScript Gallery Rendering
 - ✅ SQL injection N/A (no DB writes yet)
 
 ### Performance
+
 - Images processed in-memory (no disk thrashing)
 - Batch processing (multiple files in one request)
 - WebP compression: ~70-80% size reduction
@@ -377,4 +397,3 @@ JavaScript Gallery Rendering
 
 **Commit:** `568ce37`  
 **Next Phase:** Use uploaded images in venues/dishes or test with production data
-
