@@ -371,29 +371,31 @@ class ProposalService {
       };
 
       // 8. Persistir en la propuesta
+      // ⚠️ COMENTADO: Las columnas total_base, total_vat, etc no existen en BD - se agregarán cuando migrar schema
       if (persist) {
-        await conn.query(
-          `UPDATE proposals SET 
-            total_base = ?,
-            total_vat = ?,
-            total_final = ?,
-            total_cost = ?,
-            total_margin = ?,
-            margin_percentage = ?,
-            volume_discount_applied = ?,
-            last_calculated_at = NOW()
-          WHERE id = ?`,
-          [
-            result.total_base_after_discount,
-            result.total_vat,
-            result.total_final,
-            result.total_cost,
-            result.total_margin,
-            result.margin_percentage,
-            result.volume_discount_applied,
-            proposalId
-          ]
-        );
+        // TODO: Agregar estas columnas a proposals table en migration
+        // await conn.query(
+        //   `UPDATE proposals SET 
+        //     total_base = ?,
+        //     total_vat = ?,
+        //     total_final = ?,
+        //     total_cost = ?,
+        //     total_margin = ?,
+        //     margin_percentage = ?,
+        //     volume_discount_applied = ?,
+        //     last_calculated_at = NOW()
+        //   WHERE id = ?`,
+        //   [
+        //     result.total_base_after_discount,
+        //     result.total_vat,
+        //     result.total_final,
+        //     result.total_cost,
+        //     result.total_margin,
+        //     result.margin_percentage,
+        //     result.volume_discount_applied,
+        //     proposalId
+        //   ]
+        // );
 
         // 9. Auditoría opcional
         if (auditUserId) {
