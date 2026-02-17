@@ -11,11 +11,13 @@
 ### 1️⃣ **Dashboard Admin Principal** - `/admin`
 
 ✅ **Nueva ruta GET /admin**
+
 - Renderiza dashboard administrativo con estadísticas
 - Muestra: totalVenues, totalDishes, totalServices
 - Acceso rápido a todas las secciones admin
 
 ✅ **Método getAdminDashboard()** (adminController.js)
+
 ```javascript
 // Consulta estadísticas desde BD
 // Renderiza: admin/dashboard.ejs con datos
@@ -29,6 +31,7 @@ totalServices: COUNT(*) FROM proposal_services
 ### 2️⃣ **Panel de Gestión de Venues** - `/admin/venues`
 
 ✅ **Ruta GET /admin/venues**
+
 - Protegida por: `authenticateUser` + `authorizeRole('admin')`
 - Renderiza: `admin/venues-list.ejs`
 - Lista completa de venues con:
@@ -38,6 +41,7 @@ totalServices: COUNT(*) FROM proposal_services
   - Botones: Editar, Eliminar, Ver Original
 
 ✅ **Método getVenuesListPage()** (adminController.js)
+
 ```javascript
 // Obtiene todos los venues vía VenueService.getAll()
 // Parsea JSON fields (features, images)
@@ -49,6 +53,7 @@ totalServices: COUNT(*) FROM proposal_services
 ### 3️⃣ **Header Mejorado** - Dropdown Admin
 
 ✅ **Menú desplegable en Header**
+
 ```
 Hover sobre botón "⚙️ Admin" →
   📊 Dashboard Admin
@@ -59,6 +64,7 @@ Hover sobre botón "⚙️ Admin" →
 ```
 
 **Implementación:**
+
 - Dropdown con `group` y `group-hover`
 - Acceso directo a todas las secciones
 - Visual feedback con hover colors
@@ -68,6 +74,7 @@ Hover sobre botón "⚙️ Admin" →
 ### 4️⃣ **Correcciones Técnicas**
 
 ✅ **ProposalService.js - Línea 133**
+
 ```javascript
 // ANTES (error de sintaxis):
 prop.services = services.map(s => ({
@@ -83,6 +90,7 @@ prop.services = services.map(s => ({
 ```
 
 ✅ **Parseo de Venues JSON Fields**
+
 ```javascript
 // En getVenuesListPage():
 const parsedVenues = venues.map(v => ({
@@ -101,9 +109,11 @@ const parsedVenues = venues.map(v => ({
 ## 🔑 ACCESIBILIDAD Y PERMISOS
 
 ### Rutas Públicas
+
 - ❌ Ninguna (todas requieren login)
 
 ### Rutas Admin Only
+
 ```
 /admin                  → Dashboard con estadísticas
 /admin/venues           → Gestión de venues (scraping + CRUD)
@@ -112,6 +122,7 @@ const parsedVenues = venues.map(v => ({
 ```
 
 ### Middleware de Autorización
+
 ```javascript
 router.get('/admin/venues',
   authenticateUser,           // ← Verifica login
@@ -200,6 +211,7 @@ router.get('/admin/venues',
 ## 📊 ESTRUCTURA DE BASE DE DATOS
 
 ### Tabla: `venues`
+
 ```sql
 CREATE TABLE venues (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -233,6 +245,7 @@ CREATE TABLE venues (
 ## 🎨 INTERFAZ DE USUARIO
 
 ### Admin Dashboard (`/admin`)
+
 ```
 ┌─────────────────────────────────────────────────┐
 │  ⚙️ Panel Administrativo                        │
@@ -252,6 +265,7 @@ CREATE TABLE venues (
 ```
 
 ### Venues List (`/admin/venues`)
+
 ```
 ┌─────────────────────────────────────────────────┐
 │  🏢 Gestión de Venues                            │
@@ -280,12 +294,14 @@ CREATE TABLE venues (
 ## ✅ FUNCIONALIDADES IMPLEMENTADAS
 
 ### Panel Admin
+
 - ✅ Dashboard con estadísticas en tiempo real
 - ✅ Acceso directo a secciones de gestión
 - ✅ Navegación intuitiva con dropdown
 - ✅ Protección por roles (solo admin)
 
 ### Gestión de Venues
+
 - ✅ Lista completa con filtros y búsqueda
 - ✅ Scraping automático de micecatering.com
 - ✅ Formulario manual (fallback)
@@ -296,6 +312,7 @@ CREATE TABLE venues (
 - ✅ Ver características y capacidades
 
 ### Seguridad
+
 - ✅ Autenticación requerida (session)
 - ✅ Autorización por rol (admin only)
 - ✅ Prepared statements (SQL injection protection)
@@ -307,6 +324,7 @@ CREATE TABLE venues (
 ## 🔧 CONFIGURACIÓN REQUERIDA
 
 ### Variables de Entorno (.env)
+
 ```env
 # Base de datos (requerido)
 DB_HOST=localhost
@@ -326,6 +344,7 @@ PORT=3000
 ```
 
 ### Dependencias Instaladas
+
 ```json
 {
   "puppeteer": "^24.37.1",    // Scraping
@@ -341,6 +360,7 @@ PORT=3000
 ## 🚀 PRÓXIMOS PASOS
 
 ### Testing
+
 ```bash
 # 1. Verificar base de datos
 npm run db:check
@@ -361,6 +381,7 @@ npm run dev
 ```
 
 ### Uso Recomendado
+
 1. **Primer Uso:** Ejecutar scraping para importar venues
 2. **Mantenimiento:** Editar venues según necesidad
 3. **Backup Regular:** Exportar CSV periódicamente
@@ -397,6 +418,7 @@ npm run dev
 ## 🎓 CONOCIMIENTOS TÉCNICOS
 
 ### Service Pattern
+
 ```
 Route → Controller → Service → Database
   ↓         ↓           ↓          ↓
@@ -405,6 +427,7 @@ GET      Validate    Business   Prepared
 ```
 
 ### Authorization Flow
+
 ```
 Request → authenticateUser → authorizeRole → Controller
    ↓            ↓                  ↓              ↓
@@ -413,6 +436,7 @@ Request → authenticateUser → authorizeRole → Controller
 ```
 
 ### JSON Field Parsing
+
 ```javascript
 // BD almacena: '["Wifi","Parking"]'
 // Backend parsea: JSON.parse() → ["Wifi", "Parking"]
@@ -424,10 +448,12 @@ Request → authenticateUser → authorizeRole → Controller
 ## 🐛 TROUBLESHOOTING
 
 ### Error: "No tienes permisos"
+
 **Causa:** Usuario no es admin  
 **Solución:** Login con cuenta admin (role: 'admin')
 
 ### Error: "Error al cargar venues"
+
 **Causa:** Base de datos no disponible  
 **Solución:** Verificar conexión MariaDB
 
@@ -442,12 +468,15 @@ FLUSH PRIVILEGES;
 ```
 
 ### Error: "Syntax error in ProposalService"
+
 **Status:** ✅ CORREGIDO (línea 133)  
 **Detalle:** Faltaba cerrar `map()` correctamente  
 
 ### Panel vacío (sin venues)
+
 **Causa:** Database vacía  
-**Solución:** 
+**Solución:**
+
 1. Click "🚀 Scrapear micecatering.com"
 2. O usar "➕ Crear Venue Manual"
 

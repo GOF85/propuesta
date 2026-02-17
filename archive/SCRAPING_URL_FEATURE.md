@@ -69,6 +69,7 @@ En el formulario destacado **"🔗 Scrapear desde URL específica"**:
 ```
 
 **Operación:**
+
 1. Valida URL (http/https)
 2. Lanza navegador Puppeteer (`--no-sandbox`)
 3. Navega a URL target
@@ -99,6 +100,7 @@ En el formulario destacado **"🔗 Scrapear desde URL específica"**:
 ```
 
 **Validaciones:**
+
 - ✅ Rol admin requerido
 - ✅ URL válida con `express-validator`
 - ✅ Timeout: 45s (Puppeteer + Sharp procesamiento)
@@ -106,6 +108,7 @@ En el formulario destacado **"🔗 Scrapear desde URL específica"**:
 ### Frontend: views/admin/venues-list.ejs
 
 **Formulario añadido** (líneas 70-110 aprox):
+
 - Input tipo URL con placeholder
 - Botón destacado con icono
 - Validación client-side (URL format)
@@ -114,6 +117,7 @@ En el formulario destacado **"🔗 Scrapear desde URL específica"**:
 - Auto-reload tras éxito
 
 **JavaScript** (líneas 440-510 aprox):
+
 ```javascript
 async function scrapeFromCustomUrl() {
   // Validar input
@@ -131,11 +135,13 @@ async function scrapeFromCustomUrl() {
 ### Venues de Ejemplo Creados
 
 Ejecutar script:
+
 ```bash
 node scripts/create-sample-venues.js
 ```
 
 **Venues creados:**
+
 1. **ESPACIO MADRID - Sala Goya** (250 cocktail, 180 banquet)
 2. **HOTEL PALACIO REAL - Salón Versalles** (150 cocktail, 120 banquet)
 3. **ROOFTOP BCN - Sky Terrace** (200 cocktail, 80 banquet)
@@ -152,11 +158,13 @@ node scripts/create-sample-venues.js
 ### Expected Behavior
 
 **✅ Scraping exitoso:**
+
 - Alert: "✅ Venue [nombre] importado correctamente"
 - Venue aparece en lista inmediatamente
 - Imágenes descargadas en `/public/uploads/`
 
 **❌ Scraping fallido:**
+
 - Alert: "❌ Error: [mensaje]"
 - Sugerencia: "Intenta con otra URL o usa formulario manual"
 
@@ -199,19 +207,23 @@ USER INPUT (URL)
 ## 🐛 TROUBLESHOOTING
 
 ### Error: "URL inválida"
+
 - Verificar que URL comienza con `http://` o `https://`
 - Copiar URL completa desde navegador
 
 ### Error: "No se pudo extraer información"
+
 - La página target puede tener estructura diferente
 - Usar formulario manual como fallback
 
 ### Error: "Puppeteer timeout"
+
 - Página target tarda mucho en cargar
 - Verificar conexión a internet
 - Revisar logs del servidor
 
 ### Imágenes no se descargan
+
 - Verificar permisos de escritura en `/public/uploads/`
 - Revisar logs de ImageService
 - URLs de imagen pueden ser inválidas (404, CORS)
@@ -221,6 +233,7 @@ USER INPUT (URL)
 ## 📁 ARCHIVOS MODIFICADOS/CREADOS
 
 ### Modificados
+
 ```
 src/services/VenueService.js          (+150 líneas) - Método scrapeFromCustomUrl
 src/routes/api.js                     (+70 líneas)  - Endpoint scrape-url
@@ -228,6 +241,7 @@ views/admin/venues-list.ejs           (+90 líneas)  - Formulario + JS
 ```
 
 ### Creados
+
 ```
 scripts/create-sample-venues.js       (nuevo)       - Script de venues ejemplo
 SCRAPING_URL_FEATURE.md               (nuevo)       - Esta documentación
@@ -248,12 +262,14 @@ SCRAPING_URL_FEATURE.md               (nuevo)       - Esta documentación
 ## 📞 SOPORTE
 
 **Logs del servidor:**
+
 ```bash
 tail -f logs/app.log  # Si existe logging
 # O revisar console.log del servidor
 ```
 
 **Verificar BD:**
+
 ```sql
 SELECT id, name, external_url, created_at 
 FROM venues 
@@ -262,6 +278,7 @@ LIMIT 10;
 ```
 
 **Test rápido con curl:**
+
 ```bash
 curl -X POST http://localhost:3000/api/admin/venues/scrape-url \
   -H "Content-Type: application/json" \
