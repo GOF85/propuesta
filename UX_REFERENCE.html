@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propuesta Corporativa - Mice Catering</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f4f7f6',
+                            100: '#e4ebe8',
+                            500: '#14532d', // MICE Green (Sobrio)
+                            600: '#104424',
+                            700: '#0c351b',
+                        },
+                        warning: {
+                            50: '#fff7ed',
+                            200: '#fed7aa',
+                            500: '#ea580c',
+                            600: '#c2410c',
+                            700: '#9a3412',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        section { scroll-margin-top: 140px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased pb-32">
+
+    <!-- TOP NAVBAR -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm print:hidden">
+        <div class="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-7 h-7 bg-brand-700 rounded-sm flex items-center justify-center text-white font-bold text-sm">M</div>
+                <span class="font-semibold text-gray-900 tracking-tight">MICE CATERING</span>
+            </div>
+            <div class="flex items-center gap-5">
+                <button class="hidden md:flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors border border-gray-200 px-3 py-1.5 rounded-md">
+                    <i data-lucide="download" class="w-4 h-4"></i> Descargar PDF
+                </button>
+                <div class="h-6 w-px bg-gray-200 hidden md:block"></div>
+                <div class="hidden md:flex flex-col items-end">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Referencia</span>
+                    <span class="text-sm font-medium text-gray-800">OP-D5894G55</span>
+                </div>
+                <div class="h-8 w-px bg-gray-200 hidden md:block"></div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/512px-Amazon_Web_Services_Logo.svg.png" class="h-6 object-contain grayscale opacity-70" alt="Client Logo">
+            </div>
+        </div>
+        
+        <!-- Secondary Navigation (Quick Anchors) -->
+        <div class="bg-gray-50/80 backdrop-blur-md border-t border-gray-100">
+            <div class="max-w-6xl mx-auto px-4 md:px-8 flex items-center gap-6 overflow-x-auto hide-scrollbar text-sm font-medium text-gray-600">
+                <a href="#inicio" class="py-2.5 whitespace-nowrap hover:text-brand-600 transition-colors">Inicio</a>
+                <a href="#espacios" class="py-2.5 whitespace-nowrap hover:text-brand-600 transition-colors">Espacios</a>
+                <a href="#programa" class="py-2.5 whitespace-nowrap hover:text-brand-600 transition-colors">Gastronomía</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header id="inicio" class="max-w-6xl mx-auto px-4 md:px-8 mt-6">
+        <div class="relative h-[250px] md:h-[350px] w-full rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+            <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gray-900/70"></div>
+            
+            <div class="absolute bottom-0 left-0 p-6 md:p-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl md:text-5xl font-bold text-white tracking-tight mb-3">Evento Corporativo AWS</h1>
+                    <div class="flex flex-wrap items-center gap-4 text-gray-300 text-sm font-medium">
+                        <span class="flex items-center gap-1.5"><i data-lucide="users" class="w-4 h-4"></i> 100 Asistentes</span>
+                        <span class="flex items-center gap-1.5"><i data-lucide="calendar" class="w-4 h-4"></i> 17 de Abril, 2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 md:px-0 mt-12 space-y-16">
+        
+        <!-- 1. VENUE SELECTION -->
+        <section id="espacios">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="building" class="w-5 h-5 text-gray-400"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Ubicación del Evento</h2>
+                </div>
+                <!-- Controls Carousel Desktop (Only visible when selecting) -->
+                <div id="venue-controls" class="hidden md:flex items-center gap-2">
+                    <button onclick="scrollCarousel('venue-carousel', -1)" class="p-1.5 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                    <button onclick="scrollCarousel('venue-carousel', 1)" class="p-1.5 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+            
+            <!-- VIEW: VENUE SELECTION (Carousel of 5) -->
+            <div id="venue-selection-view" class="block">
+                <div class="bg-warning-50 border border-warning-200 rounded-md p-3 mb-6 flex items-start gap-3">
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-warning-600 shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="text-sm font-bold text-warning-700">Acción Requerida</p>
+                        <p class="text-sm text-warning-700/80">Selecciona uno de los 5 espacios propuestos para tu evento.</p>
+                    </div>
+                </div>
+
+                <div id="venue-carousel" class="flex overflow-x-auto pb-6 gap-5 snap-x snap-mandatory hide-scrollbar scroll-smooth">
+                    <!-- Venue Card 1 -->
+                    <div class="min-w-[280px] md:min-w-[320px] snap-center bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
+                        <div class="h-40 relative border-b border-gray-100">
+                            <img src="https://images.unsplash.com/photo-1561501900-3701fa6a0864?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover rounded-t-lg">
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <h3 class="text-base font-bold text-gray-900 mb-1">Lula Club</h3>
+                            <p class="text-sm text-gray-500 mb-4 line-clamp-2 flex-1">Estética teatral con iluminación cuidada al detalle.</p>
+                            <div class="flex gap-2">
+                                <button onclick="toggleVenueModal('Lula Club')" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 rounded-md border border-gray-300 transition-colors flex items-center justify-center gap-1"><i data-lucide="info" class="w-4 h-4"></i> Info</button>
+                                <button onclick="selectVenue('Lula Club')" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold py-2 rounded-md transition-colors">Elegir</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Venue Card 2 -->
+                    <div class="min-w-[280px] md:min-w-[320px] snap-center bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
+                        <div class="h-40 relative border-b border-gray-100">
+                            <img src="https://images.unsplash.com/photo-1540340061722-9293d5163008?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover rounded-t-lg">
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <h3 class="text-base font-bold text-gray-900 mb-1">The Garage</h3>
+                            <p class="text-sm text-gray-500 mb-4 line-clamp-2 flex-1">Espacio industrial diáfano perfecto para grandes montajes.</p>
+                            <div class="flex gap-2">
+                                <button onclick="toggleVenueModal('The Garage')" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 rounded-md border border-gray-300 transition-colors flex items-center justify-center gap-1"><i data-lucide="info" class="w-4 h-4"></i> Info</button>
+                                <button onclick="selectVenue('The Garage')" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold py-2 rounded-md transition-colors">Elegir</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Venue 3, 4, 5 (Simplified for code brevity) -->
+                    <div class="min-w-[280px] md:min-w-[320px] snap-center bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
+                        <div class="h-40 relative border-b border-gray-100"><img src="https://images.unsplash.com/photo-1519167758481-83f504098476?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover rounded-t-lg"></div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <h3 class="text-base font-bold text-gray-900 mb-1">Palacio de Cristal</h3>
+                            <p class="text-sm text-gray-500 mb-4 flex-1">Elegancia clásica con vistas panorámicas.</p>
+                            <div class="flex gap-2">
+                                <button class="flex-1 bg-white text-gray-700 text-sm font-semibold py-2 rounded-md border border-gray-300">Info</button>
+                                <button onclick="selectVenue('Palacio de Cristal')" class="flex-1 bg-brand-600 text-white text-sm font-semibold py-2 rounded-md">Elegir</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="min-w-[280px] md:min-w-[320px] snap-center bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
+                        <div class="h-40 relative border-b border-gray-100"><img src="https://images.unsplash.com/photo-1577563908411-5077b6dc7624?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover rounded-t-lg"></div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <h3 class="text-base font-bold text-gray-900 mb-1">Espacio Ventas</h3>
+                            <p class="text-sm text-gray-500 mb-4 flex-1">Modernidad y versatilidad en el centro.</p>
+                            <div class="flex gap-2">
+                                <button class="flex-1 bg-white text-gray-700 text-sm font-semibold py-2 rounded-md border border-gray-300">Info</button>
+                                <button onclick="selectVenue('Espacio Ventas')" class="flex-1 bg-brand-600 text-white text-sm font-semibold py-2 rounded-md">Elegir</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="min-w-[280px] md:min-w-[320px] snap-center bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
+                        <div class="h-40 relative border-b border-gray-100"><img src="https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover rounded-t-lg"></div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <h3 class="text-base font-bold text-gray-900 mb-1">Finca El Soto</h3>
+                            <p class="text-sm text-gray-500 mb-4 flex-1">Naturaleza y exclusividad a las afueras.</p>
+                            <div class="flex gap-2">
+                                <button class="flex-1 bg-white text-gray-700 text-sm font-semibold py-2 rounded-md border border-gray-300">Info</button>
+                                <button onclick="selectVenue('Finca El Soto')" class="flex-1 bg-brand-600 text-white text-sm font-semibold py-2 rounded-md">Elegir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: VENUE CONFIRMED (Single Card) -->
+            <div id="venue-confirmed-view" class="hidden">
+                <div class="bg-white rounded-lg border-2 border-brand-500 shadow-sm flex flex-col md:flex-row overflow-hidden relative">
+                    <div class="absolute top-4 right-4 z-10 bg-brand-600 text-white rounded-md px-3 py-1 shadow-sm text-xs font-bold flex items-center gap-1">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmado
+                    </div>
+                    <div class="md:w-1/3 h-48 md:h-auto relative border-b md:border-b-0 md:border-r border-gray-100">
+                        <img id="confirmed-venue-img" src="https://images.unsplash.com/photo-1561501900-3701fa6a0864?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6 md:p-8 flex-1 flex flex-col justify-center">
+                        <h3 id="confirmed-venue-name" class="text-2xl font-bold text-gray-900 mb-2">Lula Club</h3>
+                        <p class="text-sm text-gray-500 mb-6">Este espacio ha sido bloqueado para las fechas de su evento.</p>
+                        <div class="flex gap-3">
+                            <button onclick="toggleVenueModal('Lula Club')" class="bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-semibold px-6 py-2 rounded-md border border-gray-200 transition-colors flex items-center gap-2">
+                                <i data-lucide="map" class="w-4 h-4"></i> Ver detalles
+                            </button>
+                            <button onclick="clearVenue()" class="bg-white hover:bg-gray-50 text-gray-500 text-sm font-medium px-4 py-2 rounded-md border border-gray-200 transition-colors flex items-center gap-2">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Cambiar espacio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. GASTRONOMY -->
+        <section id="programa">
+            <div class="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4">
+                <i data-lucide="utensils" class="w-6 h-6 text-gray-400"></i>
+                <h2 class="text-2xl font-bold text-gray-900">Programa y Gastronomía</h2>
+            </div>
+
+            <!-- Timeline -->
+            <div class="relative border-l-2 border-gray-200 ml-3 md:ml-4 space-y-10 pb-4">
+                
+                <!-- Hito 1: Coffee (Multi-choice 2 options) -->
+                <div class="relative pl-6 md:pl-10" id="service-coffee">
+                    <div class="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-gray-300 ring-4 ring-gray-50" id="dot-coffee"></div>
+                    
+                    <div class="flex items-center justify-between mb-4 mt-2">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-bold text-gray-900">09:00h</span>
+                            <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
+                            <h4 class="text-base font-bold text-gray-900">Welcome Coffee</h4>
+                        </div>
+                        <span id="badge-coffee" class="text-[10px] font-bold text-warning-600 bg-warning-50 border border-warning-200 px-2 py-1 rounded uppercase tracking-wide">Falta elegir</span>
+                    </div>
+
+                    <!-- Grid de Opciones -->
+                    <div id="grid-coffee" class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-white rounded-lg border border-gray-200 p-1 relative cursor-pointer hover:border-gray-300 transition-colors group">
+                            <div class="bg-white rounded-md h-full overflow-hidden">
+                                <div class="h-28 relative">
+                                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover">
+                                    <div class="absolute bottom-2 left-2 bg-gray-900/90 text-white px-2 py-1 rounded-sm text-xs font-bold">12,00 € / pax</div>
+                                </div>
+                                <div class="p-4">
+                                    <h5 class="font-bold text-gray-900 text-sm mb-1">Coffee Estándar</h5>
+                                    <p class="text-xs text-gray-500 mb-4 line-clamp-2">Café, infusiones y mini bollería francesa.</p>
+                                    <div class="flex gap-2">
+                                        <button onclick="openOptionModal('Coffee Estándar')" class="flex-1 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold py-1.5 rounded hover:bg-gray-100 flex items-center justify-center gap-1"><i data-lucide="eye" class="w-3 h-3"></i> Info</button>
+                                        <button onclick="selectOption('coffee', 'Coffee Estándar', 12)" class="flex-1 bg-brand-600 text-white text-xs font-semibold py-1.5 rounded hover:bg-brand-700">Elegir</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-1 relative cursor-pointer hover:border-gray-300 transition-colors group">
+                            <div class="bg-white rounded-md h-full overflow-hidden">
+                                <div class="h-28 relative">
+                                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover">
+                                    <div class="absolute bottom-2 left-2 bg-gray-900/90 text-white px-2 py-1 rounded-sm text-xs font-bold">18,50 € / pax</div>
+                                </div>
+                                <div class="p-4">
+                                    <h5 class="font-bold text-gray-900 text-sm mb-1">Coffee Premium</h5>
+                                    <p class="text-xs text-gray-500 mb-4 line-clamp-2">Añade zumos cold-press, fruta cortada y opciones saladas.</p>
+                                    <div class="flex gap-2">
+                                        <button onclick="openOptionModal('Coffee Premium')" class="flex-1 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold py-1.5 rounded hover:bg-gray-100 flex items-center justify-center gap-1"><i data-lucide="eye" class="w-3 h-3"></i> Info</button>
+                                        <button onclick="selectOption('coffee', 'Coffee Premium', 18.5)" class="flex-1 bg-brand-600 text-white text-xs font-semibold py-1.5 rounded hover:bg-brand-700">Elegir</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vista Seleccionada (Oculta por defecto) -->
+                    <div id="selected-coffee" class="hidden">
+                        <div class="bg-brand-50 rounded-lg border-2 border-brand-600 p-4 relative flex flex-col md:flex-row items-center gap-4">
+                            <div class="absolute top-3 right-3 bg-brand-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide flex items-center gap-1">
+                                <i data-lucide="check" class="w-3 h-3"></i> Confirmado
+                            </div>
+                            <div class="w-full md:w-32 h-24 shrink-0 rounded-md overflow-hidden">
+                                <img id="img-coffee" src="" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 w-full">
+                                <h5 id="name-coffee" class="font-bold text-gray-900 text-base mb-1">Coffee</h5>
+                                <p id="price-coffee" class="text-sm font-bold text-brand-700 mb-3">0,00 € / pax</p>
+                                <div class="flex gap-3">
+                                    <button onclick="openOptionModal('Coffee')" class="text-brand-600 hover:text-brand-800 text-xs font-semibold flex items-center gap-1 bg-white border border-brand-200 px-3 py-1.5 rounded-md"><i data-lucide="info" class="w-3 h-3"></i> Ver menú completo</button>
+                                    <button onclick="clearOption('coffee')" class="text-gray-500 hover:text-gray-700 text-xs font-medium flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i> Cambiar opción</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-center">
+                            <span class="text-xs text-gray-400 italic">1 opción descartada oculta para mayor claridad.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hito 2: Aguas (Opcional) -->
+                <div class="relative pl-6 md:pl-10">
+                    <div class="absolute -left-[9px] top-5 w-4 h-4 rounded-full bg-white ring-2 ring-gray-300"></div>
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex-1 flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="glass-water" class="w-6 h-6 text-gray-500"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-sm font-bold text-gray-900">11:30h</span>
+                                    <h4 class="text-sm font-bold text-gray-900">Servicio de Aguas Continuo</h4>
+                                </div>
+                                <p class="text-xs text-gray-500 mb-1">Aguas aromatizadas y minerales durante las ponencias.</p>
+                                <p class="text-xs font-bold text-gray-900">+4,00 € <span class="font-normal text-gray-500">/ pax</span></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 border-l border-gray-100 pl-4 shrink-0">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Opcional</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" onchange="toggleAddon('aguas', 400, this)" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hito 3: Cocktail (Multi-choice 3 options) -->
+                <div class="relative pl-6 md:pl-10" id="service-cocktail">
+                    <div class="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-gray-300 ring-4 ring-gray-50" id="dot-cocktail"></div>
+                    
+                    <div class="flex items-center justify-between mb-4 mt-2">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-bold text-gray-900">14:00h</span>
+                            <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
+                            <h4 class="text-base font-bold text-gray-900">Cocktail de Almuerzo</h4>
+                        </div>
+                        <span id="badge-cocktail" class="text-[10px] font-bold text-warning-600 bg-warning-50 border border-warning-200 px-2 py-1 rounded uppercase tracking-wide">Falta elegir</span>
+                    </div>
+
+                    <!-- Grid de Opciones (Scroll horizontal en móvil, 3 cols en desktop) -->
+                    <div id="grid-cocktail" class="flex md:grid md:grid-cols-3 overflow-x-auto gap-4 pb-4 snap-x hide-scrollbar">
+                        <div class="min-w-[260px] snap-center bg-white rounded-lg border border-gray-200 p-1 relative cursor-pointer hover:border-gray-300 transition-colors group flex flex-col">
+                            <div class="bg-white rounded-md h-full overflow-hidden flex flex-col">
+                                <div class="h-28 relative">
+                                    <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover">
+                                    <div class="absolute bottom-2 left-2 bg-gray-900/90 text-white px-2 py-1 rounded-sm text-xs font-bold">45,00 € / pax</div>
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col">
+                                    <h5 class="font-bold text-gray-900 text-sm mb-1">Cocktail Classic</h5>
+                                    <p class="text-xs text-gray-500 mb-4 flex-1">10 pases salados y 2 dulces. Incluye bodega estándar.</p>
+                                    <div class="flex gap-2 mt-auto">
+                                        <button onclick="openOptionModal('Cocktail Classic')" class="bg-gray-50 border border-gray-200 text-gray-600 px-2 py-1.5 rounded hover:bg-gray-100 flex items-center justify-center"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                                        <button onclick="selectOption('cocktail', 'Cocktail Classic', 45)" class="flex-1 bg-brand-600 text-white text-xs font-semibold py-1.5 rounded hover:bg-brand-700">Elegir Menú</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="min-w-[260px] snap-center bg-white rounded-lg border border-gray-200 p-1 relative cursor-pointer hover:border-gray-300 transition-colors group flex flex-col">
+                            <div class="bg-white rounded-md h-full overflow-hidden flex flex-col">
+                                <div class="h-28 relative">
+                                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover">
+                                    <div class="absolute bottom-2 left-2 bg-gray-900/90 text-white px-2 py-1 rounded-sm text-xs font-bold">58,00 € / pax</div>
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col">
+                                    <h5 class="font-bold text-gray-900 text-sm mb-1">Cocktail Premium</h5>
+                                    <p class="text-xs text-gray-500 mb-4 flex-1">14 pases (incluye referencias veganas añadidas) y bodega premium.</p>
+                                    <div class="flex gap-2 mt-auto">
+                                        <button onclick="openOptionModal('Cocktail Premium')" class="bg-gray-50 border border-gray-200 text-gray-600 px-2 py-1.5 rounded hover:bg-gray-100 flex items-center justify-center"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                                        <button onclick="selectOption('cocktail', 'Cocktail Premium', 58)" class="flex-1 bg-brand-600 text-white text-xs font-semibold py-1.5 rounded hover:bg-brand-700">Elegir Menú</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="min-w-[260px] snap-center bg-white rounded-lg border border-gray-200 p-1 relative cursor-pointer hover:border-gray-300 transition-colors group flex flex-col">
+                            <div class="bg-white rounded-md h-full overflow-hidden flex flex-col">
+                                <div class="h-28 relative">
+                                    <img src="https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover">
+                                    <div class="absolute bottom-2 left-2 bg-gray-900/90 text-white px-2 py-1 rounded-sm text-xs font-bold">75,00 € / pax</div>
+                                </div>
+                                <div class="p-4 flex-1 flex flex-col">
+                                    <h5 class="font-bold text-gray-900 text-sm mb-1">Cocktail Gala</h5>
+                                    <p class="text-xs text-gray-500 mb-4 flex-1">16 pases de alta gastronomía, cortador de jamón y champán.</p>
+                                    <div class="flex gap-2 mt-auto">
+                                        <button onclick="openOptionModal('Cocktail Gala')" class="bg-gray-50 border border-gray-200 text-gray-600 px-2 py-1.5 rounded hover:bg-gray-100 flex items-center justify-center"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                                        <button onclick="selectOption('cocktail', 'Cocktail Gala', 75)" class="flex-1 bg-brand-600 text-white text-xs font-semibold py-1.5 rounded hover:bg-brand-700">Elegir Menú</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vista Seleccionada -->
+                    <div id="selected-cocktail" class="hidden">
+                        <div class="bg-brand-50 rounded-lg border-2 border-brand-600 p-4 relative flex flex-col md:flex-row items-center gap-4">
+                            <div class="absolute top-3 right-3 bg-brand-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide flex items-center gap-1">
+                                <i data-lucide="check" class="w-3 h-3"></i> Confirmado
+                            </div>
+                            <div class="w-full md:w-32 h-24 shrink-0 rounded-md overflow-hidden">
+                                <img id="img-cocktail" src="" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 w-full">
+                                <h5 id="name-cocktail" class="font-bold text-gray-900 text-base mb-1">Cocktail</h5>
+                                <p id="price-cocktail" class="text-sm font-bold text-brand-700 mb-3">0,00 € / pax</p>
+                                <div class="flex gap-3">
+                                    <button onclick="openOptionModal('Cocktail')" class="text-brand-600 hover:text-brand-800 text-xs font-semibold flex items-center gap-1 bg-white border border-brand-200 px-3 py-1.5 rounded-md"><i data-lucide="info" class="w-3 h-3"></i> Ver menú completo</button>
+                                    <button onclick="clearOption('cocktail')" class="text-gray-500 hover:text-gray-700 text-xs font-medium flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i> Cambiar selección</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-center">
+                            <span class="text-xs text-gray-400 italic">2 opciones descartadas ocultas para mayor claridad.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hito 4: Córner Dulce (Opcional) -->
+                <div class="relative pl-6 md:pl-10">
+                    <div class="absolute -left-[9px] top-5 w-4 h-4 rounded-full bg-white ring-2 ring-gray-300"></div>
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex-1 flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                                <i data-lucide="cake" class="w-6 h-6 text-gray-500"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-sm font-bold text-gray-900">15:30h</span>
+                                    <h4 class="text-sm font-bold text-gray-900">Córner de Repostería</h4>
+                                </div>
+                                <p class="text-xs text-gray-500 mb-1">Estación independiente de postres variados y macarons.</p>
+                                <p class="text-xs font-bold text-gray-900">+8,00 € <span class="font-normal text-gray-500">/ pax</span></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 border-l border-gray-100 pl-4 shrink-0">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Opcional</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" onchange="toggleAddon('dulce', 800, this)" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: VENUE DETAILS -->
+    <div id="venueModal" class="fixed inset-0 z-[60] bg-gray-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 md:p-8 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-5xl h-full max-h-[90vh] overflow-hidden flex flex-col md:flex-row relative transform scale-95 transition-transform duration-300" id="venueModalContent">
+            
+            <button onclick="toggleVenueModal()" class="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-md shadow-sm border border-gray-200 transition-colors">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Image Section -->
+            <div class="md:w-1/2 relative h-64 md:h-auto bg-gray-100">
+                <img id="modal-venue-img" src="https://images.unsplash.com/photo-1561501900-3701fa6a0864?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover">
+                <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent flex justify-center gap-2">
+                    <button class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded backdrop-blur-sm"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                    <div class="bg-black/60 text-white text-xs font-bold px-3 py-1.5 rounded backdrop-blur-sm">1 / 6</div>
+                    <button class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded backdrop-blur-sm"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+
+            <!-- Content & Map Section -->
+            <div class="md:w-1/2 flex flex-col bg-white">
+                <div class="p-6 md:p-8 flex-1 overflow-y-auto">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Ficha de Espacio</span>
+                    </div>
+                    <h2 id="modal-venue-title" class="text-3xl font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">Lula Club</h2>
+                    
+                    <p class="text-sm text-gray-600 leading-relaxed mb-6">
+                        Información detallada del espacio con capacidad, opciones de montaje y servicios incluidos en el alquiler para asegurar el éxito del evento.
+                    </p>
+
+                    <!-- Map Integration -->
+                    <div class="mb-6 rounded-md overflow-hidden border border-gray-200 h-40 relative bg-gray-100">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-gray-200">
+                            <i data-lucide="map" class="w-6 h-6 mb-2"></i>
+                            <span class="text-xs font-semibold uppercase tracking-wider">Mapa Google Maps Incrustado</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 border border-gray-200 rounded-md p-4 mb-2 flex items-start gap-3">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-gray-500 mt-0.5"></i>
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Dirección</p>
+                            <p class="text-sm font-medium text-gray-900">Madrid Centro</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-gray-100 bg-white">
+                    <button onclick="confirmVenueFromModal()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-md transition-colors flex items-center justify-center gap-2">
+                        Elegir este espacio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: OPTION DETAILS (Menús) -->
+    <div id="optionModal" class="fixed inset-0 z-[60] bg-gray-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 md:p-8 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative transform scale-95 transition-transform duration-300" id="optionModalContent">
+            
+            <button onclick="toggleOptionModal()" class="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-md shadow-sm border border-gray-200 transition-colors">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Hero Image -->
+            <div class="h-48 md:h-64 relative bg-gray-900">
+                <img id="opt-modal-img" src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover opacity-80">
+                <div class="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-gray-900 to-transparent">
+                    <div class="flex justify-between items-end">
+                        <h2 id="opt-modal-title" class="text-2xl font-bold text-white">Menú Ejecutivo A</h2>
+                        <span id="opt-modal-price" class="text-lg font-bold text-white bg-black/50 px-3 py-1 rounded backdrop-blur-sm">45,00 € / pax</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Platos y Detalles -->
+            <div class="p-6 md:p-8 overflow-y-auto flex-1 bg-gray-50">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Composición del Menú</h3>
+                
+                <div class="space-y-4">
+                    <!-- Plato 1 -->
+                    <div class="bg-white p-4 rounded-md border border-gray-200 flex justify-between items-start gap-4">
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">Ensalada de Quinoa Real</h4>
+                            <p class="text-xs text-gray-500 mt-1">Con aguacate, tomates cherry y vinagreta de lima.</p>
+                        </div>
+                        <div class="flex gap-1">
+                            <span title="Vegano" class="bg-green-100 text-green-700 p-1 rounded-sm"><i data-lucide="leaf" class="w-3 h-3"></i></span>
+                            <span title="Sin Gluten" class="bg-orange-100 text-orange-700 p-1 rounded-sm"><i data-lucide="wheat-off" class="w-3 h-3"></i></span>
+                        </div>
+                    </div>
+                    <!-- Plato 2 -->
+                    <div class="bg-white p-4 rounded-md border border-gray-200 flex justify-between items-start gap-4">
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">Salmón Noruego al Horno</h4>
+                            <p class="text-xs text-gray-500 mt-1">Acompañado de verduritas baby salteadas y salsa teriyaki.</p>
+                        </div>
+                        <div class="flex gap-1">
+                            <span title="Pescado" class="bg-blue-100 text-blue-700 p-1 rounded-sm"><i data-lucide="fish" class="w-3 h-3"></i></span>
+                        </div>
+                    </div>
+                     <!-- Plato 3 -->
+                     <div class="bg-white p-4 rounded-md border border-gray-200 flex justify-between items-start gap-4">
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">Tarta de Queso Fluida</h4>
+                            <p class="text-xs text-gray-500 mt-1">Base de galleta artesana y coulis de frutos rojos.</p>
+                        </div>
+                        <div class="flex gap-1">
+                            <span title="Lácteos" class="bg-yellow-100 text-yellow-700 p-1 rounded-sm"><i data-lucide="milk" class="w-3 h-3"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 bg-white">
+                <button onclick="toggleOptionModal()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-md transition-colors flex items-center justify-center gap-2">
+                    Cerrar detalles
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAT FAB -->
+    <button class="fixed bottom-[104px] right-4 md:right-8 z-40 bg-gray-900 hover:bg-black text-white shadow-lg w-12 h-12 rounded-lg flex items-center justify-center transition-transform active:scale-95 print:hidden">
+        <i data-lucide="message-square" class="w-5 h-5"></i>
+        <span class="absolute -top-1 -right-1 w-3 h-3 bg-warning-500 rounded-full border-2 border-gray-900"></span>
+    </button>
+
+    <!-- STICKY BOTTOM BAR (Con Barra de Progreso) -->
+    <div class="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_15px_rgba(0,0,0,0.03)] print:hidden">
+        <div class="max-w-6xl mx-auto px-4 md:px-8 py-3">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Presupuesto</span>
+                    <div class="flex items-baseline gap-2">
+                        <span id="sticky-total" class="text-xl md:text-2xl font-bold text-gray-900">0,00 €</span>
+                        <span class="text-xs font-medium text-gray-500 hidden md:inline">+ 10% IVA</span>
+                    </div>
+                </div>
+                
+                <button id="btn-checkout" onclick="toggleCartDrawer()" class="bg-warning-600 hover:bg-warning-700 text-white px-4 md:px-6 py-2.5 rounded-md font-semibold shadow-sm transition-colors flex items-center gap-2 text-sm">
+                    <i data-lucide="alert-circle" id="icon-checkout" class="w-4 h-4 hidden md:block"></i>
+                    <span id="text-checkout">Revisar Selección</span>
+                </button>
+            </div>
+
+            <!-- Decision Progress Bar -->
+            <div class="flex items-center gap-4">
+                <div class="flex-1 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                    <div id="progress-bar-fill" class="bg-warning-500 h-1.5 rounded-full transition-all duration-500 w-0"></div>
+                </div>
+                <span id="progress-text" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                    0 de 3 Selecciones
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE DRAWER ("Mi Selección") -->
+    <div id="cartOverlay" class="fixed inset-0 z-50 bg-gray-900/30 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300 print:hidden" onclick="toggleCartDrawer()"></div>
+    
+    <div id="cartDrawer" class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl border-l border-gray-200 transform translate-x-full transition-transform duration-300 flex flex-col print:hidden">
+        
+        <div class="bg-gray-50 px-6 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
+            <div>
+                <h2 class="font-bold text-gray-900 text-lg">Resumen de Evento</h2>
+                <p class="text-gray-500 text-xs font-medium">AWS 2026 (100 pax)</p>
+            </div>
+            <button onclick="toggleCartDrawer()" class="text-gray-400 hover:text-gray-900 p-1 bg-white border border-gray-200 rounded transition-colors">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            
+            <!-- Dynamic Cart Content injected by JS -->
+            <div id="cart-content">
+                <!-- Se rellena por JS -->
+            </div>
+
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="bg-gray-50 border-t border-gray-200 p-6 shrink-0">
+            <div class="space-y-2 mb-5">
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span>Base Imponible</span>
+                    <span id="drawer-subtotal" class="font-medium text-gray-900">0,00 €</span>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600 pb-3 border-b border-gray-200">
+                    <span>IVA (10%)</span>
+                    <span id="drawer-iva" class="font-medium text-gray-900">0,00 €</span>
+                </div>
+                <div class="flex justify-between items-end pt-1">
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Total a pagar</span>
+                    <span id="drawer-total" class="text-2xl font-bold text-brand-700">0,00 €</span>
+                </div>
+            </div>
+
+            <button id="drawer-btn-confirm" class="w-full bg-gray-200 text-gray-400 font-semibold py-3 rounded-md cursor-not-allowed flex items-center justify-center gap-2 text-sm transition-colors">
+                <i data-lucide="lock" class="w-4 h-4"></i> Faltan selecciones
+            </button>
+        </div>
+    </div>
+
+    <!-- LOGICA DE INTERACCIÓN (Simulación para la demo) -->
+    <script>
+        lucide.createIcons();
+
+        // Estado Global del Presupuesto
+        let state = {
+            pax: 100,
+            venue: null,
+            coffee: null,
+            cocktail: null,
+            addons: 0
+        };
+
+        const prices = {
+            'Coffee Estándar': 12,
+            'Coffee Premium': 18.5,
+            'Cocktail Classic': 45,
+            'Cocktail Premium': 58,
+            'Cocktail Gala': 75
+        };
+
+        // --- FUNCIONES DE SELECCIÓN ---
+
+        function selectVenue(name) {
+            state.venue = name;
+            document.getElementById('venue-selection-view').classList.add('hidden');
+            document.getElementById('venue-controls').classList.add('hidden');
+            document.getElementById('venue-confirmed-view').classList.remove('hidden');
+            document.getElementById('confirmed-venue-name').innerText = name;
+            updateTotals();
+        }
+
+        function clearVenue() {
+            state.venue = null;
+            document.getElementById('venue-selection-view').classList.remove('hidden');
+            document.getElementById('venue-controls').classList.remove('hidden');
+            document.getElementById('venue-confirmed-view').classList.add('hidden');
+            updateTotals();
+        }
+
+        function selectOption(serviceId, optionName, price) {
+            state[serviceId] = { name: optionName, price: price };
+            
+            // Ocultar grid, mostrar selección
+            document.getElementById(`grid-${serviceId}`).classList.add('hidden');
+            const selectedView = document.getElementById(`selected-${serviceId}`);
+            selectedView.classList.remove('hidden');
+            
+            // Actualizar vista seleccionada
+            document.getElementById(`name-${serviceId}`).innerText = optionName;
+            document.getElementById(`price-${serviceId}`).innerText = `${price.toFixed(2).replace('.', ',')} € / pax`;
+            
+            // Actualizar badge del hito
+            const badge = document.getElementById(`badge-${serviceId}`);
+            badge.className = "text-[10px] font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2 py-1 rounded uppercase tracking-wide";
+            badge.innerText = "Completado";
+
+            // Poner el dot del timeline en verde
+            document.getElementById(`dot-${serviceId}`).className = "absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-brand-500 ring-4 ring-brand-50";
+
+            updateTotals();
+        }
+
+        function clearOption(serviceId) {
+            state[serviceId] = null;
+            document.getElementById(`grid-${serviceId}`).classList.remove('hidden');
+            document.getElementById(`selected-${serviceId}`).classList.add('hidden');
+            
+            const badge = document.getElementById(`badge-${serviceId}`);
+            badge.className = "text-[10px] font-bold text-warning-600 bg-warning-50 border border-warning-200 px-2 py-1 rounded uppercase tracking-wide";
+            badge.innerText = "Falta elegir";
+
+            document.getElementById(`dot-${serviceId}`).className = "absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-gray-300 ring-4 ring-gray-50";
+            
+            updateTotals();
+        }
+
+        function toggleAddon(name, priceFixed, checkbox) {
+            if(checkbox.checked) {
+                state.addons += priceFixed;
+            } else {
+                state.addons -= priceFixed;
+            }
+            updateTotals();
+        }
+
+        // --- ACTUALIZACIÓN DE INTERFAZ Y CARRITO ---
+
+        function updateTotals() {
+            // Calcular progreso
+            let done = (state.venue ? 1 : 0) + (state.coffee ? 1 : 0) + (state.cocktail ? 1 : 0);
+            let totalSteps = 3;
+            let percent = (done / totalSteps) * 100;
+            
+            document.getElementById('progress-bar-fill').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `${done} de ${totalSteps} Selecciones`;
+
+            // Estilos de la barra si completado
+            if(done === totalSteps) {
+                document.getElementById('progress-bar-fill').classList.replace('bg-warning-500', 'bg-brand-500');
+                let btnCheckout = document.getElementById('btn-checkout');
+                btnCheckout.className = "bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-md font-semibold shadow-sm transition-colors flex items-center gap-2 text-sm";
+                document.getElementById('icon-checkout').setAttribute('data-lucide', 'check-circle');
+                document.getElementById('text-checkout').innerText = "Todo listo para firmar";
+                
+                let drawerBtn = document.getElementById('drawer-btn-confirm');
+                drawerBtn.className = "w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-md flex items-center justify-center gap-2 text-sm transition-colors";
+                drawerBtn.innerHTML = "Firmar Presupuesto <i data-lucide='arrow-right' class='w-4 h-4'></i>";
+                drawerBtn.disabled = false;
+            } else {
+                document.getElementById('progress-bar-fill').classList.replace('bg-brand-500', 'bg-warning-500');
+                let btnCheckout = document.getElementById('btn-checkout');
+                btnCheckout.className = "bg-warning-600 hover:bg-warning-700 text-white px-6 py-2.5 rounded-md font-semibold shadow-sm transition-colors flex items-center gap-2 text-sm";
+                document.getElementById('icon-checkout').setAttribute('data-lucide', 'alert-circle');
+                document.getElementById('text-checkout').innerText = "Revisar Selección";
+                
+                let drawerBtn = document.getElementById('drawer-btn-confirm');
+                drawerBtn.className = "w-full bg-gray-200 text-gray-400 font-semibold py-3 rounded-md cursor-not-allowed flex items-center justify-center gap-2 text-sm transition-colors";
+                drawerBtn.innerHTML = "<i data-lucide='lock' class='w-4 h-4'></i> Faltan selecciones";
+                drawerBtn.disabled = true;
+            }
+            lucide.createIcons();
+
+            // Calcular Precios
+            let subtotal = 0;
+            if(state.coffee) subtotal += state.coffee.price * state.pax;
+            if(state.cocktail) subtotal += state.cocktail.price * state.pax;
+            subtotal += state.addons; // Adds aguas o dulces (fixed prices)
+
+            let iva = subtotal * 0.10;
+            let total = subtotal + iva;
+
+            const formatMoney = (n) => n.toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits:2}) + ' €';
+
+            document.getElementById('sticky-total').innerText = formatMoney(subtotal);
+            document.getElementById('drawer-subtotal').innerText = formatMoney(subtotal);
+            document.getElementById('drawer-iva').innerText = formatMoney(iva);
+            document.getElementById('drawer-total').innerText = formatMoney(total);
+
+            renderCart();
+        }
+
+        function renderCart() {
+            let html = '';
+            
+            // Venue
+            html += `<div><h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Espacio</h3>`;
+            if(!state.venue) {
+                html += `<div class="bg-warning-50 border border-warning-200 border-dashed rounded-md p-3"><p class="text-sm font-bold text-warning-700">Pendiente de selección</p></div>`;
+            } else {
+                html += `<div class="bg-white border border-gray-200 rounded-md p-3 flex justify-between items-center"><span class="font-bold text-sm text-gray-900">${state.venue}</span><i data-lucide="check-circle" class="w-4 h-4 text-brand-500"></i></div>`;
+            }
+            html += `</div><hr class="border-gray-100 my-4">`;
+
+            // Gastronomy
+            html += `<div><h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Gastronomía (100 pax)</h3><div class="space-y-2">`;
+            
+            // Coffee
+            if(!state.coffee) {
+                html += `<div class="bg-white border border-warning-200 rounded-md p-3 cursor-pointer" onclick="toggleCartDrawer(); document.getElementById('service-coffee').scrollIntoView();"><p class="text-xs font-bold text-gray-500 uppercase">Coffee</p><p class="text-sm font-bold text-warning-600">Falta elegir opción</p></div>`;
+            } else {
+                html += `<div class="bg-white border border-gray-200 rounded-md p-3 flex justify-between"><div class="flex flex-col"><span class="text-[10px] font-bold text-gray-400 uppercase">Coffee</span><span class="font-bold text-sm text-gray-900">${state.coffee.name}</span></div><span class="font-bold text-sm text-gray-900">${(state.coffee.price * state.pax).toLocaleString('es-ES')} €</span></div>`;
+            }
+
+            // Cocktail
+            if(!state.cocktail) {
+                html += `<div class="bg-white border border-warning-200 rounded-md p-3 cursor-pointer" onclick="toggleCartDrawer(); document.getElementById('service-cocktail').scrollIntoView();"><p class="text-xs font-bold text-gray-500 uppercase">Cocktail</p><p class="text-sm font-bold text-warning-600">Falta elegir opción</p></div>`;
+            } else {
+                html += `<div class="bg-white border border-gray-200 rounded-md p-3 flex justify-between"><div class="flex flex-col"><span class="text-[10px] font-bold text-gray-400 uppercase">Cocktail</span><span class="font-bold text-sm text-gray-900">${state.cocktail.name}</span></div><span class="font-bold text-sm text-gray-900">${(state.cocktail.price * state.pax).toLocaleString('es-ES')} €</span></div>`;
+            }
+
+            // Addons
+            if(state.addons > 0) {
+                 html += `<div class="bg-gray-50 border border-gray-200 rounded-md p-3 flex justify-between"><div class="flex flex-col"><span class="text-[10px] font-bold text-gray-400 uppercase">Opcionales</span><span class="font-bold text-sm text-gray-900">Refuerzos extra</span></div><span class="font-bold text-sm text-gray-900">${state.addons.toLocaleString('es-ES')} €</span></div>`;
+            }
+
+            html += `</div></div>`;
+            document.getElementById('cart-content').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // --- MODALS & DRAWERS ---
+
+        function toggleCartDrawer() {
+            const drawer = document.getElementById('cartDrawer');
+            const overlay = document.getElementById('cartOverlay');
+            if (drawer.classList.contains('translate-x-full')) {
+                drawer.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            } else {
+                drawer.classList.add('translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        let currentModalVenue = '';
+        function toggleVenueModal(venueName = '') {
+            const modal = document.getElementById('venueModal');
+            const modalContent = document.getElementById('venueModalContent');
+            if (venueName) {
+                currentModalVenue = venueName;
+                document.getElementById('modal-venue-title').innerText = venueName;
+            }
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    modalContent.classList.remove('scale-95');
+                }, 10);
+            } else {
+                modal.classList.add('opacity-0');
+                modalContent.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        function confirmVenueFromModal() {
+            selectVenue(currentModalVenue);
+            toggleVenueModal();
+        }
+
+        function toggleOptionModal() {
+            const modal = document.getElementById('optionModal');
+            const modalContent = document.getElementById('optionModalContent');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    modalContent.classList.remove('scale-95');
+                }, 10);
+            } else {
+                modal.classList.add('opacity-0');
+                modalContent.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        function openOptionModal(title) {
+            document.getElementById('opt-modal-title').innerText = title;
+            document.getElementById('opt-modal-price').innerText = (prices[title] || 0) + ' € / pax';
+            toggleOptionModal();
+        }
+
+        function scrollCarousel(id, direction) {
+            const container = document.getElementById(id);
+            const scrollAmount = container.clientWidth * 0.8;
+            container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        }
+
+        // Init
+        updateTotals();
+
+    </script>
+</body>
+</html>

@@ -1,7 +1,6 @@
 MICE CATERING PROPOSALS - ESTADO DEL PROYECTO Y ARQUITECTURA
 
 Este documento es el "Cerebro" del proyecto.
-
 INSTRUCCIÓN PARA LA IA (COPILOT/CLAUDE): Lee obligatoriamente este documento antes de sugerir, generar o refactorizar cualquier código. NO asumas tecnologías, NO uses ORMs, NO cambies la arquitectura descrita aquí.
 
 1. VISIÓN GENERAL Y STACK TECNOLÓGICO
@@ -14,7 +13,13 @@ Base de Datos: MariaDB (Driver nativo mariadb con Pool). PROHIBIDO EL USO DE ORM
 
 Frontend: EJS (Templating estructurado con partials), Tailwind CSS (Configuración inyectada vía JS), Vanilla JS, Lucide Icons (Prohibido usar emojis), Day.js (con locale es).
 
-Servicios Integrados: Puppeteer (Scraping de venues con --no-sandbox). Sharp (Optimización de imágenes a WebP, max-width 1920px). Nodemailer (SMTP Chat para notificaciones al comercial). Zoho Sign (Integración para firma del contrato).
+Servicios Integrados: - Puppeteer (Scraping de venues con --no-sandbox).
+
+Sharp (Optimización de imágenes a WebP, max-width 1920px).
+
+Nodemailer (SMTP Chat para notificaciones al comercial).
+
+Zoho Sign (Integración para firma del contrato).
 
 2. ARQUITECTURA DEL SISTEMA (Service Layer Pattern)
 
@@ -87,5 +92,3 @@ Asegúrate de no romper las inyecciones EJS existentes (como data-service-id="<%
 Escribe comentarios explicativos en ESPAÑOL. Mantén variables y nombres de funciones en INGLÉS.
 
 NUNCA propongas migrar a un framework Frontend (React/Vue). Mantente estrictamente en Vanilla JS y EJS.
-
-Última actualización: 07/04/2026
