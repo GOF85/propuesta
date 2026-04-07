@@ -22,7 +22,7 @@
 
     <!-- Tabs -->
     <div class="border-b border-gray-200 mb-8 flex gap-6">
-        <button class="py-2 px-0 border-b-2 border-blue-600 text-blue-600 font-medium" onclick="showTab('list')">
+        <button class="py-2 px-0 border-b-2 border-[#31713D] text-[#31713D] font-medium" onclick="showTab('list')">
             📋 Lista
         </button>
         <button class="py-2 px-0 border-b border-gray-200 text-gray-600 hover:text-gray-900 font-medium" onclick="showTab('import')">
@@ -39,7 +39,7 @@
             <div>
                 <p class="text-gray-600">Total: <strong><%= totalDishes %> platos</strong></p>
             </div>
-            <a href="/admin/dishes/export" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
+            <a href="/admin/dishes/export" class="bg-green-600 hover:bg-[#31713D] text-white px-4 py-2 rounded-lg font-medium">
                 ⬇️ Exportar CSV
             </a>
         </div>
@@ -109,17 +109,17 @@
             <form id="import-form" method="POST" action="/admin/dishes/import" enctype="multipart/form-data">
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">📁 Archivo CSV</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 cursor-pointer transition"
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#31713D] cursor-pointer transition"
                          id="dropzone" onclick="document.getElementById('csvFile').click()">
                         <input type="file" id="csvFile" name="csvFile" accept=".csv" class="hidden" required>
                         <p class="text-gray-600 font-medium">Arrastra un CSV aquí o haz clic para seleccionar</p>
                         <p class="text-sm text-gray-500 mt-1">Formato: CSV con encabezados</p>
-                        <p id="file-name" class="text-blue-600 font-medium mt-2"></p>
+                        <p id="file-name" class="text-[#31713D] font-medium mt-2"></p>
                     </div>
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                    <button type="submit" class="bg-[#31713D] hover:bg-[#24552E] text-white px-6 py-2 rounded-lg font-medium">
                         ✅ Importar
                     </button>
                 </div>
@@ -144,7 +144,7 @@
                 <button id="copy-template" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium">
                     📋 Copiar Plantilla
                 </button>
-                <a id="download-template" href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium inline-block">
+                <a id="download-template" href="#" class="bg-[#31713D] hover:bg-[#24552E] text-white px-6 py-2 rounded-lg font-medium inline-block">
                     ⬇️ Descargar CSV
                 </a>
             </div>
@@ -167,11 +167,11 @@ function showTab(tab) {
     document.getElementById(`tab-${tab}`).classList.remove('hidden');
     
     document.querySelectorAll('[onclick^="showTab"]').forEach(b => {
-        b.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600');
+        b.classList.remove('border-b-2', 'border-[#31713D]', 'text-[#31713D]');
         b.classList.add('border-b', 'border-gray-200', 'text-gray-600');
     });
     event.target.classList.remove('border-b', 'border-gray-200', 'text-gray-600');
-    event.target.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
+    event.target.classList.add('border-b-2', 'border-[#31713D]', 'text-[#31713D]');
 }
 
 // Drag & drop + file select
@@ -180,16 +180,16 @@ const csvFile = document.getElementById('csvFile');
 
 dropzone?.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropzone.classList.add('border-blue-500', 'bg-blue-50');
+    dropzone.classList.add('border-[#31713D]', 'bg-blue-50');
 });
 
 dropzone?.addEventListener('dragleave', () => {
-    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+    dropzone.classList.remove('border-[#31713D]', 'bg-blue-50');
 });
 
 dropzone?.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+    dropzone.classList.remove('border-[#31713D]', 'bg-blue-50');
     if (e.dataTransfer.files[0]) {
         csvFile.files = e.dataTransfer.files;
         updateFileName();
@@ -247,10 +247,10 @@ document.getElementById('import-form')?.addEventListener('submit', async (e) => 
             showResult(`
                 <div class="bg-green-50 border border-green-200 rounded p-4">
                     <h3 class="font-bold text-green-900 mb-2">✅ Importación exitosa</h3>
-                    <p class="text-green-700 text-sm mb-1"><strong>${result.inserted}</strong> nuevos platos</p>
-                    <p class="text-green-700 text-sm"><strong>${result.updated}</strong> actualizados</p>
+                    <p class="text-[#31713D] text-sm mb-1"><strong>${result.inserted}</strong> nuevos platos</p>
+                    <p class="text-[#31713D] text-sm"><strong>${result.updated}</strong> actualizados</p>
                 </div>
-                <button type="button" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded" onclick="location.reload()">
+                <button type="button" class="mt-4 bg-[#31713D] text-white px-4 py-2 rounded" onclick="location.reload()">
                     Recargar página
                 </button>
             `);

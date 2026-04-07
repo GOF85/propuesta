@@ -16,7 +16,7 @@
 
     <!-- Header Principal -->
     <div class="mb-12">
-        <div class="bg-gradient-to-r from-emerald-900 to-emerald-800 rounded-lg p-8 text-white">
+        <div class="bg-gradient-to-r from-[#1A1A1A] to-[#24552E] rounded-lg p-8 text-white">
             <div class="flex items-start justify-between">
                 <div>
                     <div class="flex items-center gap-3 mb-2">
@@ -27,7 +27,7 @@
                 </div>
                 <div class="text-right">
                     <div class="text-sm text-gray-300">Total de espacios</div>
-                    <div class="text-4xl font-bold text-emerald-300"><%= totalVenues %></div>
+                    <div class="text-4xl font-bold text-gray-300"><%= totalVenues %></div>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@
             <p class="text-gray-600 text-sm mb-4">
                 Rellena un formulario simple para agregar un venue paso a paso
             </p>
-            <div class="flex items-center gap-2 text-blue-600 font-medium">
+            <div class="flex items-center gap-2 text-[#31713D] font-medium">
                 <span>Comenzar</span>
                 <span>→</span>
             </div>
@@ -74,10 +74,10 @@
                 Exporta tu catálogo, descarga template o scrapeala web
             </p>
             <div class="flex gap-2">
-                <button onclick="startScraping()" class="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">
+                <button onclick="startScraping()" class="text-sm bg-green-600 hover:bg-[#31713D] text-white px-3 py-1 rounded">
                     🕷️ Scrapear
                 </button>
-                <a href="/admin/venues/export" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                <a href="/admin/venues/export" class="text-sm bg-[#31713D] hover:bg-[#24552E] text-white px-3 py-1 rounded">
                     ⬇️ Exportar
                 </a>
             </div>
@@ -101,7 +101,7 @@
                             Nombre <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="name" required
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#31713D] focus:border-transparent"
                                placeholder="Ej: Hotel Palace Madrid">
                     </div>
                     <div>
@@ -109,7 +109,7 @@
                             Dirección
                         </label>
                         <input type="text" name="address"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#31713D] focus:border-transparent"
                                placeholder="Ej: Gran Vía 25, Madrid">
                     </div>
                 </div>
@@ -120,7 +120,7 @@
                         Descripción
                     </label>
                     <textarea name="description" rows="3"
-                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#31713D] focus:border-transparent"
                               placeholder="Describe brevemente el venue..."></textarea>
                 </div>
 
@@ -131,19 +131,19 @@
                         <div>
                             <label class="block text-xs text-gray-600 mb-1">🍸 Cóctel</label>
                             <input type="number" name="capacity_cocktail" min="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-[#31713D]"
                                    placeholder="0">
                         </div>
                         <div>
                             <label class="block text-xs text-gray-600 mb-1">🍽️ Banquete</label>
                             <input type="number" name="capacity_banquet" min="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-[#31713D]"
                                    placeholder="0">
                         </div>
                         <div>
                             <label class="block text-xs text-gray-600 mb-1">🎭 Teatro</label>
                             <input type="number" name="capacity_theater" min="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-[#31713D]"
                                    placeholder="0">
                         </div>
                     </div>
@@ -155,7 +155,7 @@
                         Características <span class="text-xs text-gray-500">(separadas por coma)</span>
                     </label>
                     <input type="text" name="features"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#31713D] focus:border-transparent"
                            placeholder="Ej: WiFi, Parking, Aire acondicionado, Luz natural">
                 </div>
 
@@ -165,7 +165,7 @@
                         URL Externa
                     </label>
                     <input type="url" name="external_url"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#31713D] focus:border-transparent"
                            placeholder="https://...">
                 </div>
 
@@ -176,7 +176,7 @@
                         Limpiar
                     </button>
                     <button type="submit"
-                            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2">
+                            class="px-6 py-2 bg-[#31713D] hover:bg-[#24552E] text-white rounded-lg font-medium flex items-center gap-2">
                         <span>✅ Guardar Venue</span>
                     </button>
                 </div>
@@ -275,10 +275,10 @@
                         
                         <div class="flex gap-2 mb-3 flex-wrap">
                             <% if (v.capacity_cocktail) { %>
-                                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">🍸 <%= v.capacity_cocktail %></span>
+                                <span class="text-xs bg-blue-100 text-[#24552E] px-2 py-1 rounded">🍸 <%= v.capacity_cocktail %></span>
                             <% } %>
                             <% if (v.capacity_banquet) { %>
-                                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">🍽️ <%= v.capacity_banquet %></span>
+                                <span class="text-xs bg-green-100 text-[#31713D] px-2 py-1 rounded">🍽️ <%= v.capacity_banquet %></span>
                             <% } %>
                             <% if (v.capacity_theater) { %>
                                 <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">🎭 <%= v.capacity_theater %></span>
@@ -424,12 +424,12 @@ async function importCsvFile() {
         let resultsHtml = '<div class="grid grid-cols-3 gap-4 mt-4">';
         resultsHtml += `<div class="bg-green-50 border border-green-200 rounded p-3 text-center">`;
         resultsHtml += `<div class="text-2xl font-bold text-green-600">${result.inserted || 0}</div>`;
-        resultsHtml += `<div class="text-xs text-green-700">Nuevos importados</div>`;
+        resultsHtml += `<div class="text-xs text-[#31713D]">Nuevos importados</div>`;
         resultsHtml += `</div>`;
         
         resultsHtml += `<div class="bg-blue-50 border border-blue-200 rounded p-3 text-center">`;
-        resultsHtml += `<div class="text-2xl font-bold text-blue-600">${result.updated || 0}</div>`;
-        resultsHtml += `<div class="text-xs text-blue-700">Actualizados</div>`;
+        resultsHtml += `<div class="text-2xl font-bold text-[#31713D]">${result.updated || 0}</div>`;
+        resultsHtml += `<div class="text-xs text-[#24552E]">Actualizados</div>`;
         resultsHtml += `</div>`;
         
         resultsHtml += `<div class="bg-amber-50 border border-amber-200 rounded p-3 text-center">`;
@@ -448,7 +448,7 @@ async function importCsvFile() {
             resultsHtml += '</ul></div>';
         }
         
-        resultsHtml += '<div class="mt-6"><button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">Recargar e ver cambios</button></div>';
+        resultsHtml += '<div class="mt-6"><button onclick="location.reload()" class="bg-[#31713D] hover:bg-[#24552E] text-white px-6 py-2 rounded">Recargar e ver cambios</button></div>';
         
         document.getElementById('csv-results').innerHTML = resultsHtml;
         
@@ -493,7 +493,7 @@ console.log('✅ Venues admin script loaded');
             <div>
                 <p class="text-gray-600">Total: <strong><%= totalVenues %> venues</strong></p>
             </div>
-            <a href="/admin/venues/export" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
+            <a href="/admin/venues/export" class="bg-green-600 hover:bg-[#31713D] text-white px-4 py-2 rounded-lg font-medium">
                 ⬇️ Exportar CSV
             </a>
         </div>
@@ -524,7 +524,7 @@ console.log('✅ Venues admin script loaded');
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600"><%= venue.address %></td>
                             <td class="px-6 py-4 text-center text-sm">
-                                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded"><%= venue.capacity_cocktail %></span>
+                                <span class="bg-blue-100 text-[#24552E] px-2 py-1 rounded"><%= venue.capacity_cocktail %></span>
                             </td>
                             <td class="px-6 py-4 text-center text-sm">
                                 <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded"><%= venue.capacity_banquet %></span>
@@ -560,17 +560,17 @@ console.log('✅ Venues admin script loaded');
             <form id="import-form" method="POST" action="/admin/venues/import" enctype="multipart/form-data">
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">📁 Archivo CSV</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 cursor-pointer transition"
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#31713D] cursor-pointer transition"
                          id="dropzone" onclick="document.getElementById('csvFile').click()">
                         <input type="file" id="csvFile" name="csvFile" accept=".csv" class="hidden" required>
                         <p class="text-gray-600 font-medium">Arrastra un CSV aquí o haz clic para seleccionar</p>
                         <p class="text-sm text-gray-500 mt-1">Formato: CSV con encabezados</p>
-                        <p id="file-name" class="text-blue-600 font-medium mt-2"></p>
+                        <p id="file-name" class="text-[#31713D] font-medium mt-2"></p>
                     </div>
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                    <button type="submit" class="bg-[#31713D] hover:bg-[#24552E] text-white px-6 py-2 rounded-lg font-medium">
                         ✅ Importar
                     </button>
                 </div>
@@ -594,7 +594,7 @@ console.log('✅ Venues admin script loaded');
                 <button id="copy-template" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium">
                     📋 Copiar Plantilla
                 </button>
-                <a id="download-template" href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium inline-block">
+                <a id="download-template" href="#" class="bg-[#31713D] hover:bg-[#24552E] text-white px-6 py-2 rounded-lg font-medium inline-block">
                     ⬇️ Descargar CSV
                 </a>
             </div>
@@ -617,11 +617,11 @@ function showTab(tab) {
     document.getElementById(`tab-${tab}`).classList.remove('hidden');
     
     document.querySelectorAll('[onclick^="showTab"]').forEach(b => {
-        b.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600');
+        b.classList.remove('border-b-2', 'border-[#31713D]', 'text-[#31713D]');
         b.classList.add('border-b', 'border-gray-200', 'text-gray-600');
     });
     event.target.classList.remove('border-b', 'border-gray-200', 'text-gray-600');
-    event.target.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
+    event.target.classList.add('border-b-2', 'border-[#31713D]', 'text-[#31713D]');
 }
 
 // Drag & drop + file select
@@ -630,16 +630,16 @@ const csvFile = document.getElementById('csvFile');
 
 dropzone?.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropzone.classList.add('border-blue-500', 'bg-blue-50');
+    dropzone.classList.add('border-[#31713D]', 'bg-blue-50');
 });
 
 dropzone?.addEventListener('dragleave', () => {
-    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+    dropzone.classList.remove('border-[#31713D]', 'bg-blue-50');
 });
 
 dropzone?.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+    dropzone.classList.remove('border-[#31713D]', 'bg-blue-50');
     if (e.dataTransfer.files[0]) {
         csvFile.files = e.dataTransfer.files;
         updateFileName();
@@ -696,10 +696,10 @@ document.getElementById('import-form')?.addEventListener('submit', async (e) => 
             showResult(`
                 <div class="bg-green-50 border border-green-200 rounded p-4">
                     <h3 class="font-bold text-green-900 mb-2">✅ Importación exitosa</h3>
-                    <p class="text-green-700 text-sm mb-1"><strong>${result.inserted}</strong> nuevos venues</p>
-                    <p class="text-green-700 text-sm"><strong>${result.updated}</strong> actualizados</p>
+                    <p class="text-[#31713D] text-sm mb-1"><strong>${result.inserted}</strong> nuevos venues</p>
+                    <p class="text-[#31713D] text-sm"><strong>${result.updated}</strong> actualizados</p>
                 </div>
-                <button type="button" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded" onclick="location.reload()">
+                <button type="button" class="mt-4 bg-[#31713D] text-white px-4 py-2 rounded" onclick="location.reload()">
                     Recargar página
                 </button>
             `);

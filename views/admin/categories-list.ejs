@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Categorías - MICE Catering</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50">
+
+<%- include('../partials/header') %>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+    <%- include('../partials/flash-messages') %>
+
+    <!-- Header -->
+    <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 tracking-tight">Gestión de Categorías</h1>
+            <p class="text-gray-500 text-sm">Administra las categorías que aparecen en los desplegables de platos y menús.</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="/admin" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 transition whitespace-nowrap">
+                Volver al Panel
+            </a>
+            <button onclick="showCategoryModal()" class="bg-[#31713D] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#24552E] transition flex items-center gap-2 shadow-sm">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Nueva Categoría
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- PLATOS CATEGORIES -->
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                    <i data-lucide="utensils" class="w-4 h-4"></i>
+                    Categorías de Platos
+                </h2>
+                <span class="text-[10px] font-bold bg-green-100 text-[#31713D] px-2 py-0.5 rounded-full uppercase">
+                    <%= dishCategories.length %>
+                </span>
+            </div>
+            <div class="divide-y divide-gray-100">
+                <% dishCategories.forEach(cat => { %>
+                    <div class="px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 flex items-center justify-center bg-gray-100 text-[10px] font-black text-gray-400 border border-gray-200" title="Orden de visualización">
+                                <%= cat.order_index %>
+                            </span>
+                            <span class="text-sm font-medium text-gray-700"><%= cat.name %></span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="editCategory(<%= JSON.stringify(cat) %>)" class="p-1.5 text-gray-400 hover:text-[#31713D] hover:bg-green-50 rounded-lg transition-all" title="Editar">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteCategory(<%= cat.id %>)" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                <% }) %>
+                <% if (!dishCategories.length) { %>
+                    <div class="px-4 py-8 text-center text-gray-400 text-sm">
+                        No hay categorías de platos definidas.
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- MENUS CATEGORIES -->
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    Categorías de Menús
+                </h2>
+                <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase">
+                    <%= menuCategories.length %>
+                </span>
+            </div>
+            <div class="divide-y divide-gray-100">
+                <% menuCategories.forEach(cat => { %>
+                    <div class="px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 flex items-center justify-center bg-gray-100 text-[10px] font-black text-gray-400 border border-gray-200" title="Orden de visualización">
+                                <%= cat.order_index %>
+                            </span>
+                            <span class="text-sm font-medium text-gray-700"><%= cat.name %></span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="editCategory(<%= JSON.stringify(cat) %>)" class="p-1.5 text-gray-400 hover:text-[#31713D] hover:bg-green-50 rounded-lg transition-all" title="Editar">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteCategory(<%= cat.id %>)" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                <% }) %>
+                <% if (!menuCategories.length) { %>
+                    <div class="px-4 py-8 text-center text-gray-400 text-sm">
+                        No hay categorías de menús definidas.
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Modal: Nueva/Editar Categoría -->
+<div id="categoryModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <h2 id="modalTitle" class="text-lg font-bold text-gray-800 uppercase tracking-tight">Nueva Categoría</h2>
+            <button onclick="closeCategoryModal()" class="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-white transition-all">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form id="categoryForm" class="p-6 space-y-4">
+            <input type="hidden" id="catId" name="id">
+            
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Nombre de la Categoría</label>
+                <input type="text" id="catName" name="name" required placeholder="Ej: Entrantes, COCKTAIL..." class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Orden (Numérico)</label>
+                <input type="number" id="catOrder" name="order_index" value="0" step="1" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm" title="Las categorías se ordenan de menor a mayor">
+                <p class="text-[9px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">Define en qué posición aparecerá (ej: Entrantes=10, Principales=20...)</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Tipo</label>
+                <select id="catType" name="type" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm">
+                    <option value="dish">Platos</option>
+                    <option value="menu">Menús / Gastronomía</option>
+                </select>
+            </div>
+
+            <div class="pt-4 flex gap-3">
+                <button type="button" onclick="closeCategoryModal()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50 transition uppercase tracking-tight">
+                    Cancelar
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2 bg-[#31713D] text-white rounded-lg text-sm font-bold hover:bg-[#24552E] transition uppercase tracking-tight shadow-md">
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    const categoryModal = document.getElementById('categoryModal');
+    const categoryForm = document.getElementById('categoryForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const catIdInput = document.getElementById('catId');
+    const catNameInput = document.getElementById('catName');
+    const catOrderInput = document.getElementById('catOrder');
+    const catTypeInput = document.getElementById('catType');
+
+    function showCategoryModal() {
+        modalTitle.innerText = 'Nueva Categoría';
+        catIdInput.value = '';
+        catOrderInput.value = '0';
+        categoryForm.reset();
+        categoryModal.classList.remove('hidden');
+    }
+
+    function closeCategoryModal() {
+        categoryModal.classList.add('hidden');
+    }
+
+    function editCategory(cat) {
+        modalTitle.innerText = 'Editar Categoría';
+        catIdInput.value = cat.id;
+        catNameInput.value = cat.name;
+        catOrderInput.value = cat.order_index || 0;
+        catTypeInput.value = cat.type;
+        categoryModal.classList.remove('hidden');
+    }
+
+    async function deleteCategory(id) {
+        if (!confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return;
+        
+        try {
+            const resp = await fetch(`/admin/categories/${id}`, { method: 'DELETE' });
+            const result = await resp.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert('Error al eliminar: ' + result.error);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error de conexión');
+        }
+    }
+
+    categoryForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const id = catIdInput.value;
+        const url = id ? `/admin/categories/${id}` : '/admin/categories';
+        const formData = {
+            name: catNameInput.value,
+            order_index: catOrderInput.value,
+            type: catTypeInput.value
+        };
+
+        try {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const result = await resp.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert('Error al guardar: ' + result.error);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error de conexión');
+        }
+    };
+</script>
+</body>
+</html>

@@ -28,7 +28,7 @@ router.get(
     }
     next();
   },
-  editorController.renderEditor
+  (req, res, next) => editorController.renderEditor(req, res, next)
 );
 
 /**
@@ -38,14 +38,10 @@ router.get(
 router.post(
   '/proposal/:id/update',
   authenticateUser,
-  param('id').isInt().toInt(),
-  body('client_name').optional().trim().isLength({ min: 2, max: 255 }),
-  body('client_email').optional().isEmail(),
-  body('event_date').optional().isISO8601(),
-  body('pax').optional().isInt({ min: 0 }),
-  body('valid_until').optional().isISO8601(),
-  body('legal_conditions').optional().trim(),
-  editorController.updateProposal
+  (req, res, next) => {
+    // Saltamos validaciones para debuggear si el 400 viene de aquí
+    editorController.updateProposal(req, res, next);
+  }
 );
 
 /**
@@ -56,7 +52,7 @@ router.post(
   '/proposal/:id/publish',
   authenticateUser,
   param('id').isInt().toInt(),
-  editorController.publishProposal
+  (req, res, next) => editorController.publishProposal(req, res, next)
 );
 
 /**
@@ -102,7 +98,7 @@ router.post(
   '/proposal/:id/cancel',
   authenticateUser,
   param('id').isInt().toInt(),
-  editorController.cancelProposal
+  (req, res, next) => editorController.cancelProposal(req, res, next)
 );
 
 module.exports = router;

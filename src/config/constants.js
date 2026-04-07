@@ -4,30 +4,30 @@
  */
 
 const PROPOSAL_STATUS = {
-  DRAFT: 'draft',
-  SENT: 'sent',
-  ACCEPTED: 'accepted',
-  CANCELLED: 'cancelled',
+  PIPE: 'Pipe',
+  ACCEPTED: 'Aceptada',
+  CANCELLED: 'Anulada',
 };
 
 const PROPOSAL_STATUS_LABELS = {
-  draft: 'Borrador',
-  sent: 'Enviada',
-  accepted: 'Aceptada',
-  cancelled: 'Anulada',
+  Pipe: 'Pipe',
+  Aceptada: 'Aceptada',
+  Anulada: 'Anulada',
+  archived: 'Archivada'
 };
 
 const PROPOSAL_STATUS_COLORS = {
-  draft: 'gray',
-  sent: 'yellow',
-  accepted: 'green',
-  cancelled: 'red',
+  Pipe: 'yellow',
+  Aceptada: 'green',
+  Anulada: 'red',
+  archived: 'gray'
 };
 
 const SERVICE_TYPES = {
   GASTRONOMY: 'gastronomy',
   LOGISTICS: 'logistics',
   STAFF: 'staff',
+  EXTRAS: 'extras',
   OTHER: 'other',
 };
 
@@ -35,6 +35,7 @@ const SERVICE_TYPES_LABELS = {
   gastronomy: 'Gastronomía',
   logistics: 'Logística',
   staff: 'Personal',
+  extras: 'Extras',
   other: 'Otro',
 };
 

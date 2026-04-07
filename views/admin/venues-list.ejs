@@ -1,235 +1,243 @@
-<!-- views/admin/venues-list.ejs -->
-<!-- Gestión de Venues: Lista, scraping, y formulario fallback -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Venues - MICE Catering Proposals</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Global Theme CSS -->
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/professional.css">
+</head>
+<body class="bg-gray-50">
+    <%- include('../partials/header') %>
 
-<%- include('../partials/header') %>
-
-<style>
-  .venue-card {
-    @apply bg-white rounded-lg shadow hover:shadow-lg transition p-4 mb-4;
-  }
-
-  .venue-images {
-    @apply flex gap-2 mt-3 overflow-x-auto;
-  }
-
-  .venue-images img {
-    @apply w-24 h-24 rounded object-cover flex-shrink-0;
-  }
-
-  .btn-scrape {
-    @apply bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition;
-  }
-
-  .btn-add-manual {
-    @apply bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition;
-  }
-
-  .status-badge {
-    @apply inline-block px-3 py-1 rounded text-sm font-medium;
-  }
-
-  .status-scraping {
-    @apply bg-yellow-100 text-yellow-800;
-  }
-
-  .status-manual {
-    @apply bg-blue-100 text-blue-800;
-  }
-
-  .loading-spinner {
-    @apply inline-block animate-spin h-4 w-4 border-2 border-white border-r-transparent rounded-full;
-  }
-
-  @media print {
-    .action-buttons,
-    .btn-scrape,
-    .btn-add-manual {
-      @apply hidden;
-    }
-  }
-</style>
-
-<div class="container mx-auto p-6">
+    <main class="min-h-screen">
+        <div class="container mx-auto p-4 max-w-7xl">
   <!-- Header -->
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold mb-2">🏢 Gestión de Venues</h1>
-    <p class="text-gray-600">Importa venues desde micecatering.com o crea manualmente</p>
+  <div class="mb-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold flex items-center gap-2 text-gray-800">
+          <i data-lucide="building-2" class="w-6 h-6 text-[#31713D]"></i>
+          Gestión de Venues
+        </h1>
+        <p class="text-xs text-gray-500">Importa desde micecatering.com o crea manualmente</p>
+      </div>
+      <a href="/admin/venues/export" class="bg-[#31713D] hover:bg-[#24552E] text-white px-3 py-1.5 rounded text-sm transition flex items-center gap-2 shadow-sm">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span>Exportar CSV</span>
+      </a>
+    </div>
   </div>
 
   <!-- Toolbar -->
-  <div class="flex gap-3 mb-6 flex-wrap">
-    <button id="btn-scrape" class="btn-scrape flex items-center gap-2" onclick="startScraping()">
-      <i data-lucide="download" class="w-4 h-4"></i> <span>Scrapear micecatering.com</span>
+  <div class="flex gap-2 mb-4 flex-wrap">
+    <button class="bg-[#31713D] hover:bg-[#24552E] text-white px-3 py-1.5 rounded text-sm transition flex items-center gap-2 shadow-sm" onclick="openVenueForm('new')">
+      <i data-lucide="plus-circle" class="w-4 h-4"></i>
+      <span>Crear Manual</span>
     </button>
 
-    <button class="btn-add-manual flex items-center gap-2" onclick="openVenueForm('new')">
-      <i data-lucide="plus" class="w-4 h-4"></i> <span>Crear Venue Manual</span>
-    </button>
-
-    <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition flex items-center gap-2"
+    <button class="bg-[#31713D] hover:bg-[#24552E] text-white px-3 py-1.5 rounded text-sm transition flex items-center gap-2 shadow-sm"
             onclick="document.getElementById('import-csv').click()">
-      <i data-lucide="file" class="w-4 h-4"></i> <span>Importar CSV</span>
+      <i data-lucide="file-up" class="w-4 h-4"></i>
+      <span>Importar CSV</span>
     </button>
 
-    <input type="file" id="import-csv" hidden accept=".csv"
-           onchange="importVenuesCSV()" />
-  </div>
-
-  <!-- Scraping desde URL personalizada -->
-  <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
-    <div class="flex items-start gap-3">
-      <div class="flex-shrink-0 mt-1">
-        <i data-lucide="link" class="w-5 h-5 text-blue-600"></i>
-      </div>
-      <div class="flex-1">
-        <h3 class="font-bold text-blue-900 mb-1">🔗 Scrapear desde URL específica</h3>
-        <p class="text-sm text-blue-700 mb-3">
-          Introduce la URL de cualquier venue para importar automáticamente su información, imágenes y características.
-        </p>
-        <div class="flex gap-2">
-          <input 
-            type="url" 
-            id="custom-url-input" 
-            placeholder="https://www.micecatering.com/venues/nombre-venue" 
-            class="flex-1 px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button 
-            id="btn-scrape-url" 
-            onclick="scrapeFromCustomUrl()" 
-            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition flex items-center gap-2 font-medium"
-          >
-            <i data-lucide="zap" class="w-4 h-4"></i>
-            <span>Scrapear</span>
-          </button>
-        </div>
-      </div>
-    </div>
+    <input type="file" id="import-csv" hidden accept=".csv" />
   </div>
 
   <!-- Status Messages -->
   <% if (locals.flash && locals.flash.success) { %>
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-      ✅ <%= locals.flash.success %>
+    <div class="bg-green-50 border border-green-300 text-[#24552E] px-4 py-3 rounded mb-4 flex items-center gap-2">
+      <i data-lucide="check-circle" class="w-5 h-5"></i>
+      <%= locals.flash.success %>
     </div>
   <% } %>
 
   <% if (locals.flash && locals.flash.error) { %>
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-      ❌ <%= locals.flash.error %>
+    <div class="bg-gray-100 border border-gray-400 text-gray-800 px-4 py-3 rounded mb-4 flex items-center gap-2">
+      <i data-lucide="alert-circle" class="w-5 h-5"></i>
+      <%= locals.flash.error %>
     </div>
   <% } %>
 
-  <!-- Progress Bar (scraping) -->
-  <div id="scrape-progress" class="hidden mb-4">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-sm font-medium">Scrapeando...</span>
-      <span id="scrape-status">0%</span>
+  <!-- Cola de URLs para scrape -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-bold flex items-center gap-2 text-gray-700 uppercase tracking-wider">
+        <i data-lucide="list" class="w-4 h-4 text-orange-500"></i>
+        Cola de Scraping (<span id="pending-count"><%= (locals.pendingScrapes || []).length %></span>)
+      </h2>
+      <div class="flex gap-2">
+        <a href="/admin/venues/queue-template" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs flex items-center gap-2 transition border border-gray-300 font-bold" title="Descargar plantilla CSV">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          Plantilla
+        </a>
+        
+        <button onclick="document.getElementById('import-queue-csv').click()" class="bg-[#31713D] hover:bg-black text-white px-3 py-1.5 rounded text-xs flex items-center gap-2 transition shadow-sm font-bold">
+          <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+          Importar
+        </button>
+        <input type="file" id="import-queue-csv" hidden accept=".csv" onchange="importQueueCsv(this)" />
+
+        <button onclick="scrapeAllPending()" class="bg-orange-600 hover:bg-black text-white px-3 py-1.5 rounded text-xs flex items-center gap-2 transition shadow-sm font-bold">
+          <i data-lucide="play" class="w-3.5 h-3.5"></i>
+          Scrapear todos
+        </button>
+      </div>
     </div>
-    <div class="w-full bg-gray-200 rounded-full h-2">
-      <div id="scrape-bar" class="bg-blue-600 h-2 rounded-full transition"
-           style="width: 0%"></div>
+
+    <!-- Formulario rápido de URL -->
+    <div class="mb-4 bg-white p-3 rounded-lg border border-gray-200 shadow-sm flex gap-2">
+      <div class="flex-1 relative">
+        <i data-lucide="link" class="w-4 h-4 absolute left-3 top-2.5 text-gray-400"></i>
+        <input type="url" id="quick-url-input" placeholder="Pega aquí la URL de micecatering.com..." 
+               class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#31713D] focus:border-transparent outline-none transition" />
+      </div>
+      <button onclick="addUrlToQueue()" class="bg-[#31713D] text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-black transition shadow-sm flex items-center gap-2">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        Añadir
+      </button>
+    </div>
+
+    <% if ((locals.pendingScrapes || []).length === 0) { %>
+      <div id="no-pending-msg" class="text-center py-8 bg-white rounded-lg border border-dashed border-gray-300 text-gray-400 text-sm">
+        <i data-lucide="link-2" class="w-8 h-8 mx-auto mb-2 opacity-20"></i>
+        <p>No hay URLs en la cola de scrape. ¡Añade una para empezar!</p>
+      </div>
+    <% } %>
+    
+    <div id="pending-table-container" class="<%= (locals.pendingScrapes || []).length === 0 ? 'hidden' : '' %> bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs">
+          <tr>
+            <th class="px-4 py-3 font-semibold">URL de micecatering.com</th>
+            <th class="px-4 py-3 font-semibold w-32 text-center">Estado</th>
+            <th class="px-4 py-3 font-semibold text-right w-40">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="pending-scrapes-body" class="divide-y divide-gray-100">
+          <% (locals.pendingScrapes || []).forEach((item) => { %>
+            <tr class="hover:bg-gray-50 transition-colors" data-id="<%= item.id %>">
+              <td class="px-4 py-3 text-gray-600 truncate max-w-md font-mono text-[11px]" title="<%= item.url %>">
+                <%= item.url %>
+              </td>
+              <td class="px-4 py-3 text-center">
+                <% 
+                  let badgeClass = 'bg-gray-100 text-gray-600';
+                  if(item.status === 'pending') badgeClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                  if(item.status === 'completed') badgeClass = 'bg-green-100 text-green-700 border-green-200';
+                  if(item.status === 'failed') badgeClass = 'bg-red-100 text-red-700 border-red-200';
+                  if(item.status === 'processing') badgeClass = 'bg-blue-100 text-blue-700 animate-pulse';
+                %>
+                <span class="status-badge px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider <%= badgeClass %>">
+                  <%= item.status %>
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex justify-end gap-2">
+                  <button onclick="scrapeSingleUrl(<%= item.id %>, '<%= item.url %>')" 
+                          class="p-1.5 text-slate-900 hover:text-[#31713D] hover:bg-green-50 rounded-lg transition border border-transparent hover:border-green-200" title="Scrapear ahora">
+                    <i data-lucide="download-cloud" class="w-4 h-4"></i>
+                  </button>
+                  <button onclick="deleteFromQueue(<%= item.id %>)" 
+                          class="p-1.5 text-slate-900 hover:text-red-500 hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-200" title="Eliminar">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <!-- Venues List -->
+  <!-- Venues ya registrados (listado inferior) -->
   <div>
-    <h2 class="text-xl font-bold mb-4">
-      📍 Venues (<span id="venue-count"><%= venues?.length || 0 %></span>)
+    <h2 class="text-sm font-bold mb-3 flex items-center justify-between gap-2 text-gray-700 uppercase tracking-wider">
+      <div class="flex items-center gap-2">
+        <i data-lucide="database" class="w-4 h-4 text-[#31713D]"></i>
+        Venues en Catálogo (<span id="venue-count-all"><%= (locals.venues || []).length %></span>)
+      </div>
+      <div class="relative w-64">
+        <input type="text" id="venue-search-input" placeholder="Filtrar catálogo..." 
+               class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#31713D] focus:border-[#31713D] block w-full pr-8 py-1.5 px-3">
+        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+          <i data-lucide="search" class="w-3 h-3 text-gray-400"></i>
+        </div>
+      </div>
     </h2>
 
-    <% if (!venues || venues.length === 0) { %>
-      <div class="text-center py-8 text-gray-500">
-        <p class="text-lg mb-4">No hay venues aún</p>
-        <p class="text-sm">
-          Usa <strong>Scrapear</strong> para importarlos automáticamente<br/>
-          o <strong>Crear Manual</strong> para agregarlos uno por uno
-        </p>
+    <% if ((locals.venues || []).length === 0) { %>
+      <div class="text-center py-12 bg-white rounded-lg border border-dashed border-gray-300 text-gray-400 text-sm">
+        <i data-lucide="building-2" class="w-12 h-12 mx-auto mb-3 opacity-10"></i>
+        <p>No hay venues registrados en la base de datos.</p>
       </div>
     <% } else { %>
-      <div class="grid gap-4">
-        <% venues.forEach((venue) => { %>
-          <div class="venue-card">
-            <div class="flex justify-between items-start">
-              <div class="flex-1">
-                <h3 class="text-lg font-bold"><%= venue.name %></h3>
-                <p class="text-gray-600 text-sm mt-1">
-                  <% if (venue.address) { %> 📍 <%= venue.address %> <% } %>
-                </p>
-                <p class="text-gray-700 mt-2"><%= venue.description?.substring(0, 150) %>...</p>
-
-                <!-- Capacidades -->
-                <div class="flex gap-4 mt-3 text-sm">
-                  <% if (venue.capacity_cocktail) { %>
-                    <span class="bg-gray-100 px-2 py-1 rounded">
-                      🍸 Cóctel: <%= venue.capacity_cocktail %>
-                    </span>
-                  <% } %>
-                  <% if (venue.capacity_banquet) { %>
-                    <span class="bg-gray-100 px-2 py-1 rounded">
-                      🍽️ Banquete: <%= venue.capacity_banquet %>
-                    </span>
-                  <% } %>
-                  <% if (venue.capacity_theater) { %>
-                    <span class="bg-gray-100 px-2 py-1 rounded">
-                      🎭 Teatro: <%= venue.capacity_theater %>
-                    </span>
-                  <% } %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <% (locals.venues || []).forEach((venue) => { %>
+          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition group">
+            <div class="relative h-32 bg-gray-100 overflow-hidden">
+              <% if (venue.images && venue.images.length > 0) { %>
+                <img src="<%= venue.images[0] %>" alt="<%= venue.name %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                  <%= venue.images.length %> fotos
                 </div>
-
-                <!-- Características -->
-                <% if (venue.features && venue.features.length > 0) { %>
-                  <div class="flex gap-2 flex-wrap mt-2">
-                    <% venue.features.forEach((f) => { %>
-                      <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                        <%= f %>
-                      </span>
-                    <% }) %>
-                  </div>
-                <% } %>
-
-                <!-- Imágenes -->
-                <% if (venue.images && venue.images.length > 0) { %>
-                  <div class="venue-images">
-                    <% venue.images.forEach((img) => { %>
-                      <img src="<%= img %>" alt="<%= venue.name %>"
-                           title="<%= venue.name %>" />
-                    <% }) %>
-                  </div>
-                <% } %>
+              <% } else { %>
+                <div class="flex flex-col items-center justify-center h-full text-gray-300">
+                  <i data-lucide="image-off" class="w-8 h-8 opacity-20"></i>
+                  <span class="text-[10px] uppercase font-bold tracking-widest mt-2">Sin imágenes</span>
+                </div>
+              <% } %>
+            </div>
+            <div class="p-4">
+              <div class="flex justify-between items-start gap-3 mb-2">
+                <h3 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2 min-h-[40px]" title="<%= venue.name %>">
+                  <%= venue.name %>
+                </h3>
+                <div class="flex gap-1 shrink-0">
+                  <button class="text-black hover:text-[#31713D] hover:bg-green-50 p-1.5 rounded-lg transition"
+                          onclick="openVenueForm('edit', '<%= venue.id %>')" title="Editar">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                  </button>
+                  <button class="text-black hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition"
+                          onclick="deleteVenue('<%= venue.id %>', '<%= venue.name %>')" title="Eliminar">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
               </div>
-
-              <!-- Acciones -->
-              <div class="action-buttons ml-4 flex flex-col gap-2">
-                <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 text-sm rounded"
-                        onclick="openVenueForm('edit', <%= venue.id %>)">
-                  ✏️ Editar
-                </button>
-                <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-sm rounded"
-                        onclick="deleteVenue(<%= venue.id %>, '<%= venue.name %>')">
-                  🗑️ Eliminar
-                </button>
-                <% if (venue.external_url) { %>
-                  <a href="<%= venue.external_url %>" target="_blank"
-                     class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 text-sm rounded text-center">
-                    🔗 Ver Original
-                  </a>
-                <% } %>
-              </div>
+              <% if (venue.address) { %>
+                <p class="text-[11px] text-gray-500 flex items-center gap-2 line-clamp-1">
+                  <i data-lucide="map-pin" class="w-3 h-3 text-red-400"></i>
+                  <%= venue.address %>
+                </p>
+              <% } %>
             </div>
           </div>
         <% }) %>
       </div>
     <% } %>
   </div>
-</div>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
 
 <!-- Modal: Formulario Manual -->
 <div id="venue-form-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
   <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
     <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-      <h2 id="form-title" class="text-xl font-bold">Crear Venue</h2>
-      <button onclick="closeVenueForm()" class="text-2xl text-gray-500 hover:text-gray-700">
-        ×
+      <h2 id="form-title" class="text-xl font-bold flex items-center gap-2">
+        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+        Crear Venue
+      </h2>
+      <button onclick="closeVenueForm()" class="text-gray-500 hover:text-gray-700">
+        <i data-lucide="x" class="w-5 h-5"></i>
       </button>
     </div>
 
@@ -237,83 +245,27 @@
       <form id="venue-form" onsubmit="submitVenueForm(event)">
         <!-- Nombre -->
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Nombre * <span class="text-red-500">requerido</span>
-          </label>
-          <input type="text" id="venue-name" name="name" required
-                 class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                 placeholder="Ej: Gran Salón Madrid">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+          <input type="text" id="venue-name" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded" />
         </div>
-
         <!-- Descripción -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-          <textarea id="venue-description" name="description" rows="4"
-                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Describe el venue..."></textarea>
+          <textarea id="venue-description" name="description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded"></textarea>
         </div>
-
-        <!-- Capacidades -->
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Cóctel (pax)
-            </label>
-            <input type="number" id="venue-capacity-cocktail" name="capacity_cocktail" min="0"
-                   class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Banquete (pax)
-            </label>
-            <input type="number" id="venue-capacity-banquet" name="capacity_banquet" min="0"
-                   class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Teatro (pax)
-            </label>
-            <input type="number" id="venue-capacity-theater" name="capacity_theater" min="0"
-                   class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-        </div>
-
         <!-- Dirección -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-          <input type="text" id="venue-address" name="address"
-                 class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                 placeholder="Ej: Calle Gran Vía 25, Madrid">
+          <input type="text" id="venue-address" name="address" class="w-full px-3 py-2 border border-gray-300 rounded" />
         </div>
-
         <!-- URL Externa -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-1">URL Externa</label>
-          <input type="url" id="venue-external-url" name="external_url"
-                 class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                 placeholder="https://...">
+          <input type="url" id="venue-external-url" name="external_url" class="w-full px-3 py-2 border border-gray-300 rounded" />
         </div>
-
-        <!-- Características (tags) -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Características (separadas por coma)
-          </label>
-          <input type="text" id="venue-features" name="features"
-                 class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                 placeholder="Ej: Wifi, Parking, Catering, Luz natural">
-        </div>
-
-        <!-- Botones -->
         <div class="flex gap-3 justify-end">
-          <button type="button" onclick="closeVenueForm()"
-                  class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded transition">
-            Cancelar
-          </button>
-          <button type="submit" id="submit-btn"
-                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition flexible">
-            Guardar
-          </button>
+          <button type="button" onclick="closeVenueForm()" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-[#31713D] text-white rounded">Guardar</button>
         </div>
       </form>
     </div>
@@ -321,256 +273,150 @@
 </div>
 
 <script>
-  let formMode = 'new'; // 'new' o 'edit'
+  let formMode = 'new';
   let editingVenueId = null;
 
-  /**
-   * Abrir formulario para crear/editar venue
-   */
-  function openVenueForm(mode = 'new', venueId = null) {
+  function openVenueForm(mode, id) {
     formMode = mode;
-    editingVenueId = venueId;
-
+    editingVenueId = id;
     const modal = document.getElementById('venue-form-modal');
-    const title = document.getElementById('form-title');
-
-    if (mode === 'edit' && venueId) {
-      title.textContent = '✏️ Editar Venue';
-      // Cargar datos del venue
-      fetchVenueData(venueId);
+    if (mode === 'edit') {
+      document.getElementById('form-title').innerText = 'Editar Venue';
+      fetch('/api/venues/' + id).then(r => r.json()).then(data => {
+        if (data.success) {
+          document.getElementById('venue-name').value = data.venue.name;
+          document.getElementById('venue-description').value = data.venue.description;
+          document.getElementById('venue-address').value = data.venue.address;
+          document.getElementById('venue-external-url').value = data.venue.external_url;
+        }
+      });
     } else {
-      title.textContent = '➕ Crear Venue';
+      document.getElementById('form-title').innerText = 'Crear Venue';
       document.getElementById('venue-form').reset();
     }
-
     modal.classList.remove('hidden');
+    // Click fuera para cerrar
+    modal.onclick = function(e) {
+      if (e.target === modal) closeVenueForm();
+    };
+    setTimeout(() => lucide.createIcons(), 100);
   }
 
   function closeVenueForm() {
     document.getElementById('venue-form-modal').classList.add('hidden');
-    document.getElementById('venue-form').reset();
   }
 
-  /**
-   * Cargar datos del venue para edición
-   */
-  async function fetchVenueData(venueId) {
-    try {
-      const response = await fetch(`/api/venues/${venueId}`);
-      const data = await response.json();
-
-      if (data.success) {
-        const v = data.venue;
-        document.getElementById('venue-name').value = v.name || '';
-        document.getElementById('venue-description').value = v.description || '';
-        document.getElementById('venue-capacity-cocktail').value = v.capacity_cocktail || '';
-        document.getElementById('venue-capacity-banquet').value = v.capacity_banquet || '';
-        document.getElementById('venue-capacity-theater').value = v.capacity_theater || '';
-        document.getElementById('venue-address').value = v.address || '';
-        document.getElementById('venue-external-url').value = v.external_url || '';
-        document.getElementById('venue-features').value = Array.isArray(v.features)
-          ? v.features.join(', ')
-          : '';
-      }
-    } catch (err) {
-      console.error('Error cargando venue:', err);
-    }
+  async function submitVenueForm(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target));
+    const url = formMode === 'edit' ? '/api/admin/venues/' + editingVenueId : '/api/admin/venues/manual';
+    const res = await fetch(url, {
+      method: formMode === 'edit' ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if ((await res.json()).success) location.reload();
   }
 
-  /**
-   * Enviar formulario (crear o actualizar)
-   */
-  async function submitVenueForm(event) {
-    event.preventDefault();
+  async function addUrlToQueue() {
+    const input = document.getElementById('quick-url-input');
+    const url = input.value.trim();
+    if (!url) return;
 
-    const formData = new FormData(document.getElementById('venue-form'));
-    const data = Object.fromEntries(formData);
-
-    const endpoint = formMode === 'edit'
-      ? `/api/admin/venues/${editingVenueId}`
-      : '/api/admin/venues/manual';
-
-    const method = formMode === 'edit' ? 'PUT' : 'POST';
-
-    try {
-      const response = await fetch(endpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert(result.message || 'Guardado correctamente');
-        closeVenueForm();
-        location.reload(); // Recargar lista
-      } else {
-        alert('Error: ' + (result.error || result.message || 'Error desconocido'));
-      }
-    } catch (err) {
-      console.error('Error guardando:', err);
-      alert('Error: ' + err.message);
-    }
-  }
-
-  /**
-   * Iniciar scraping de micecatering.com
-   */
-  async function startScraping() {
-    if (!confirm('¿Ejecutar scraping de micecatering.com? Esto descargará venues e imágenes.')) {
-      return;
-    }
-
-    const btn = document.getElementById('btn-scrape');
+    // Feedback visual
+    const btn = event.currentTarget;
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i>';
+    lucide.createIcons();
     btn.disabled = true;
-    btn.innerHTML = '<span class="inline-flex items-center gap-2"><span class="loading-spinner"></span>Scrapeando...</span>';
-
-    const progressDiv = document.getElementById('scrape-progress');
-    progressDiv.classList.remove('hidden');
 
     try {
-      const response = await fetch('/api/admin/venues/scrape', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert(`✅ ${result.message}\n${result.count} venues importados`);
-        location.reload();
-      } else {
-        alert(`❌ ${result.message || 'Scraping falló'}\n\nPor favor, usa el formulario manual.`);
-      }
-    } catch (err) {
-      console.error('Error scraping:', err);
-      alert('💥 Error: ' + err.message + '\n\nUsa el formulario manual para agregar venues.');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<span class="inline-flex items-center gap-2"><i class="fas fa-spider"></i> Scrapear micecatering.com</span>';
-      progressDiv.classList.add('hidden');
-    }
-  }
-
-  /**
-   * Scrapear desde URL personalizada
-   */
-  async function scrapeFromCustomUrl() {
-    const urlInput = document.getElementById('custom-url-input');
-    const url = urlInput.value.trim();
-
-    // Validar URL
-    if (!url) {
-      alert('❌ Por favor, introduce una URL');
-      urlInput.focus();
-      return;
-    }
-
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      alert('❌ La URL debe comenzar con http:// o https://');
-      urlInput.focus();
-      return;
-    }
-
-    if (!confirm(`¿Scrapear venue desde:\n${url}\n\nEsto descargará e importará automáticamente el venue con sus imágenes.`)) {
-      return;
-    }
-
-    const btn = document.getElementById('btn-scrape-url');
-    const originalHTML = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="loading-spinner"></span> Scrapeando...';
-
-    try {
-      const response = await fetch('/api/admin/venues/scrape-url', {
+      const res = await fetch('/api/admin/venues/queue', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert(`✅ ${result.message}\n\nVenue: ${result.venue?.name || 'Importado'}\nID: ${result.venueId}`);
-        urlInput.value = ''; // Limpiar input
-        location.reload(); // Recargar lista
-      } else {
-        alert(`❌ Error: ${result.error || 'No se pudo scrapear el venue'}\n\nIntenta con otra URL o usa el formulario manual.`);
-      }
-    } catch (err) {
-      console.error('Error scraping URL:', err);
-      alert(`💥 Error: ${err.message}\n\nVerifica la URL y vuelve a intentar.`);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = originalHTML;
-    }
-  }
-
-  /**
-   * Eliminar venue
-   */
-  async function deleteVenue(venueId, venueName) {
-    if (!confirm(`¿Eliminar "${venueName}"?`)) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/admin/venues/${venueId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert(result.message);
+      const data = await res.json();
+      if (data.success) {
         location.reload();
       } else {
-        alert('Error: ' + (result.error || 'No se pudo eliminar'));
+        alert(data.error || 'Error al añadir URL');
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+        lucide.createIcons();
       }
-    } catch (err) {
-      console.error('Error eliminando:', err);
-      alert('Error: ' + err.message);
+    } catch (e) {
+      alert('Error en la conexión');
+      btn.innerHTML = originalContent;
+      btn.disabled = false;
+      lucide.createIcons();
     }
   }
 
-  /**
-   * Importar CSV
-   */
-  async function importVenuesCSV() {
-    const fileInput = document.getElementById('import-csv');
-    if (!fileInput.files.length) return;
-
+  async function importQueueCsv(input) {
+    if (!input.files || input.files.length === 0) return;
+    
     const formData = new FormData();
-    formData.append('csvFile', fileInput.files[0]);
+    formData.append('csvFile', input.files[0]);
 
     try {
-      const response = await fetch('/api/admin/venues/import', {
+      const res = await fetch('/api/admin/venues/queue/import', {
         method: 'POST',
         body: formData
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert(`✅ Importado correctamente`);
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
         location.reload();
       } else {
-        alert('Error: ' + result.error);
+        alert('Error: ' + data.error);
       }
-    } catch (err) {
-      console.error('Error importando:', err);
-      alert('Error: ' + err.message);
+    } catch (e) {
+      alert('Error en la conexión');
+    }
+    input.value = ''; // Reset
+  }
+
+  async function scrapeSingleUrl(id, url) {
+    const row = document.querySelector('tr[data-id="' + id + '"]');
+    const badge = row.querySelector('.status-badge');
+    badge.textContent = 'processing...';
+    try {
+      const res = await fetch('/api/admin/venues/scrape-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, queueId: id })
+      });
+      if ((await res.json()).success) location.reload();
+      else badge.textContent = 'failed';
+    } catch (e) { badge.textContent = 'failed'; }
+  }
+
+  async function scrapeAllPending() {
+    const rows = Array.from(document.querySelectorAll('#pending-scrapes-body tr'))
+      .filter(r => r.querySelector('.status-badge').textContent.includes('pending'));
+    for (const r of rows) {
+      await scrapeSingleUrl(r.dataset.id, r.querySelector('td').title);
     }
   }
 
-  // Limpiar input file después de usar
-  document.getElementById('import-csv')?.addEventListener('change', function() {
-    if (this.files.length > 0) {
-      importVenuesCSV();
+  async function deleteFromQueue(id) {
+    if (confirm('¿Eliminar?')) {
+      await fetch('/api/admin/venues/queue/' + id, { method: 'DELETE' });
+      location.reload();
     }
-  });
+  }
+
+  async function deleteVenue(id, name) {
+    if (confirm('¿Eliminar ' + name + '?')) {
+      await fetch('/api/admin/venues/' + id, { method: 'DELETE' });
+      location.reload();
+    }
+  }
 </script>
 
-<%- include('../partials/footer') %>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

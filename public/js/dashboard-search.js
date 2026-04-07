@@ -50,7 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
  * Obtiene el status actual de la UI
  */
 function getStatusFromUI() {
-  const activeTab = document.querySelector('a[class*="text-blue-600"][class*="border-blue-600"]');
+  // Ahora buscamos el diseño de pill activa (bg-white y shadow-sm)
+  const activeTab = document.querySelector('a.bg-white.shadow-sm');
   if (activeTab) {
     const url = new URL(activeTab.href, window.location.origin);
     return url.searchParams.get('status') || 'all';
@@ -86,6 +87,10 @@ async function performSearch(searchTerm, status) {
     const data = await response.json();
 
     if (data.success) {
+      // Ocultar paginación durante la búsqueda AJAX ya que los datos de página cambian
+      const paginationDiv = document.querySelector('.bg-gray-50\\/50.border-t');
+      if (paginationDiv) paginationDiv.style.display = 'none';
+
       // Limpiar tabla actual
       tableContainer.innerHTML = '';
 
@@ -114,6 +119,11 @@ async function performSearch(searchTerm, status) {
           const row = createProposalRow(proposal);
           tableContainer.appendChild(row);
         });
+        
+        // Re-inicializar iconos Lucide después de la búsqueda
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
       }
     }
   } catch (error) {
@@ -130,122 +140,154 @@ async function performSearch(searchTerm, status) {
  */
 function createProposalRow(proposal) {
   const row = document.createElement('tr');
-  row.className = `hover:bg-gray-50 transition-colors group ${proposal.status === 'cancelled' ? 'bg-red-50/40' : ''}`;
+  const hasUnread = proposal.unread_messages > 0;
+  const isAnulada = proposal.status === 'Anulada' || proposal.status === 'cancelled';
+  const hasSelectedVenue = !!proposal.has_selected_venue;
+  
+  row.className = `hover:bg-gray-50 transition-colors group cursor-pointer border-l-4 ${hasUnread ? 'bg-orange-50/30 border-l-orange-500 shadow-[inset_0_0_10px_rgba(255,165,0,0.05)]' : 'border-l-transparent'} ${isAnulada ? 'bg-red-50/40' : ''}`;
+  row.onclick = () => window.location.href = `/proposal/${proposal.id}/edit`;
   
   // Mapear colores de estado
   const statusColorMap = {
+    'Pipe': 'bg-gray-100 text-gray-700 border-gray-200',
     'draft': 'bg-gray-100 text-gray-700 border-gray-200',
-    'sent': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    'accepted': 'bg-green-100 text-green-700 border-green-200',
+    'sent': 'bg-gray-100 text-gray-700 border-gray-200',
+    'Aceptada': 'bg-green-100 text-[#31713D] border-green-200',
+    'accepted': 'bg-green-100 text-[#31713D] border-green-200',
+    'Anulada': 'bg-red-100 text-red-700 border-red-200',
     'cancelled': 'bg-red-100 text-red-700 border-red-200'
   };
 
   const statusColor = statusColorMap[proposal.status] || 'bg-gray-100 text-gray-700 border-gray-200';
-  const venueDisplay = proposal.venue_names 
-    ? proposal.venue_names 
-    : '<span class="inline-block bg-yellow-50 text-yellow-700 px-2 py-1 rounded text-xs border border-yellow-200">Sin venue definido</span>';
+  
+  let venueDisplayHtml = '';
+  if (proposal.venue_names) {
+    venueDisplayHtml = `
+      <div class="flex items-center gap-1.5">
+        ${hasSelectedVenue ? `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-green-600"></i>` : ''}
+        <span>${proposal.venue_names}</span>
+      </div>
+    `;
+  } else {
+    venueDisplayHtml = '<span class="inline-block bg-yellow-50 text-yellow-700 px-1.5 py-0.5 rounded text-[10px] border border-yellow-200">Sin venue definido</span>';
+  }
 
-  const actionsHtml = proposal.status === 'cancelled'
+  const actionsHtml = proposal.status === 'Anulada'
     ? `
-      <div class="flex justify-end gap-2 items-center print-hidden">
+      <div class="flex flex-wrap justify-end gap-1.5 items-center print-hidden">
         <a href="/p/${escapeHtml(proposal.unique_hash)}" target="_blank"
-           class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200 inline-flex items-center gap-1.5"
-           title="Ver propuesta como cliente">
-          👁️ Ver
+           class="p-1.5 text-black hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 inline-flex items-center"
+           title="Ver propuesta como cliente"
+           onclick="event.stopPropagation()">
+          <i data-lucide="eye" class="w-4 h-4"></i>
         </a>
-        <span class="px-3 py-1 rounded-lg text-xs font-semibold border border-red-200 bg-red-50 text-red-700">
-          Acciones deshabilitadas
+        <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold border border-red-200 bg-red-50 text-red-700">
+          Anulada
         </span>
       </div>
     `
     : `
-      <div class="flex justify-end gap-2 items-center opacity-0 group-hover:opacity-100 transition-opacity print-hidden">
+      <div class="flex flex-wrap justify-end gap-1.5 items-center print-hidden">
         <a href="/p/${escapeHtml(proposal.unique_hash)}" target="_blank"
-           class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200 inline-flex items-center gap-1.5"
-           title="Ver propuesta como cliente">
-          👁️ Ver
+           class="p-1.5 text-black hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 inline-flex items-center"
+           title="Ver propuesta como cliente"
+           onclick="event.stopPropagation()">
+          <i data-lucide="eye" class="w-4 h-4"></i>
         </a>
 
-        <div class="relative group/menu">
-          <button class="text-gray-400 hover:text-gray-600 transition-colors text-lg" title="Más opciones">
-            ⋮
+        <form method="POST" action="/proposal/${proposal.id}/duplicate" style="display: inline;">
+          <button type="submit"
+                  class="p-1.5 text-black hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 inline-flex items-center"
+                  title="Duplicar propuesta"
+                  onclick="event.stopPropagation(); return confirm('¿Duplicar esta propuesta?')">
+            <i data-lucide="copy" class="w-4 h-4"></i>
           </button>
-          <div class="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg hidden group-hover/menu:block opacity-0 group-hover/menu:opacity-100 transition-opacity z-50">
-            <a href="/proposal/${proposal.id}/edit"
-               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 first:rounded-t-lg"
-               title="Editar propuesta">
-              ✏️ Editar
-            </a>
+        </form>
 
-            <button onclick="copyToClipboard('/p/${escapeHtml(proposal.unique_hash)}')"
-                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
-                    title="Copiar enlace para compartir">
-              🔗 Copiar enlace
-            </button>
-
-            <a href="/proposal/${proposal.id}/chat"
-               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50"
-               title="Chat con cliente">
-              💬 Chat
-            </a>
-
-            <form method="POST" action="/proposal/${proposal.id}/duplicate" style="display: contents;">
-              <button type="submit"
-                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50"
-                      title="Duplicar propuesta"
-                      onclick="return confirm('¿Duplicar esta propuesta?')">
-                📋 Duplicar
-              </button>
-            </form>
-
-            <form method="POST" action="/proposal/${proposal.id}/delete" style="display: contents;">
-              <button type="submit"
-                      class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-lg"
-                      title="Eliminar propuesta"
-                      onclick="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
-                🗑️ Eliminar
-              </button>
-            </form>
-          </div>
-        </div>
+        <form method="POST" action="/proposal/${proposal.id}/delete" style="display: inline;">
+          <button type="submit"
+                  class="p-1.5 text-black hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 inline-flex items-center"
+                  title="Eliminar propuesta"
+                  onclick="event.stopPropagation(); return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </form>
       </div>
     `;
 
   row.innerHTML = `
+    <!-- Notif -->
+    <td class="px-2 py-2 text-center">
+      ${hasUnread ? `
+        <div class="flex items-center justify-center">
+          <span class="flex items-center justify-center bg-orange-500 text-white text-[10px] font-bold w-5 h-5 rounded-full shadow-sm animate-pulse" title="${proposal.unread_messages} mensajes nuevos">
+            ${proposal.unread_messages}
+          </span>
+        </div>
+      ` : `
+        <div class="flex items-center justify-center text-gray-200 group-hover:text-gray-300">
+          <i data-lucide="message-square" class="w-3.5 h-3.5 opacity-20"></i>
+        </div>
+      `}
+    </td>
+    <!-- OV -->
+    <td class="px-4 py-2">
+      <div class="flex flex-col">
+        <span class="text-sm font-bold text-[#31713D] uppercase tracking-tight">
+          ${proposal.custom_ref || 'Sin Ref.'}
+        </span>
+        <span class="text-[9px] font-mono text-gray-400 mt-0.5">
+          ID: #${proposal.id.toString().padStart(4, '0')}
+        </span>
+      </div>
+    </td>
     <!-- Cliente / Evento -->
-    <td class="px-6 py-4">
-      <div class="font-bold ${proposal.status === 'cancelled' ? 'text-red-800 line-through' : 'text-gray-900'}">${escapeHtml(proposal.client_name)}</div>
+    <td class="px-4 py-2">
+      <div class="flex items-center gap-2">
+        <div class="font-bold text-sm ${isAnulada ? 'text-red-800 line-through' : 'text-gray-900'}">${escapeHtml(proposal.client_name)}</div>
+      </div>
     </td>
 
     <!-- Fecha Evento -->
-    <td class="px-6 py-4 text-sm ${proposal.status === 'cancelled' ? 'text-red-700/70' : 'text-gray-600'}">
+    <td class="px-4 py-2 text-xs ${isAnulada ? 'text-red-700/70' : 'text-gray-600'}">
       <div>${proposal.formattedDate}</div>
-      <div class="text-xs mt-1 ${proposal.status === 'cancelled' ? 'text-red-600/60' : 'text-gray-400'}">${proposal.pax} Pax</div>
+      <div class="text-[10px] mt-0.5 ${isAnulada ? 'text-red-600/60' : 'text-gray-400'}">${proposal.pax} Pax</div>
     </td>
 
     <!-- Venue -->
-    <td class="px-6 py-4 text-sm ${proposal.status === 'cancelled' ? 'text-red-700/70' : 'text-gray-600'}">
-      ${venueDisplay}
+    <td class="px-4 py-2 text-xs ${isAnulada ? 'text-red-700/70' : 'text-gray-600'}">
+      ${venueDisplayHtml}
     </td>
 
     <!-- Importe Estimado -->
-    <td class="px-6 py-4 text-right">
-      <div class="font-bold text-sm ${proposal.status === 'cancelled' ? 'text-red-800' : 'text-gray-900'}">
+    <td class="px-4 py-2 text-right">
+      <div class="font-bold text-xs ${isAnulada ? 'text-red-800' : 'text-gray-900'}">
         ${proposal.total > 0 ? proposal.formattedTotal : '<span class="text-gray-400">--</span>'}
       </div>
     </td>
 
     <!-- Estado -->
-    <td class="px-6 py-4 text-center">
+    <td class="px-4 py-2 text-center">
       <div class="inline-block">
-        <span class="px-3 py-1 rounded-full text-xs font-semibold border ${statusColor}">
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusColor}">
           ${proposal.statusLabel}
         </span>
       </div>
     </td>
 
+    <!-- Revisión (is_editing) -->
+    <td class="px-4 py-2 text-center">
+        <label class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+            <input type="checkbox" 
+                   class="sr-only peer" 
+                   ${proposal.is_editing ? 'checked' : ''}
+                   onchange="toggleRevision(${proposal.id}, this.checked)">
+            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#31713D]"></div>
+        </label>
+    </td>
+
     <!-- Acciones -->
-    <td class="px-6 py-4 text-right">
+    <td class="px-4 py-2 text-right">
       ${actionsHtml}
     </td>
   `;
@@ -262,12 +304,12 @@ function updateStatusTabs(selectedStatus) {
     const status = url.searchParams.get('status') || 'all';
     
     if (status === selectedStatus) {
-      // Activar
+      // Activar (Pill design)
       link.classList.remove('text-gray-500', 'hover:text-gray-700');
-      link.classList.add('text-blue-600', 'border-b-2', 'border-blue-600', '-mb-0');
+      link.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
     } else {
       // Desactivar
-      link.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600', '-mb-0');
+      link.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
       link.classList.add('text-gray-500', 'hover:text-gray-700');
     }
   });
@@ -277,6 +319,7 @@ function updateStatusTabs(selectedStatus) {
  * Escapa caracteres HTML para evitar XSS
  */
 function escapeHtml(text) {
+  if (!text) return '';
   const map = {
     '&': '&amp;',
     '<': '&lt;',
@@ -284,5 +327,5 @@ function escapeHtml(text) {
     '"': '&quot;',
     "'": '&#039;'
   };
-  return text.replace(/[&<>"']/g, m => map[m]);
+  return text.toString().replace(/[&<>"']/g, m => map[m]);
 }

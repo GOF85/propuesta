@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Platos - MICE Catering Proposals</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Global Theme CSS -->
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/professional.css">
+</head>
+<body class="bg-gray-50">
+    <%- include('../partials/header') %>
+
+    <div class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-xl font-bold flex items-center gap-2 text-gray-800">
+                        <i data-lucide="utensils" class="w-6 h-6 text-[#31713D]"></i>
+                        Gestión de Platos
+                    </h1>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-tight text-gray-300">Catálogo maestro de platos disponibles para propuestas</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleImportSection()" class="bg-[#31713D] hover:bg-[#24552E] text-white px-3 py-1.5 rounded text-sm transition flex items-center gap-2 shadow-sm font-medium">
+                        <i data-lucide="file-up" class="w-4 h-4 text-black"></i>
+                        Importar CSV
+                    </button>
+                    <button onclick="showNewDishModal()" class="bg-[#31713D] hover:bg-[#24552E] text-white px-3 py-1.5 rounded text-sm transition flex items-center gap-2 shadow-sm font-medium">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-black"></i>
+                        Nuevo Plato
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Flash Messages -->
+        <%- include('../partials/flash-messages.ejs') %>
+
+        <!-- Quick Import Section (Hidden by default) -->
+        <div id="importSection" class="hidden mb-8 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="file-up" class="w-4 h-4 text-[#31713D]"></i>
+                    Importación Masiva de Platos
+                </h2>
+                <button onclick="toggleImportSection()" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <p class="text-xs text-gray-600">Sube un archivo CSV con el formato correcto para importar o actualizar platos masivamente.</p>
+                    <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-[#31713D] hover:bg-green-50 transition-all" id="dropZone">
+                        <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="handleFileSelect(this)">
+                        <label for="csvFile" class="cursor-pointer flex flex-col items-center">
+                            <i data-lucide="upload-cloud" class="w-10 h-10 text-gray-300 mb-3"></i>
+                            <span id="fileName" class="text-sm font-medium text-gray-900">Selecciona un archivo .csv</span>
+                            <span class="text-xs text-gray-500 mt-1">o arrastra y suelta aquí</span>
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="uploadCSV()" id="btnUpload" class="flex-1 bg-[#31713D] text-white px-4 py-2 rounded-lg hover:bg-[#24552E] transition-all font-bold text-sm disabled:opacity-50" disabled>
+                            Comenzar Importación
+                        </button>
+                        <a href="/admin/dishes/export" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-bold text-sm">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            Exportar CSV
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-5 border border-gray-100 flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Formato Sugerido</h3>
+                        <a href="/admin/dishes/template" class="text-[10px] text-[#31713D] hover:underline font-bold flex items-center gap-1">
+                            <i data-lucide="download-cloud" class="w-3 h-3"></i>
+                            Descargar Plantilla
+                        </a>
+                    </div>
+                    <ul class="space-y-2 text-xs text-gray-600 flex-1">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>name:</strong> Nombre único del plato (clave de actualización)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>description:</strong> Descripción corta del plato</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>category:</strong> Categoría (ej: entrante, principal, postre)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>allergens:</strong> Separados por "|" (ej: gluten|lacteos)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>badges:</strong> Etiquetas SEO (ej: vegano|premium)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>images:</strong> URLs o rutas de imagen (separadas por "|")</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+            <!-- Listado de Platos -->
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h2 class="text-sm font-bold flex items-center gap-2 text-gray-700 uppercase tracking-wider">
+                        <i data-lucide="database" class="w-4 h-4 text-[#31713D]"></i>
+                        Platos en Catálogo (<span id="dish-count"><%= total %></span>)
+                    </h2>
+                    
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <!-- Buscador (Doble de ancho que el filtro) -->
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Buscar plato..." value="<%= search %>"
+                                class="bg-white border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#31713D] focus:border-[#31713D] block w-full sm:w-80 pr-8 py-1.5 px-3">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                <i data-lucide="search" class="w-3 h-3 text-gray-400"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Filtro Categoría -->
+                        <select id="categoryFilter" class="bg-white border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#31713D] focus:border-[#31713D] block w-full sm:w-40 py-1.5 px-3">
+                            <option value="">Todas las categorías</option>
+                            <% if (categories && categories.length > 0) { %>
+                                <% categories.forEach(cat => { %>
+                                    <option value="<%= cat %>" <%= (typeof selectedCategory !== 'undefined' && selectedCategory === cat) ? 'selected' : '' %>><%= cat.charAt(0).toUpperCase() + cat.slice(1) %></option>
+                                <% }); %>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="dishesTableContainer" class="overflow-x-auto relative min-h-[200px]">
+                    <!-- Loading Overlay -->
+                    <div id="tableLoading" class="hidden absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                        <div class="flex flex-col items-center gap-2">
+                            <i data-lucide="loader-2" class="w-8 h-8 text-[#31713D] animate-spin"></i>
+                            <span class="text-xs font-bold text-gray-500 uppercase">Actualizando catálogo...</span>
+                        </div>
+                    </div>
+
+                    <% if (dishes && dishes.length > 0) { %>
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs">
+                                <tr>
+                                    <th class="px-4 py-3 font-semibold w-16">Imagen</th>
+                                    <th class="px-4 py-3 font-semibold">Plato</th>
+                                    <th class="px-4 py-3 font-semibold w-24">Categoría</th>
+                                    <th class="px-4 py-3 font-semibold w-32">Alérgenos</th>
+                                    <th class="px-4 py-3 font-semibold text-right w-24">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <% dishes.forEach(dish => { %>
+                                    <tr class="hover:bg-gray-50 transition-colors cursor-pointer group" 
+                                        onclick="editDishById(<%= dish.id %>)"
+                                        data-dish-id="<%= dish.id %>" 
+                                        data-dish-json="<%= encodeURIComponent(JSON.stringify(dish)) %>">
+                                        <td class="px-4 py-3">
+                                            <% if (dish.images && dish.images.length > 0) { %>
+                                                <img src="<%= dish.images[0] %>" alt="<%= dish.name %>" class="w-10 h-10 object-cover rounded shadow-sm" onerror="this.src='/img/placeholder.png'" />
+                                            <% } else { %>
+                                                <div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center border border-gray-200">
+                                                    <i data-lucide="utensils" class="w-5 h-5 text-gray-300"></i>
+                                                </div>
+                                            <% } %>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="font-bold text-gray-900 group-hover:text-[#31713D] transition-colors"><%= dish.name %></div>
+                                            <div class="text-[11px] text-gray-500 line-clamp-1"><%= dish.description || '—' %></div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <% if (dish.category) { %>
+                                                <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold border border-blue-100 uppercase">
+                                                    <%= dish.category %>
+                                                </span>
+                                            <% } %>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                <% if (dish.allergens && dish.allergens.length > 0) { %>
+                                                    <% dish.allergens.slice(0, 2).forEach(a => { %>
+                                                        <span class="px-1.5 py-0.5 bg-red-50 text-red-700 rounded text-[9px] font-bold border border-red-100 uppercase"><%= a %></span>
+                                                    <% }) %>
+                                                    <% if (dish.allergens.length > 2) { %>
+                                                        <span class="text-[9px] text-gray-400 font-bold">+<%= dish.allergens.length - 2 %></span>
+                                                    <% } %>
+                                                <% } else { %>
+                                                    <span class="text-[10px] text-gray-300">Ninguno</span>
+                                                <% } %>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <div class="flex justify-end gap-1" onclick="event.stopPropagation()">
+                                                <button onclick="duplicateDish(<%= dish.id %>)" class="p-1.5 text-black hover:text-[#31713D] hover:bg-green-50 rounded transition border border-transparent hover:border-green-100" title="Duplicar">
+                                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                                </button>
+                                                <button onclick="deleteDish(<%= dish.id %>)" class="p-1.5 text-black hover:text-red-500 hover:bg-red-50 rounded transition border border-transparent hover:border-red-100" title="Eliminar">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Paginación -->
+                        <% if (totalPages > 1) { %>
+                            <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                                <div class="text-[11px] text-gray-500">
+                                    Página <span class="font-bold text-gray-700"><%= page %></span> de <span class="font-bold text-gray-700"><%= totalPages %></span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <% if (page > 1) { %>
+                                        <button onclick="performDishSearch(<%= page - 1 %>)" class="px-3 py-1 bg-white border border-gray-300 rounded text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition">Anterior</button>
+                                    <% } %>
+                                    <% if (page < totalPages) { %>
+                                        <button onclick="performDishSearch(<%= page + 1 %>)" class="px-3 py-1 bg-white border border-gray-300 rounded text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition">Siguiente</button>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <div class="p-12 text-center text-gray-400">
+                            <i data-lucide="utensils" class="w-12 h-12 mx-auto mb-3 opacity-20"></i>
+                            <p class="text-sm">No se encontraron platos en el catálogo.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Modal: Crear/Editar Plato -->
+<div id="dishModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+            <h2 id="modalTitle" class="text-lg font-bold text-gray-800">Nuevo Plato</h2>
+            <button onclick="closeDishModal()" class="text-gray-400 hover:text-gray-600 transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div id="dishFormContainer" class="overflow-y-auto p-6 flex-1">
+            <form id="dishForm" onsubmit="submitDish(event)" class="space-y-4">
+                <!-- Nombre -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nombre del Plato *</label>
+                    <input type="text" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#31713D] focus:border-transparent outline-none transition" />
+                </div>
+
+            <!-- Descripción -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Descripción</label>
+                <textarea name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#31713D] focus:border-transparent outline-none transition"></textarea>
+            </div>
+
+            <!-- Row: Categoría -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Categoría</label>
+                <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#31713D] focus:border-transparent outline-none transition">
+                    <% categories.forEach(cat => { %>
+                        <option value="<%= cat %>"><%= cat %></option>
+                    <% }); %>
+                </select>
+            </div>
+
+            <!-- Alérgenos -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-3 underline decoration-[#31713D] underline-offset-4">Alérgenos del Plato</label>
+                <div id="allergensButtons" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                    <% 
+                        const availAllergens = [
+                            { id: 'gluten', label: 'Gluten' },
+                            { id: 'lacteos', label: 'Lácteos' },
+                            { id: 'huevo', label: 'Huevo' },
+                            { id: 'pescado', label: 'Pescado' },
+                            { id: 'marisco', label: 'Marisco' },
+                            { id: 'frutos_secos', label: 'Frutos Secos' },
+                            { id: 'soja', label: 'Soja' },
+                            { id: 'apio', label: 'Apio' },
+                            { id: 'mostaza', label: 'Mostaza' },
+                            { id: 'sesamo', label: 'Sésamo' },
+                            { id: 'sulfitos', label: 'Sulfitos' },
+                            { id: 'altramuces', label: 'Altramuces' },
+                            { id: 'moluscos', label: 'Moluscos' },
+                            { id: 'cacahuetes', label: 'Cacahuetes' }
+                        ];
+                    %>
+                    <% availAllergens.forEach(a => { %>
+                        <button type="button" 
+                                onclick="toggleAllergenSelection('<%= a.id %>')"
+                                id="btn-allergen-<%= a.id %>"
+                                class="btn-allergen-toggle border border-gray-200 rounded-lg py-2 px-1 text-[10px] font-bold uppercase transition hover:border-[#31713D] hover:bg-slate-50 flex flex-col items-center justify-center gap-1">
+                            <span class="truncate w-full text-center"><%= a.label %></span>
+                        </button>
+                    <% }) %>
+                </div>
+                <input type="hidden" name="allergens" id="allergensInput" value="[]" />
+            </div>
+
+            <!-- Badges -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Etiquetas (Badges)</label>
+                <div id="badgesContainer" class="flex flex-wrap gap-2 mb-2"></div>
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <input type="text" id="badgeInput" list="badgeSuggestions" placeholder="Escribe o selecciona etiqueta..." 
+                               onkeypress="if(event.key === 'Enter') { event.preventDefault(); addBadge(); }"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#31713D] focus:border-transparent outline-none transition" />
+                        <datalist id="badgeSuggestions">
+                            <option value="Vegano">
+                            <option value="Vegetariano">
+                            <option value="Sin Gluten">
+                            <option value="Sin Lactosa">
+                            <option value="Premium">
+                            <option value="Picante">
+                            <option value="MICE Selección">
+                        </datalist>
+                    </div>
+                    <button type="button" onclick="addBadge()" class="bg-[#31713D] hover:bg-black text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4 text-black"></i>
+                        Añadir
+                    </button>
+                </div>
+                <input type="hidden" name="badges" id="badgesInput" value="[]" />
+            </div>
+
+            <!-- Imágenes -->
+            <div class="space-y-3">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Imágenes del Plato</label>
+                
+                <!-- Imágenes seleccionadas -->
+                <div id="imagesContainer" class="flex flex-wrap gap-2 mb-2"></div>
+                <input type="hidden" name="images" id="imagesInput" value="[]" />
+
+                <!-- Galería para seleccionar -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="bg-gray-50 px-3 py-2 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-2">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <span class="text-[10px] font-bold text-gray-500 uppercase whitespace-nowrap">Galería</span>
+                            <div class="relative w-full">
+                                <input type="text" id="gallerySearch" placeholder="Buscar imagen..." 
+                                       oninput="filterGalleryImages()"
+                                       class="w-full pl-7 pr-2 py-1 text-[10px] border border-gray-300 rounded focus:ring-1 focus:ring-[#31713D] focus:border-[#31713D] outline-none">
+                                <i data-lucide="search" class="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <a href="/admin/images" target="_blank" class="text-[10px] text-[#31713D] hover:underline font-bold shrink-0">Subir nuevas →</a>
+                    </div>
+                    <div class="max-h-48 overflow-y-auto p-2 bg-white">
+                        <div id="galleryGrid" class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                            <% if (typeof images !== 'undefined' && images && images.length > 0) { %>
+                                <% images.forEach(img => { %>
+                                    <% 
+                                        const imgId = img.path.split('/').pop().replace(/[^a-z0-9]/gi, '');
+                                        const searchName = (img.original_name || img.filename || '');
+                                    %>
+                                    <div class="gallery-item relative group cursor-pointer aspect-square rounded overflow-hidden border border-gray-200 hover:border-[#31713D] transition-all bg-gray-100"
+                                         onclick="toggleImageFromGallery('<%= img.path %>')"
+                                         data-search="<%= searchName %>"
+                                         title="<%= searchName %>">
+                                        <img src="<%= img.path %>" class="w-full h-full object-cover" loading="lazy">
+                                        <div class="absolute inset-0 bg-[#31713D]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <i data-lucide="plus" class="w-4 h-4 text-white drop-shadow"></i>
+                                        </div>
+                                        <!-- Overlay de seleccionado -->
+                                        <div id="gallery-check-<%= imgId %>" class="absolute top-0 right-0 p-0.5 bg-[#31713D] text-white hidden rounded-bl">
+                                            <i data-lucide="check" class="w-3 h-3"></i>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            <% } else { %>
+                                <div class="col-span-full py-8 text-center text-gray-400 text-xs">
+                                    <i data-lucide="image-off" class="w-8 h-8 mx-auto mb-2 opacity-20"></i>
+                                    <p>No hay imágenes en la galería.</p>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Botones (Footer fijo) -->
+    <div class="p-4 border-t border-gray-200 bg-gray-50 flex gap-3">
+        <button type="button" onclick="closeDishModal()" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-bold text-sm">
+            Cancelar
+        </button>
+        <button type="submit" form="dishForm" class="flex-1 px-4 py-2.5 bg-[#31713D] text-white rounded-lg hover:bg-black transition font-bold text-sm shadow-sm">
+            Guardar Plato
+        </button>
+    </div>
+</div>
+</div>
+
+<script>
+    // ===== AJAX SEARCH & REFRESH =====
+    let currentPage = <%= page %>;
+
+    async function performDishSearch(page = 1) {
+        const loading = document.getElementById('tableLoading');
+        if (loading) loading.classList.remove('hidden');
+        
+        const search = document.getElementById('searchInput').value.trim();
+        const category = document.getElementById('categoryFilter').value;
+        currentPage = page;
+
+        try {
+            const response = await fetch(`/admin/dishes?ajax=1&page=${page}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`);
+            const data = await response.json();
+            
+            // Actualizar contador
+            const countEl = document.getElementById('dish-count');
+            if (countEl) countEl.textContent = data.total;
+            
+            // Re-renderizar tabla
+            renderDishesTable(data.dishes, data.page, data.totalPages);
+            
+            // Actualizar URL sin recargar (opcional, para que el usuario pueda compartir/recargar)
+            const newUrl = `/admin/dishes?page=${page}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`;
+            window.history.pushState({path: newUrl}, '', newUrl);
+
+        } catch (err) {
+            console.error('Error fetching dishes:', err);
+        } finally {
+            if (loading) loading.classList.add('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
+
+    function renderDishesTable(dishes, page, totalPages) {
+        const container = document.getElementById('dishesTableContainer');
+        // Mantener el loading overlay
+        const loadingHtml = `<div id="tableLoading" class="hidden absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                        <div class="flex flex-col items-center gap-2">
+                            <i data-lucide="loader-2" class="w-8 h-8 text-[#31713D] animate-spin"></i>
+                            <span class="text-xs font-bold text-gray-500 uppercase">Actualizando catálogo...</span>
+                        </div>
+                    </div>`;
+
+        if (!dishes || dishes.length === 0) {
+            container.innerHTML = loadingHtml + `
+                <div class="p-12 text-center text-gray-400">
+                    <i data-lucide="utensils" class="w-12 h-12 mx-auto mb-3 opacity-20"></i>
+                    <p class="text-sm">No se encontraron platos que coincidan con la búsqueda.</p>
+                </div>`;
+            return;
+        }
+
+        let html = loadingHtml + `
+            <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold w-16">Imagen</th>
+                        <th class="px-4 py-3 font-semibold">Plato</th>
+                        <th class="px-4 py-3 font-semibold w-24">Categoría</th>
+                        <th class="px-4 py-3 font-semibold w-32">Alérgenos</th>
+                        <th class="px-4 py-3 font-semibold text-right w-24">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+        `;
+
+        dishes.forEach(dish => {
+            const dishJson = encodeURIComponent(JSON.stringify(dish));
+            const imgSrc = (dish.images && dish.images.length > 0) ? dish.images[0] : null;
+            const allergensHtml = (dish.allergens && dish.allergens.length > 0) 
+                ? dish.allergens.slice(0, 2).map(a => `<span class="px-1.5 py-0.5 bg-red-50 text-red-700 rounded text-[9px] font-bold border border-red-100 uppercase">${a}</span>`).join('') + (dish.allergens.length > 2 ? `<span class="text-[9px] text-gray-400 font-bold ml-1">+${dish.allergens.length - 2}</span>` : '')
+                : '<span class="text-[10px] text-gray-300">Ninguno</span>';
+
+            html += `
+                <tr class="hover:bg-gray-50 transition-colors cursor-pointer group" 
+                    onclick="editDishById(${dish.id})"
+                    data-dish-id="${dish.id}" 
+                    data-dish-json="${dishJson}">
+                    <td class="px-4 py-3">
+                        ${imgSrc ? `<img src="${imgSrc}" class="w-10 h-10 object-cover rounded shadow-sm" onerror="this.src='/img/placeholder.png'" />` : `
+                            <div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center border border-gray-200">
+                                <i data-lucide="utensils" class="w-5 h-5 text-gray-300"></i>
+                            </div>
+                        `}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="font-bold text-gray-900 group-hover:text-[#31713D] transition-colors">${dish.name}</div>
+                        <div class="text-[11px] text-gray-500 line-clamp-1">${dish.description || '—'}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        ${dish.category ? `<span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold border border-blue-100 uppercase">${dish.category}</span>` : ''}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-wrap gap-1">${allergensHtml}</div>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex justify-end gap-1" onclick="event.stopPropagation()">
+                            <button onclick="duplicateDish(${dish.id})" class="p-1.5 text-black hover:text-[#31713D] hover:bg-green-50 rounded transition border border-transparent hover:border-green-100" title="Duplicar">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteDish(${dish.id})" class="p-1.5 text-black hover:text-red-500 hover:bg-red-50 rounded transition border border-transparent hover:border-red-100" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `</tbody></table>`;
+
+        // Paginación
+        if (totalPages > 1) {
+            html += `
+                <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                    <div class="text-[11px] text-gray-500">
+                        Página <span class="font-bold text-gray-700">${page}</span> de <span class="font-bold text-gray-700">${totalPages}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        ${page > 1 ? `<button onclick="performDishSearch(${page - 1})" class="px-3 py-1 bg-white border border-gray-300 rounded text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition">Anterior</button>` : ''}
+                        ${page < totalPages ? `<button onclick="performDishSearch(${page + 1})" class="px-3 py-1 bg-white border border-gray-300 rounded text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition">Siguiente</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // ===== UI HELPERS =====
+    function toggleImportSection() {
+        const section = document.getElementById('importSection');
+        if (section) {
+            section.classList.toggle('hidden');
+            if(!section.classList.contains('hidden')) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }
+
+    // Filtros dinámicos (AJAX)
+    document.getElementById('searchInput').addEventListener('input', () => {
+        // Debounce simple
+        clearTimeout(window.searchTimeout);
+        window.searchTimeout = setTimeout(() => performDishSearch(1), 300);
+    });
+
+    document.getElementById('categoryFilter').addEventListener('change', () => performDishSearch(1));
+
+    function applyFilters() {
+        performDishSearch(1);
+    }
+
+    // ===== MODAL CONTROL =====
+    let currentEditingDishId = null;
+    let allergens = [];
+    let badges = [];
+    let images = [];
+
+    function showNewDishModal() {
+        currentEditingDishId = null;
+        document.getElementById('modalTitle').textContent = 'Nuevo Plato';
+        document.getElementById('dishForm').reset();
+        allergens = [];
+        badges = [];
+        images = [];
+        updateAllergensUI();
+        updateBadgesUI();
+        updateImagesUI();
+        toggleDishModal(true);
+    }
+
+    function closeDishModal() {
+        toggleDishModal(false);
+    }
+
+    function toggleDishModal(show) {
+        const modal = document.getElementById('dishModal');
+        modal.classList.toggle('hidden', !show);
+        if (show) {
+            document.body.style.overflow = 'hidden';
+            // Listener para cerrar al pulsar fuera
+            modal.onclick = function(e) {
+                if (e.target === modal) toggleDishModal(false);
+            };
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+
+    function editDishById(id) {
+        const row = document.querySelector(`tr[data-dish-id="${id}"]`);
+        const dish = JSON.parse(decodeURIComponent(row.getAttribute('data-dish-json')));
+        
+        currentEditingDishId = id;
+        document.getElementById('modalTitle').textContent = 'Editar Plato';
+        document.getElementById('dishForm').name.value = dish.name;
+        document.getElementById('dishForm').description.value = dish.description || '';
+        document.getElementById('dishForm').category.value = dish.category || 'otro';
+        
+        allergens = Array.isArray(dish.allergens) ? dish.allergens : [];
+        badges = Array.isArray(dish.badges) ? dish.badges : [];
+        images = Array.isArray(dish.images) ? dish.images : [];
+        
+        updateAllergensUI();
+        updateBadgesUI();
+        updateImagesUI();
+        
+        toggleDishModal(true);
+    }
+
+    // ===== COLLECTIONS MANAGEMENT =====
+    function toggleAllergenSelection(id) {
+        const index = allergens.indexOf(id);
+        if (index === -1) {
+            allergens.push(id);
+        } else {
+            allergens.splice(index, 1);
+        }
+        updateAllergensUI();
+    }
+
+    function updateAllergensUI() {
+        // Reset visual de todos los botones
+        document.querySelectorAll('.btn-allergen-toggle').forEach(btn => {
+            btn.classList.remove('bg-[#31713D]', 'text-white', 'border-[#31713D]');
+            btn.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+        });
+
+        // Activar seleccionados
+        allergens.forEach(id => {
+            const btn = document.getElementById(`btn-allergen-${id}`);
+            if (btn) {
+                btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+                btn.classList.add('bg-[#31713D]', 'text-white', 'border-[#31713D]');
+            }
+        });
+
+        document.getElementById('allergensInput').value = JSON.stringify(allergens);
+    }
+
+    function addBadge() {
+        const input = document.getElementById('badgeInput');
+        const val = input.value.trim();
+        if (val && !badges.includes(val)) {
+            badges.push(val);
+            updateBadgesUI();
+        }
+        input.value = '';
+    }
+
+    function removeBadge(val) {
+        badges = badges.filter(b => b !== val);
+        updateBadgesUI();
+    }
+
+    function updateBadgesUI() {
+        const container = document.getElementById('badgesContainer');
+        container.innerHTML = badges.map(b => `
+            <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[10px] font-bold uppercase">
+                ${b}
+                <button type="button" onclick="removeBadge('${b}')" class="hover:text-blue-900">
+                    <i data-lucide="x" class="w-3 h-3"></i>
+                </button>
+            </span>
+        `).join('');
+        document.getElementById('badgesInput').value = JSON.stringify(badges);
+        lucide.createIcons();
+    }
+
+    function toggleImageFromGallery(url) {
+        const index = images.indexOf(url);
+        if (index === -1) {
+            images.push(url);
+        } else {
+            images.splice(index, 1);
+        }
+        updateImagesUI();
+    }
+
+    function removeImage(url) {
+        images = images.filter(img => img !== url);
+        updateImagesUI();
+    }
+
+    // Filtro de galería (búsqueda local reactiva)
+    function filterGalleryImages() {
+        const query = (document.getElementById('gallerySearch').value || '').trim();
+        const items = document.querySelectorAll('.gallery-item');
+        
+        if (!query) {
+            items.forEach(el => el.classList.remove('hidden'));
+            return;
+        }
+
+        const normalizedQuery = normalizeSearch(query);
+        items.forEach(el => {
+            const searchTerms = el.getAttribute('data-search') || '';
+            const normalizedTerms = normalizeSearch(searchTerms);
+            
+            if (normalizedTerms.includes(normalizedQuery)) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        });
+    }
+
+    function normalizeSearch(str) {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+
+    function updateImagesUI() {
+        const container = document.getElementById('imagesContainer');
+        
+        if (images.length === 0) {
+            container.innerHTML = '<p class="text-[10px] text-gray-400 italic py-2">Ninguna imagen seleccionada</p>';
+        } else {
+            container.innerHTML = images.map(img => `
+                <div class="relative group w-14 h-14 rounded border border-gray-200 overflow-hidden shadow-sm bg-gray-100">
+                    <img src="${img}" class="w-full h-full object-cover" onerror="this.src='/img/placeholder.png'" />
+                    <button type="button" onclick="removeImage('${img}')" 
+                            class="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('imagesInput').value = JSON.stringify(images);
+        
+        // Actualizar checks en la galería
+        document.querySelectorAll('[id^="gallery-check-"]').forEach(el => el.classList.add('hidden'));
+        images.forEach(img => {
+            const imgId = img.split('/').pop().replace(/[^a-z0-9]/gi, '');
+            const check = document.getElementById(`gallery-check-${imgId}`);
+            if (check) check.classList.remove('hidden');
+        });
+        
+        lucide.createIcons();
+    }
+
+    // ===== API ACTIONS =====
+    async function submitDish(e) {
+        e.preventDefault();
+        
+        // Deshabilitar botón para evitar doble envío
+        let submitBtn = e.target.querySelector('button[type="submit"]');
+        if (!submitBtn) {
+            // El botón puede estar fuera del form (usando el atributo form="dishForm")
+            submitBtn = document.querySelector(`button[type="submit"][form="${e.target.id}"]`);
+        }
+        
+        const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Guardar Plato';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando...';
+            lucide.createIcons();
+        }
+
+        const formData = {
+            name: e.target.name.value.trim(),
+            description: e.target.description.value.trim(),
+            category: e.target.category.value,
+            allergens: allergens,
+            badges: badges,
+            images: images
+        };
+
+        try {
+            const method = currentEditingDishId ? 'PUT' : 'POST';
+            const url = currentEditingDishId ? `/admin/dishes/${currentEditingDishId}` : '/admin/dishes';
+
+            const response = await fetch(url, {
+                method,
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                closeDishModal();
+                performDishSearch(currentPage);
+            } else {
+                const errorMsg = result.error || (result.errors ? result.errors.map(e => e.msg).join(', ') : 'Error desconocido');
+                alert('Error al guardar el plato: ' + errorMsg);
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                    lucide.createIcons();
+                }
+            }
+        } catch (err) {
+            console.error('Submission error:', err);
+            alert('Error de conexión con el servidor');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                lucide.createIcons();
+            }
+        }
+    }
+
+    async function deleteDish(id) {
+        if (!confirm('¿Seguro que deseas eliminar este plato?')) return;
+        try {
+            const res = await fetch(`/admin/dishes/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                performDishSearch(currentPage);
+            } else {
+                const data = await res.json();
+                alert('Error al borrar: ' + (data.error || 'Inténtelo de nuevo'));
+            }
+        } catch (err) { alert('Error de conexión'); }
+    }
+
+    async function duplicateDish(id) {
+        try {
+            const res = await fetch(`/admin/dishes/${id}/duplicate`, { 
+                method: 'POST',
+                headers: { 'Accept': 'application/json' }
+            });
+            const result = await res.json();
+            if (result.success) {
+                performDishSearch(currentPage);
+            } else {
+                alert('Error al duplicar: ' + result.error);
+            }
+        } catch (err) { alert('Error de conexión'); }
+    }
+
+    // ===== CSV IMPORT =====
+    function handleFileSelect(input) {
+        const btn = document.getElementById('btnUpload');
+        const label = document.getElementById('fileName');
+        if (input.files && input.files[0]) {
+            label.textContent = input.files[0].name;
+            btn.disabled = false;
+        } else {
+            label.textContent = "Selecciona un archivo .csv";
+            btn.disabled = true;
+        }
+    }
+
+    async function uploadCSV() {
+        const fileInput = document.getElementById('csvFile');
+        const btn = document.getElementById('btnUpload');
+        if (!fileInput.files[0]) return;
+        
+        const formData = new FormData();
+        formData.append('csvFile', fileInput.files[0]);
+        
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Subiendo...';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            
+            const response = await fetch('/admin/dishes/import', { 
+                method: 'POST', 
+                body: formData 
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(`Importación exitosa: ${result.inserted} nuevos, ${result.updated} actualizados.`);
+                window.location.reload();
+            } else { 
+                alert('Error: ' + (result.error || 'Error desconocido')); 
+            }
+        } catch (err) { 
+            console.error('Error in uploadCSV:', err);
+            alert('Error de conexión'); 
+        } finally {
+            btn.disabled = false; 
+            btn.textContent = 'Comenzar Importación'; 
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
+
+    // Soporte para Drag & Drop en la zona
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('bg-green-50', 'border-[#31713D]');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('bg-green-50', 'border-[#31713D]');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('bg-green-50', 'border-[#31713D]');
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                const fileInput = document.getElementById('csvFile');
+                fileInput.files = files;
+                handleFileSelect(fileInput);
+            }
+        });
+        
+        dropZone.addEventListener('click', () => {
+            document.getElementById('csvFile').click();
+        });
+    }
+
+    lucide.createIcons();
+</script>
+
+<%- include('../partials/footer.ejs') %>
+</body>
+</html>

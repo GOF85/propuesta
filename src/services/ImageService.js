@@ -10,8 +10,31 @@ const { Vibrant } = require('node-vibrant/node');
 const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuid } = require('uuid');
+const { pool } = require('../config/db');
 
 class ImageService {
+    /**
+     * Elimina carpetas vacías dentro de uploadsDir
+     * (Sólo borra subcarpetas que estén completamente vacías)
+     */
+    async _cleanEmptyFolders() {
+      try {
+        const folders = await fs.readdir(this.uploadsDir, { withFileTypes: true });
+        for (const dirent of folders) {
+          if (dirent.isDirectory()) {
+            const subdir = path.join(this.uploadsDir, dirent.name);
+            const files = await fs.readdir(subdir);
+            if (files.length === 0) {
+              await fs.rmdir(subdir);
+              console.log(`🧹 Carpeta vacía eliminada: ${subdir}`);
+            }
+          }
+        }
+      } catch (err) {
+        // No es crítico, solo log
+        console.warn(`(Limpieza) Error limpiando carpetas vacías: ${err.message}`);
+      }
+    }
   constructor() {
     // Directorio base para uploads
     this.uploadsDir = path.join(__dirname, '../../public/uploads');
@@ -93,6 +116,82 @@ class ImageService {
     } catch (err) {
       console.error(`❌ Error procesando imagen: ${err.message}`);
       throw new Error(`Falló procesamiento de imagen: ${err.message}`);
+    }
+  }
+
+  /**
+   * Obtener todas las imágenes del catálogo
+   */
+  async getCatalog() {
+    let conn;
+    try {
+      conn = await pool.getConnection();
+      const rows = await conn.query('SELECT * FROM media_library ORDER BY created_at DESC');
+      return rows;
+    } catch (err) {
+      console.error('Error al obtener catálogo:', err);
+      throw err;
+    } finally {
+      if (conn) conn.release();
+    }
+  }
+
+  /**
+   * Agregar imagen al catálogo (Procesar + DB)
+   */
+  async addToCatalog(imageBuffer, originalName) {
+    const processed = await this.processImage(imageBuffer, originalName);
+    let conn;
+    try {
+      conn = await pool.getConnection();
+      await conn.query(
+        'INSERT INTO media_library (filename, original_name, path, size_kb, width, height) VALUES (?, ?, ?, ?, ?, ?)',
+        [processed.filename, originalName, processed.path, processed.sizeKB, processed.width, processed.height]
+      );
+      return processed;
+    } catch (err) {
+      console.error('Error al guardar en catálogo:', err);
+      throw err;
+    } finally {
+      if (conn) conn.release();
+    }
+  }
+
+  /**
+   * Eliminar imagen del catálogo y disco
+   */
+  async deleteFromCatalog(id) {
+    let conn;
+    try {
+      conn = await pool.getConnection();
+      const [image] = await conn.query('SELECT * FROM media_library WHERE id = ?', [id]);
+      
+      if (!image) throw new Error('Imagen no encontrada');
+
+      // Eliminar de DB
+      await conn.query('DELETE FROM media_library WHERE id = ?', [id]);
+
+      // Eliminar de disco
+      const fullPath = path.join(__dirname, '../../public', image.path);
+      const dirPath = path.dirname(fullPath);
+
+      try {
+        await fs.unlink(fullPath);
+        // Intentar borrar el directorio si está vacío
+        const files = await fs.readdir(dirPath);
+        if (files.length === 0) {
+          await fs.rmdir(dirPath);
+        }
+      } catch (err) {
+        console.warn('Advertencia: No se pudo borrar el archivo físico:', err.message);
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error al eliminar del catálogo:', err);
+      throw err;
+    } finally {
+      if (conn) conn.release();
     }
   }
 
@@ -336,12 +435,14 @@ class ImageService {
       }
 
       const imageDir = path.join(this.uploadsDir, imageHash);
-      
       // Verificar que la carpeta existe
       await fs.access(imageDir);
 
       // Eliminar recursivamente
       await fs.rm(imageDir, { recursive: true, force: true });
+
+      // Limpieza de carpetas vacías tras borrar la imagen
+      await this._cleanEmptyFolders();
 
       console.log(`🗑️  Imagen eliminada: ${imageHash}`);
       return {

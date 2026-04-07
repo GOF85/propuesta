@@ -8,8 +8,15 @@
 
 const { validationResult, query } = require('express-validator');
 const ProposalService = require('../services/ProposalService');
+const ChatService = require('../services/ChatService');
 const ImageService = require('../services/ImageService');
 const { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_COLORS } = require('../config/constants');
+const dayjs = require('dayjs');
+const relativeTime = require('dayjs/plugin/relativeTime');
+require('dayjs/locale/es');
+
+dayjs.extend(relativeTime);
+dayjs.locale('es');
 
 class DashboardController {
   /**
@@ -27,28 +34,32 @@ class DashboardController {
 
       // Extraer parámetros
       const { status, search, page = 1 } = req.query;
-      const userId = req.session.user.id;
+      const user = req.user; // Usamos req.user normalizado del middleware
 
       // Fetch propuestas
-      const proposals = await ProposalService.listProposals(userId, {
+      const proposals = await ProposalService.listProposals(user.id, {
         status: status || 'all',
         search: search || '',
         page: parseInt(page),
-        limit: 10
+        limit: 10,
+        role: user.role
       });
 
       // Enriquecer propuestas con labels
-      const enrichedProposals = proposals.map(p => ({
-        ...p,
-        statusLabel: PROPOSAL_STATUS_LABELS[p.status] || p.status,
-        statusColor: PROPOSAL_STATUS_COLORS[p.status] || 'gray',
-        formattedTotal: `${(p.total || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`,
-        formattedDate: p.event_date ? new Date(p.event_date).toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        }) : 'Sin fecha'
-      }));
+      const enrichedProposals = proposals.map(p => {
+        // Si el evento ya pasó, lo visualizamos como archivado independientemente de su estado interno
+        const isPast = p.event_date && dayjs(p.event_date).isBefore(dayjs(), 'day');
+        const displayStatus = isPast ? 'archived' : p.status;
+
+        return {
+          ...p,
+          statusLabel: PROPOSAL_STATUS_LABELS[displayStatus] || displayStatus,
+          statusColor: PROPOSAL_STATUS_COLORS[displayStatus] || 'gray',
+          formattedTotal: `${(p.total || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`,
+          formattedDate: p.event_date ? dayjs(p.event_date).format('D MMM YYYY') : 'Pendiente',
+          lastViewedLabel: p.last_viewed_at ? dayjs(p.last_viewed_at).fromNow() : null
+        };
+      });
 
       // Render
       res.render('commercial/dashboard', {
@@ -148,14 +159,28 @@ class DashboardController {
 
       // Verificar permisos
       const proposal = await ProposalService.getProposalById(id);
-      if (proposal.user_id !== userId) {
+      if (!proposal) {
+        req.flash('error', 'Propuesta no encontrada');
+        return res.redirect('/dashboard');
+      }
+
+      const sessionUser = req.user || req.session.user;
+      if (proposal.user_id !== sessionUser.id && sessionUser.role !== 'admin') {
         req.flash('error', 'No tienes permisos para eliminar esta propuesta');
         return res.redirect('/dashboard');
       }
 
+      // Requerir confirmación explícita desde el formulario
+      const confirm = req.body && req.body.confirm;
+      if (confirm !== 'yes') {
+        req.flash('error', 'Confirma la eliminación de la propuesta');
+        return res.redirect('/dashboard');
+      }
+
+      // Eliminar propuesta y logo asociado
       await ProposalService.deleteProposal(id);
 
-      req.flash('success', 'Propuesta eliminada');
+      req.flash('success', 'Propuesta eliminada (incluyendo logo y archivos)');
       res.redirect('/dashboard');
     } catch (err) {
       console.error('Error en deleteProposal:', err);
@@ -248,23 +273,20 @@ class DashboardController {
         });
       }
 
-      // Procesar imagen con Sharp
-      const result = await ImageService.processImage(
+      // Procesar imagen con Sharp y extraer branding automático
+      const result = await ImageService.processLogoWithBranding(
         logoFile.data,
         logoFile.name
       );
 
-      // Si es SVG, no procesamos, solo movemos
-      let logoPath = result.path;
-      if (logoFile.mimetype === 'image/svg+xml') {
-        // Para SVG, mantener como está
-        logoPath = result.path.replace('.webp', '.svg');
-      }
+      // El color ya tiene un fallback en el servicio si no se detecta
+      const brandColor = result.brandColor || '#0066cc';
 
       return res.json({
         success: true,
-        message: 'Logo subido correctamente',
-        logoUrl: logoPath,
+        message: 'Logo subido y colores extraídos',
+        logoUrl: result.path,
+        brandColor: brandColor,
         filename: result.filename
       });
     } catch (err) {
@@ -272,6 +294,28 @@ class DashboardController {
       return res.status(500).json({
         success: false,
         error: `Error al procesar logo: ${err.message}`
+      });
+    }
+  }
+
+  /**
+   * GET /api/dashboard/pending-messages
+   * Obtener todos los mensajes no leídos para el sidebar
+   */
+  async getPendingMessages(req, res) {
+    try {
+      const user = req.user;
+      const messages = await ChatService.getAllUnreadMessages(user.id, user.role);
+
+      return res.json({
+        success: true,
+        messages: messages
+      });
+    } catch (err) {
+      console.error('Error en getPendingMessages:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Error al obtener mensajes pendientes'
       });
     }
   }

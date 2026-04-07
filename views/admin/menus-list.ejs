@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Menús Gastronómicos - MICE Catering</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons se carga globalmente en header.ejs -->
+
+    <!-- Global Theme CSS -->
+    <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body class="bg-gray-50">
+<%- include('../partials/header') %>
+    <div class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-xl font-bold flex items-center gap-2 text-gray-800">
+                        <i data-lucide="package" class="w-6 h-6 text-[#31713D]"></i>
+                        Gestión de Menús
+                    </h1>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-tight text-gray-300">Biblioteca de menús gastronómicos del catálogo maestro</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleImportSection()" class="bg-[#31713D] hover:bg-[#24552E] text-white px-3 py-1.5 rounded text-sm transition flex items-center gap-2 shadow-sm font-medium">
+                        <i data-lucide="file-up" class="w-4 h-4 text-black"></i>
+                        Importar CSV
+                    </button>
+                    <button onclick="showNewMenuModal()" class="bg-[#31713D] hover:bg-[#24552E] text-white px-3 py-1.5 rounded text-sm transition flex items-center gap-2 shadow-sm font-medium">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-black"></i>
+                        Crear Menú
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Flash Messages -->
+        <%- include('../partials/flash-messages.ejs') %>
+
+        <!-- Quick Import Section (Hidden by default) -->
+        <div id="importSection" class="hidden mb-8 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="file-up" class="w-4 h-4 text-[#31713D]"></i>
+                    Importación Masiva de Menús (Menús)
+                </h2>
+                <button onclick="toggleImportSection()" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <p class="text-xs text-gray-600">Sube un archivo CSV con el formato correcto para importar o actualizar menús masivamente.</p>
+                    <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+                        <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="handleFileSelect(this)">
+                        <label for="csvFile" class="cursor-pointer flex flex-col items-center">
+                            <i data-lucide="upload-cloud" class="w-10 h-10 text-gray-300 mb-3"></i>
+                            <span id="fileName" class="text-sm font-medium text-gray-900">Selecciona un archivo .csv</span>
+                            <span class="text-xs text-gray-500 mt-1">o arrastra y suelta aquí</span>
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="uploadCSV()" id="btnUpload" class="flex-1 bg-[#31713D] text-white px-4 py-2 rounded-lg hover:bg-[#24552E] transition-all font-bold text-sm disabled:opacity-50" disabled>
+                            Comenzar Importación
+                        </button>
+                        <a href="/admin/menus/export" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-bold text-sm">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            Exportar CSV
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-5 border border-gray-100 flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Formato Sugerido</h3>
+                        <a href="/admin/menus/template" class="text-[10px] text-[#31713D] hover:underline font-bold flex items-center gap-1">
+                            <i data-lucide="download-cloud" class="w-3 h-3"></i>
+                            Descargar Plantilla
+                        </a>
+                    </div>
+                    <ul class="space-y-2 text-xs text-gray-600 flex-1">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>name:</strong> Nombre único del menú</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>description:</strong> Texto corto del menú</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>base_price:</strong> Precio sugerido (solo números)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#31713D] mt-0.5"></i>
+                            <span><strong>dishes:</strong> Nombres de platos existentes separados por ";"</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1 relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black pointer-events-none flex items-center justify-center" style="top:50%;transform:translateY(-50%);"></i>
+                    <input type="text" id="search-input-ajax" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" autocomplete="off" placeholder="Buscar por nombre o descripción en tiempo real..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#31713D] focus:border-transparent outline-none transition">
+                </div>
+                
+                <!-- Filtro de Categoría -->
+                <div class="w-full md:w-64">
+                    <select id="category-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#31713D] focus:border-transparent outline-none transition">
+                        <option value="">Todas las categorías</option>
+                        <% categories.forEach(cat => { %>
+                            <option value="<%= cat.name %>" <%= (typeof selectedCategory !== 'undefined' && selectedCategory === cat.name) ? 'selected' : '' %>>
+                                <%= cat.name %>
+                            </option>
+                        <% }); %>
+                    </select>
+                </div>
+
+                <div id="search-loading" class="hidden flex items-center px-4">
+                    <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-[#31713D]"></i>
+                </div>
+                <div id="search-actions" class="flex items-center">
+                    <a href="/admin/menus" id="clear-search" class="<%= (typeof search !== 'undefined' && search) ? '' : 'hidden' %> text-gray-400 hover:text-red-500 text-xs font-bold flex items-center gap-1 px-4 border-l border-gray-100 uppercase tracking-widest transition-colors">
+                        <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                        Limpiar Búsqueda
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menus List -->
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs font-bold tracking-widest">
+                            <th class="px-4 py-3 font-bold w-16">Imagen</th>
+                            <th class="px-4 py-3 font-extrabold text-[#31713D] text-base whitespace-nowrap bg-[#E6F4EA]" style="max-width:none;">MENÚ GASTRONÓMICO</th>
+                            <th class="px-4 py-3 font-bold">Categoría</th>
+                            <th class="px-4 py-3 font-bold">Composición (Platos)</th>
+                            <th class="px-4 py-3 font-bold text-right w-32">PVD Sugerido</th>
+                            <th class="px-4 py-3 font-bold text-right w-32">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="menus-table-body" class="divide-y divide-gray-100">
+                        <% if (menus && menus.length > 0) { %>
+                            <% menus.forEach(menu => { %>
+                                <tr class="hover:bg-gray-50 transition-colors cursor-pointer group menu-item" 
+                                    onclick="handleEditMenu(this)"
+                                    data-menu='<%- JSON.stringify(menu).replace(/'/g, "&#39;") %>'>
+                                    <td class="px-4 py-3">
+                                        <% 
+                                            let images = [];
+                                            try { images = typeof menu.images === 'string' ? JSON.parse(menu.images) : (menu.images || []); } catch(e) {}
+                                            if (images && images.length > 0) { 
+                                        %>
+                                            <img src="<%= images[0] %>" alt="<%= menu.name %>" class="w-10 h-10 object-cover rounded shadow-sm group-hover:scale-105 transition-transform" onerror="this.src='/img/placeholder.png'" />
+                                        <% } else { %>
+                                            <div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center border border-gray-200">
+                                                <i data-lucide="package" class="w-5 h-5 text-black"></i>
+                                            </div>
+                                        <% } %>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-gray-900 menu-name text-[15px]" style="white-space:normal;max-width:400px;"><%= menu.name %></span>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                <% 
+                                                    let badges = [];
+                                                    try { badges = typeof menu.badges === 'string' ? JSON.parse(menu.badges) : (menu.badges || []); } catch(e) {}
+                                                    if (badges && badges.length > 0) { 
+                                                        badges.forEach(badge => { 
+                                                %>
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100 uppercase">
+                                                        <%= badge %>
+                                                    </span>
+                                                <%      }); 
+                                                    } 
+                                                %>
+                                                <% if (menu.price_model === 'fixed') { %>
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-50 text-orange-700 border border-orange-100 uppercase">
+                                                        FIJO
+                                                    </span>
+                                                <% } %>
+                                            </div>
+                                            <span class="text-[11px] text-gray-400 line-clamp-1 truncate max-w-xs mt-1"><%= menu.description || 'Sin descripción' %></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <% if (menu.category) { %>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#31713D]/10 text-[#31713D] border border-[#31713D]/20 uppercase">
+                                                <%= menu.category %>
+                                            </span>
+                                        <% } else { %>
+                                            <span class="text-gray-300 text-xs">—</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <% if (menu.dishes_count > 0) { %>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-[#31713D] border border-green-100 uppercase">
+                                                    <%= menu.dishes_count %> platos
+                                                </span>
+                                                <div class="text-[10px] text-gray-400 mt-1 w-full truncate max-w-[200px]" title="<%= menu.dish_names %>">
+                                                    <%= menu.dish_names %>
+                                                </div>
+                                            <% } else { %>
+                                                <span class="text-[10px] text-gray-400 italic">Sin platos</span>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <span class="font-bold text-gray-900 font-mono"><%= parseFloat(menu.base_price || 0).toFixed(2) %>€</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <div class="flex items-center justify-end gap-1">
+                                            <button onclick="event.stopPropagation(); duplicateMenu(<%= menu.id %>)" class="p-1.5 text-black hover:text-[#31713D] hover:bg-green-50 rounded-lg transition-all" title="Duplicar">
+                                                <i data-lucide="copy" class="w-4 h-4"></i>
+                                            </button>
+                                            <button onclick="event.stopPropagation(); deleteMenu(<%= menu.id %>)" class="p-1.5 text-black hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Eliminar">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="4" class="px-4 py-12 text-center text-gray-500">
+                                    <div class="flex flex-col items-center">
+                                        <i data-lucide="inbox" class="w-12 h-12 text-gray-200 mb-2"></i>
+                                        <p class="text-sm">No hay menús registrados</p>
+                                        <button onclick="showNewMenuModal()" class="text-[#31713D] font-bold text-sm mt-2 hover:underline">Crear el primero</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="pagination-container">
+                <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
+                <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                    <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Página <%= page %> de <%= totalPages %></span>
+                    <div class="flex gap-1">
+                        <% if (page > 1) { %><a href="?page=<%= page-1 %><%= typeof search !== 'undefined' && search ? '&search=' + search : '' %>" class="p-1.5 border border-gray-300 rounded bg-white hover:bg-gray-50 transition-colors text-black"><i data-lucide="chevron-left" class="w-4 h-4"></i></a><% } %>
+                        <% if (page < totalPages) { %><a href="?page=<%= page+1 %><%= typeof search !== 'undefined' && search ? '&search=' + search : '' %>" class="p-1.5 border border-gray-300 rounded bg-white hover:bg-gray-50 transition-colors text-black"><i data-lucide="chevron-right" class="w-4 h-4"></i></a><% } %>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Crear/Editar Menú -->
+<div id="menuModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <h2 id="modalTitle" class="text-lg font-bold text-gray-800 uppercase tracking-tight">Nuevo Menú</h2>
+            <button onclick="closeMenuModal()" class="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-white transition-all">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6">
+            <form id="menuForm" class="space-y-6">
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Nombre del Menú <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" required placeholder="Ej: Menú Gala Premium" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Categoría</label>
+                            <select name="category" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm">
+                                <option value="">Sin categoría</option>
+                                <% categories.forEach(cat => { %>
+                                    <option value="<%= cat.name %>"><%= cat.name %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Descripción corta</label>
+                            <textarea name="description" rows="2" placeholder="Breve descripción..." class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Precio Base (€) <span class="text-red-500">*</span></label>
+                            <input type="number" name="base_price" step="0.01" min="0" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm font-mono">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Modelo de Precio (Default)</label>
+                            <select name="price_model" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm">
+                                <option value="pax" selected>Por PAX (Multiplica por asistentes)</option>
+                                <option value="fixed">Precio FIJO (Independiente de asistentes)</option>
+                            </select>
+                            <p class="text-[10px] text-gray-400 mt-1">El modelo fijo se usa para menús como "Estación de Aguas" o "Transporte".</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+                                <i data-lucide="link" class="w-3 h-3 text-[#31713D]"></i>
+                                Carpeta de Imágenes Externa (URL)
+                            </label>
+                            <input type="url" name="url_images" placeholder="Ej: https://share.dropbox.com/s/..." class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm">
+                            <p class="text-[10px] text-gray-400 mt-1">Si este menú tiene muchas imágenes, pega aquí el enlace a la carpeta compartida.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+                                <i data-lucide="video" class="w-3 h-3 text-[#31713D]"></i>
+                                Video (URL MP4)
+                            </label>
+                            <input type="url" name="video_url" placeholder="Ej: https://img.micecatering.eu/uploads/original/xx/yy/video.mp4" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] transition-all text-sm">
+                            <p class="text-[10px] text-gray-400 mt-1">Opcional. Si existe, se mostrará a la derecha del carrusel en el modal del cliente.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 pt-4 border-t border-gray-100 text-left">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Etiquetas / Badges</label>
+                        <div id="menuBadgesContainer" class="flex flex-wrap gap-2 mb-2"></div>
+                        <div class="flex gap-2">
+                            <div class="flex-1 relative">
+                                <select id="menuBadgeSelect" onchange="checkBadgeOther(this)" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#31713D] outline-none">
+                                    <option value="">Seleccionar badge...</option>
+                                    <option value="NUEVO">NUEVO</option>
+                                    <option value="TOP VENTAS">TOP VENTAS</option>
+                                    <option value="VEGANO">VEGANO</option>
+                                    <option value="VEGETARIANO">VEGETARIANO</option>
+                                    <option value="PREMIUM">PREMIUM</option>
+                                    <option value="MICE SELECCIÓN">MICE SELECCIÓN</option>
+                                    <option value="other">+ Crear nueva etiqueta...</option>
+                                </select>
+                                <input type="text" id="newBadgeInput" class="hidden absolute inset-0 w-full px-3 py-2 border border-[#31713D] rounded-lg text-sm focus:ring-2 focus:ring-[#31713D] outline-none" placeholder="Escribe la nueva etiqueta...">
+                            </div>
+                            <button type="button" id="btnAddBadge" onclick="addMenuBadge()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition">
+                                <i data-lucide="plus" class="w-4 h-4 text-black"></i>
+                            </button>
+                            <button type="button" id="btnCancelNewBadge" onclick="cancelNewBadge()" class="hidden bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-xs font-bold transition">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 pt-4 border-t border-gray-100 text-left">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Imágenes del Menú (Desde Catálogo)</label>
+                            <span class="text-[9px] font-black uppercase tracking-widest text-[#31713D] animate-pulse bg-green-50 px-2 py-0.5 border border-green-200">
+                                <i data-lucide="info" class="w-2.5 h-2.5 inline mr-1"></i> Aconsejamos 4 o más imágenes
+                            </span>
+                        </div>
+                        <div id="menuImagesContainer" class="grid grid-cols-4 gap-2 mb-2"></div>
+                        <button type="button" onclick="openMediaSelector()" class="w-full py-2 bg-gray-100 hover:bg-black hover:text-white text-gray-700 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
+                            <i data-lucide="image" class="w-4 h-4"></i>
+                            Seleccionar del Catálogo Maestro
+                        </button>
+                        <p class="text-[9px] text-gray-400 mt-1 uppercase italic font-bold">Nota: Las imágenes deben estar previamente subidas al catálogo maestro de administración.</p>
+                    </div>
+
+                    <div class="space-y-4 pt-4 border-t border-gray-100 text-left">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Platos en este Menú <span class="text-red-500">*</span></label>
+                        
+                        <div class="relative">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black italic"></i>
+                            <input type="text" id="dishSearchInput" placeholder="Buscar platos por nombre..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#31713D] text-sm transition-all">
+                            
+                            <!-- Resultados de búsqueda movidos dentro del contenedor relativo -->
+                            <div id="dishSearchResults" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-xl rounded-lg mt-1 max-h-48 overflow-y-auto z-[100]"></div>
+                        </div>
+
+                        <div id="selectedDishesContainer" class="bg-gray-50 rounded-lg border border-gray-200 p-3 min-h-[100px] flex flex-wrap gap-2 content-start">
+                            <p id="noDishesMsg" class="w-full text-center text-gray-400 text-xs py-10 font-medium">No has seleccionado platos todavía</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+            <button onclick="closeMenuModal()" class="px-4 py-2 text-gray-600 font-bold hover:bg-white rounded-lg transition-all text-sm">
+                Cancelar
+            </button>
+            <button onclick="submitMenu()" id="btnSaveMenu" class="bg-[#31713D] text-white px-6 py-2 rounded-lg hover:bg-black transition-all font-bold text-sm flex items-center gap-2 shadow-sm">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span id="btnSaveText">Guardar Menú</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Selector de Imágenes del Catálogo -->
+<div id="mediaSelectorModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[60]">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-black text-white">
+            <h2 class="text-sm font-black uppercase tracking-widest">Seleccionar del Catálogo</h2>
+            <button onclick="closeMediaSelector()" class="p-2 hover:bg-white/10 rounded-full transition-all">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <div class="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between gap-4">
+            <div class="relative flex-1">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                <input type="text" id="catalogSearch" onkeyup="filterCatalog()" placeholder="Buscar imagen..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#31713D]">
+            </div>
+            <a href="/admin/images" target="_blank" class="text-[10px] font-black text-[#31713D] hover:underline uppercase flex items-center gap-1">
+                Subir al catálogo <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6">
+            <div id="catalogGrid" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <!-- Se cargará vía JS -->
+                <div class="col-span-full py-20 text-center text-gray-400 italic">
+                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-2"></i>
+                    Cargando catálogo...
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+            <button onclick="closeMediaSelector()" class="px-6 py-2 bg-black text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#31713D] transition-all">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Variables globales del script
+    let currentEditingMenuId = null;
+    let selectedDishes = [];
+    let menuImages = [];
+    let menuBadges = [];
+    let dishSearchInput = null;
+    let dishSearchResults = null;
+
+    // Inicialización al cargar el DOM
+    document.addEventListener('DOMContentLoaded', () => {
+        dishSearchInput = document.getElementById('dishSearchInput');
+        dishSearchResults = document.getElementById('dishSearchResults');
+
+        if (dishSearchInput) {
+            dishSearchInput.addEventListener('input', debounce(async (e) => {
+                const query = e.target.value.trim();
+                // Realizamos la búsqueda incluso si está vacío (mostrará default)
+                await performDishSearch(query);
+            }, 300));
+
+            dishSearchInput.addEventListener('focus', async () => {
+                const query = dishSearchInput.value.trim();
+                dishSearchResults.classList.remove('hidden');
+                // Si está vacío al ganar foco, cargamos los platos por defecto inmediatamente
+                if (!query) {
+                    await performDishSearch('');
+                }
+            });
+        }
+        
+        // Cierre de dropdown al hacer click fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('menuModal');
+            if (event.target == modal) {
+                closeMenuModal();
+            }
+            
+            if (dishSearchInput && dishSearchResults && !event.target.closest('#dishSearchInput') && !event.target.closest('#dishSearchResults')) {
+                dishSearchResults.classList.add('hidden');
+            }
+        }
+        
+        // Inicializar iconos
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+
+    // Función Debounce para no saturar el servidor
+    function debounce(func, timeout = 300) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => { func.apply(this, args); }, timeout);
+        };
+    }
+
+    async function performDishSearch(query) {
+        if (!dishSearchResults) return;
+        
+        // Eliminado el bloqueo de query.length < 2 para permitir búsqueda de 1 char y default
+        
+        try {
+            dishSearchResults.innerHTML = '<div class="p-3 text-xs text-gray-500 flex items-center gap-2 italic"><i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Buscando...</div>';
+            dishSearchResults.classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            // Si no hay query, el API devuelve los default (limit=50)
+            const url = query.trim() ? `/api/dishes?q=${encodeURIComponent(query)}&limit=15` : `/api/dishes?limit=50`;
+            const resp = await fetch(url);
+            const data = await resp.json();
+            
+            if (data.dishes && data.dishes.length > 0) {
+                renderSearchResults(data.dishes);
+            } else {
+                dishSearchResults.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold uppercase tracking-wider">No hay coincidencias</div>';
+                dishSearchResults.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error('Search error:', err);
+            dishSearchResults.innerHTML = '<div class="p-3 text-xs text-red-500 font-bold">Error en la búsqueda</div>';
+        }
+    }
+
+    /**
+     * Media Selector Logic
+     */
+    async function openMediaSelector() {
+        const modal = document.getElementById('mediaSelectorModal');
+        const grid = document.getElementById('catalogGrid');
+        modal.classList.remove('hidden');
+        
+        // Click fuera para cerrar
+        modal.onclick = function(e) {
+            if (e.target === modal) closeMediaSelector();
+        };
+
+        try {
+            grid.innerHTML = '<div class="col-span-full py-20 text-center text-gray-400 italic"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-2"></i> Cargando catálogo...</div>';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            const resp = await fetch('/api/admin/images');
+            const data = await resp.json();
+            
+            if (data.success && data.images.length > 0) {
+                renderCatalog(data.images);
+            } else {
+                grid.innerHTML = '<div class="col-span-full py-20 text-center text-gray-400">No hay imágenes en el catálogo.</div>';
+            }
+        } catch (err) {
+            console.error('Error loading catalog:', err);
+            grid.innerHTML = '<div class="col-span-full py-20 text-center text-red-500">Error al cargar el catálogo.</div>';
+        }
+    }
+
+    function closeMediaSelector() {
+        document.getElementById('mediaSelectorModal').classList.add('hidden');
+    }
+
+    function renderCatalog(images) {
+        const grid = document.getElementById('catalogGrid');
+        grid.innerHTML = images.map(img => `
+            <div class="catalog-item group relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-[#31713D] transition-all" 
+                 onclick="selectImage('${img.path}')" title="${img.original_name}">
+                <img src="${img.path}" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+        `).join('');
+    }
+
+    function filterCatalog() {
+        const q = document.getElementById('catalogSearch').value.toLowerCase();
+        document.querySelectorAll('.catalog-item').forEach(item => {
+            const title = item.getAttribute('title').toLowerCase();
+            item.style.display = title.includes(q) ? '' : 'none';
+        });
+    }
+
+    function selectImage(path) {
+        if (!menuImages.includes(path)) {
+            menuImages.push(path);
+            renderMenuImages();
+        }
+        closeMediaSelector();
+    }
+
+    function removeMenuImage(idx) {
+        menuImages.splice(idx, 1);
+        renderMenuImages();
+    }
+
+    function addMenuBadge() {
+        const select = document.getElementById('menuBadgeSelect');
+        const newBadgeInput = document.getElementById('newBadgeInput');
+        let value = select.value;
+
+        if (value === 'other') {
+            value = newBadgeInput.value.trim().toUpperCase();
+            if (!value) return;
+            // Reset input after adding
+            cancelNewBadge();
+        }
+
+        if (value && !menuBadges.includes(value)) {
+            menuBadges.push(value);
+            renderMenuBadges();
+        }
+        
+        if (value !== 'other') {
+            select.value = '';
+        }
+    }
+
+    function checkBadgeOther(select) {
+        const newBadgeInput = document.getElementById('newBadgeInput');
+        const btnCancelNewBadge = document.getElementById('btnCancelNewBadge');
+        const btnAddBadge = document.getElementById('btnAddBadge');
+
+        if (select.value === 'other') {
+            newBadgeInput.classList.remove('hidden');
+            btnCancelNewBadge.classList.remove('hidden');
+            newBadgeInput.focus();
+        } else {
+            newBadgeInput.classList.add('hidden');
+            btnCancelNewBadge.classList.add('hidden');
+        }
+    }
+
+    function cancelNewBadge() {
+        const select = document.getElementById('menuBadgeSelect');
+        const newBadgeInput = document.getElementById('newBadgeInput');
+        const btnCancelNewBadge = document.getElementById('btnCancelNewBadge');
+        select.value = '';
+        newBadgeInput.value = '';
+        newBadgeInput.classList.add('hidden');
+        btnCancelNewBadge.classList.add('hidden');
+    }
+
+    function removeMenuBadge(badge) {
+        menuBadges = menuBadges.filter(b => b !== badge);
+        renderMenuBadges();
+    }
+
+    function renderMenuBadges() {
+        const container = document.getElementById('menuBadgesContainer');
+        if (!container) return;
+        
+        container.innerHTML = menuBadges.map(b => `
+            <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[10px] font-bold uppercase">
+                ${b}
+                <button type="button" onclick="removeMenuBadge('${b}')" class="hover:text-blue-900 transition-colors">
+                    <i data-lucide="x" class="w-3 h-3"></i>
+                </button>
+            </span>
+        `).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function removeMenuImage(index) {
+        menuImages.splice(index, 1);
+        renderMenuImages();
+    }
+
+    function renderMenuImages() {
+        const container = document.getElementById('menuImagesContainer');
+        if (!container) return;
+
+        container.innerHTML = menuImages.map((url, index) => `
+            <div class="relative group aspect-square">
+                <img src="${url}" class="w-full h-full object-cover rounded shadow-sm border border-gray-200" onerror="this.src='/img/placeholder.png'">
+                <button type="button" onclick="removeMenuImage(${index})" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition shadow-lg shrink-0">
+                    <i data-lucide="x" class="w-2.5 h-2.5 text-white"></i>
+                </button>
+            </div>
+        `).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function toggleImportSection() {
+        const section = document.getElementById('importSection');
+        if (section) {
+            section.classList.toggle('hidden');
+            if(!section.classList.contains('hidden')) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }
+
+    function handleFileSelect(input) {
+        const btn = document.getElementById('btnUpload');
+        const label = document.getElementById('fileName');
+        if (input.files && input.files[0]) {
+            label.textContent = input.files[0].name;
+            btn.disabled = false;
+        } else {
+            label.textContent = "Selecciona un archivo .csv";
+            btn.disabled = true;
+        }
+    }
+
+    async function uploadCSV() {
+        const fileInput = document.getElementById('csvFile');
+        const btn = document.getElementById('btnUpload');
+        if (!fileInput.files[0]) return;
+        
+        const formData = new FormData();
+        formData.append('csvFile', fileInput.files[0]);
+        
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Subiendo...';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            
+            const response = await fetch('/admin/menus/import', { 
+                method: 'POST', 
+                body: formData 
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(`Importación exitosa: ${result.inserted} nuevos, ${result.updated} actualizados.`);
+                window.location.reload();
+            } else { 
+                alert('Error: ' + (result.error || 'Error desconocido')); 
+            }
+        } catch (err) { 
+            console.error('Error in uploadCSV:', err);
+            alert('Error de conexión'); 
+        } finally {
+            btn.disabled = false; 
+            btn.textContent = 'Comenzar Importación'; 
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
+
+    function showNewMenuModal() {
+        currentEditingMenuId = null;
+        document.getElementById('modalTitle').textContent = 'Nuevo Menú Gastronómico';
+        document.getElementById('btnSaveText').textContent = 'Crear Menú';
+        
+        const form = document.getElementById('menuForm');
+        if (form) form.reset();
+        
+        selectedDishes = [];
+        menuImages = [];
+        menuBadges = [];
+        
+        // Limpiar búsqueda
+        if (dishSearchInput) dishSearchInput.value = '';
+        if (dishSearchResults) {
+            dishSearchResults.innerHTML = '';
+            dishSearchResults.classList.add('hidden');
+        }
+        
+        renderSelectedDishes();
+        renderMenuImages();
+        renderMenuBadges();
+        
+        const modal = document.getElementById('menuModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Click fuera para cerrar
+            modal.onclick = function(e) {
+                if (e.target === modal) closeMenuModal();
+            };
+        } else {
+            console.error('Modal element not found');
+        }
+        
+        if (typeof lucide !== 'undefined') {
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+    }
+
+    function closeMenuModal() {
+        const modal = document.getElementById('menuModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
+    function handleEditMenu(row) {
+        try {
+            const menu = JSON.parse(row.getAttribute('data-menu'));
+            editMenu(menu.id, menu);
+        } catch (e) {
+            console.error('Error handling edit menu click:', e);
+            alert('Error al procesar los datos del menú');
+        }
+    }
+
+    async function editMenu(id, menu) {
+        try {
+            currentEditingMenuId = id;
+            document.getElementById('modalTitle').textContent = 'Editar Menú';
+            document.getElementById('btnSaveText').textContent = 'Actualizar Menú';
+            
+            const form = document.getElementById('menuForm');
+            if (form) {
+                form.name.value = menu.name || '';
+                form.description.value = menu.description || '';
+                if (form.category) form.category.value = menu.category || '';
+                form.base_price.value = menu.base_price || 0;
+                if (form.price_model) form.price_model.value = menu.price_model || 'pax';
+                if (form.url_images) form.url_images.value = menu.url_images || '';
+                if (form.video_url) form.video_url.value = menu.video_url || '';
+            }
+            
+            selectedDishes = [];
+            menuImages = menu.images || [];
+            menuBadges = Array.isArray(menu.badges) ? menu.badges : [];
+            
+            // Re-render inicial antes de cargar platos detallados
+            renderSelectedDishes();
+            renderMenuImages();
+            renderMenuBadges();
+
+            // Cargamos platos detallados vía API para asegurar que tenemos los IDs y nombres correctamente
+            const container = document.getElementById('selectedDishesContainer');
+            container.innerHTML = '<div class="w-full text-center py-4"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto text-gray-400"></i></div>';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            try {
+                const resp = await fetch(`/api/admin/menus/${id}`);
+                const data = await resp.json();
+                if (data && data.success && data.menu) {
+                    selectedDishes = (data.menu.dishes || []).map(d => ({ id: d.id, name: d.name }));
+                } else {
+                    // Fallback a nombres si falla el API (aunque getAll solo tiene nombres parciales)
+                    console.warn('Fallback a nombres de platos parciales');
+                }
+            } catch (err) {
+                console.error('Error fetching menu details:', err);
+            }
+            
+            // Limpiar búsqueda
+            if (dishSearchInput) dishSearchInput.value = '';
+            if (dishSearchResults) {
+                dishSearchResults.innerHTML = '';
+                dishSearchResults.classList.add('hidden');
+            }
+            
+            renderSelectedDishes();
+            
+            const modal = document.getElementById('menuModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                // Click fuera para cerrar
+                modal.onclick = function(e) {
+                    if (e.target === modal) closeMenuModal();
+                };
+            }
+            
+            if (typeof lucide !== 'undefined') {
+                setTimeout(() => lucide.createIcons(), 50);
+            }
+        } catch (e) {
+            console.error('Error parsing menu JSON:', e);
+            alert('Error al cargar datos del menú');
+        }
+    }
+
+    function renderSearchResults(dishes) {
+        if (!dishSearchResults) return;
+        
+        dishSearchResults.innerHTML = dishes.map(d => `
+            <div onclick="addDishToMenu(${d.id}, '${(d.name || '').replace(/'/g, "\\'")}')" class="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex justify-between items-center group transition-colors">
+                <div>
+                    <div class="text-sm font-bold text-gray-800">${d.name}</div>
+                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-tight">${d.category || 'Otros'}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4 text-[#31713D] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </div>
+            </div>
+        `).join('');
+        
+        dishSearchResults.classList.remove('hidden');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function addDishToMenu(id, name) {
+        if (selectedDishes.find(d => d.id === id)) return;
+        selectedDishes.push({ id, name });
+        renderSelectedDishes();
+        
+        if (dishSearchInput) dishSearchInput.value = '';
+        if (dishSearchResults) dishSearchResults.classList.add('hidden');
+    }
+
+    function removeDish(id) {
+        selectedDishes = selectedDishes.filter(d => d.id !== id);
+        renderSelectedDishes();
+    }
+
+    function renderSelectedDishes() {
+        const container = document.getElementById('selectedDishesContainer');
+        if (!container) return;
+        
+        const chips = selectedDishes.map(d => `
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm text-sm group">
+                <span class="text-gray-700 font-bold text-xs">${d.name}</span>
+                <button type="button" onclick="removeDish(${d.id})" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+        `).join('');
+        
+        container.innerHTML = '<p id="noDishesMsg" class="w-full text-center text-gray-400 text-xs py-10 font-bold ' + (selectedDishes.length ? 'hidden' : '') + '">No has seleccionado platos todavía</p>' + chips;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    async function submitMenu() {
+        const form = document.getElementById('menuForm');
+        if (!form) return;
+        
+        if (!form.name.value || !form.base_price.value) { 
+            alert('Por favor rellena los campos obligatorios'); 
+            return; 
+        }
+        if (selectedDishes.length === 0) { 
+            alert('Añade al menos un plato'); 
+            return; 
+        }
+        
+        const btn = document.getElementById('btnSaveMenu');
+        const payload = {
+            name: form.name.value,
+            description: form.description.value,
+            category: form.category ? form.category.value : '',
+            base_price: parseFloat(form.base_price.value),
+            price_model: form.price_model ? form.price_model.value : 'pax',
+            url_images: form.url_images ? (form.url_images.value || '').trim() || null : null,
+            video_url: form.video_url ? (form.video_url.value || '').trim() || null : null,
+            dishIds: selectedDishes.map(d => d.id),
+            images: menuImages,
+            badges: menuBadges
+        };
+        
+        try {
+            btn.disabled = true;
+            const originalBtnContent = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando...';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            
+            const url = currentEditingMenuId ? `/admin/menus/${currentEditingMenuId}` : '/admin/menus';
+            const method = currentEditingMenuId ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method,
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Accept': 'application/json' 
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                const errorMsg = result.error || (result.errors ? result.errors.map(e => e.msg).join(', ') : 'Error desconocido');
+                alert('Error: ' + errorMsg);
+                btn.disabled = false;
+                btn.innerHTML = originalBtnContent;
+            }
+        } catch (err) { 
+            console.error('Error in submitMenu:', err);
+            alert('Error de conexión'); 
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> <span id="btnSaveText">Guardar Menú</span>';
+        } finally {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
+
+    async function duplicateMenu(id) {
+        if (!confirm('¿Estás seguro de que deseas duplicar este menú?')) return;
+        
+        try {
+            const resp = await fetch(`/admin/menus/${id}/duplicate`, { 
+                method: 'POST',
+                headers: { 'Accept': 'application/json' }
+            });
+            const result = await resp.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert('Error al duplicar: ' + result.error);
+            }
+        } catch (err) {
+            console.error('Error duplicating menu:', err);
+            alert('Error de conexión');
+        }
+    }
+
+    async function deleteMenu(id) {
+        if (!confirm('¿Seguro que quieres eliminar este menú?')) return;
+        try {
+            const resp = await fetch(`/admin/menus/${id}`, { 
+                method: 'DELETE', 
+                headers: { 'Accept': 'application/json' } 
+            });
+            const result = await resp.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert('Error al eliminar: ' + (result.error || 'Error desconocido'));
+            }
+        } catch (err) {
+            console.error('Error in deleteMenu:', err);
+            alert('Error de conexión al intentar eliminar');
+        }
+    }
+
+    // --- AJAX LIVE SEARCH ---
+    const searchInput = document.getElementById('search-input-ajax');
+    const categoryFilter = document.getElementById('category-filter');
+    const tableBody = document.getElementById('menus-table-body');
+    const paginationContainer = document.getElementById('pagination-container');
+    const searchLoading = document.getElementById('search-loading');
+    const clearSearchBtn = document.getElementById('clear-search');
+
+    let debounceTimer;
+
+    function handleFilterChange() {
+        const query = searchInput ? searchInput.value.trim() : '';
+        const category = categoryFilter ? categoryFilter.value : '';
+        
+        // Mostrar/Ocultar botón de limpiar
+        if (query && clearSearchBtn) clearSearchBtn.classList.remove('hidden');
+        else if (!query && clearSearchBtn) clearSearchBtn.classList.add('hidden');
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => performSearch(query, category), 300);
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', handleFilterChange);
+    }
+
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', handleFilterChange);
+    }
+
+    async function performSearch(search, category = '') {
+        if (searchLoading) searchLoading.classList.remove('hidden');
+        
+        try {
+            if (!category && categoryFilter) category = categoryFilter.value;
+            const url = `/admin/menus?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}&ajax=1`;
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            // Refrescar Tabla
+            renderTableRows(data.menus);
+            
+            // Refrescar Paginación
+            renderPagination(data.page, data.totalPages, search, category);
+
+            // Reiniciar Iconos
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        } catch (err) {
+            console.error('Error in AJAX search:', err);
+        } finally {
+            if (searchLoading) searchLoading.classList.add('hidden');
+        }
+    }
+
+    function renderTableRows(menus) {
+        if (!tableBody) return;
+        
+        if (!menus || menus.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-4 py-12 text-center text-gray-400 font-medium">
+                        No se encontraron menús que coincidan con la búsqueda
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = menus.map(menu => {
+            let images = [];
+            try { images = typeof menu.images === 'string' ? JSON.parse(menu.images) : (menu.images || []); } catch(e) {}
+            const firstImg = images.length > 0 ? images[0] : null;
+            
+            let badges = [];
+            try { badges = typeof menu.badges === 'string' ? JSON.parse(menu.badges) : (menu.badges || []); } catch(e) {}
+
+            const menuJson = JSON.stringify(menu).replace(/'/g, "&#39;");
+
+            return `
+                <tr class="hover:bg-gray-50 transition-colors cursor-pointer group menu-item" 
+                    onclick="handleEditMenu(this)"
+                    data-menu='${menuJson}'>
+                    <td class="px-4 py-3">
+                        ${firstImg 
+                            ? `<img src="${firstImg}" alt="${menu.name}" class="w-10 h-10 object-cover rounded shadow-sm group-hover:scale-105 transition-transform" onerror="this.src='/img/placeholder.png'" />` 
+                            : `<div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center border border-gray-200"><i data-lucide="package" class="w-5 h-5 text-black"></i></div>`
+                        }
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-gray-900 menu-name text-[11px] truncate max-w-[150px]">${menu.name}</span>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                ${badges.map(badge => `
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100 uppercase">
+                                        ${badge}
+                                    </span>
+                                `).join('')}
+                                ${menu.price_model === 'fixed' ? `
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-50 text-orange-700 border border-orange-100 uppercase">
+                                        FIJO
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <span class="text-[11px] text-gray-400 line-clamp-1 truncate max-w-xs mt-1">${menu.description || 'Sin descripción'}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        ${menu.category ? `
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#31713D]/10 text-[#31713D] border border-[#31713D]/20 uppercase">
+                                ${menu.category}
+                            </span>
+                        ` : `<span class="text-gray-300 text-xs">—</span>`}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            ${menu.dishes_count > 0 ? `
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-[#31713D] border border-green-100 uppercase">
+                                    ${menu.dishes_count} platos
+                                </span>
+                                <div class="text-[10px] text-gray-400 mt-1 w-full truncate max-w-[200px]" title="${menu.dish_names || ''}">
+                                    ${menu.dish_names || ''}
+                                </div>
+                            ` : `<span class="text-[10px] text-gray-400 italic">Sin platos</span>`}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <span class="font-bold text-gray-900 font-mono">${parseFloat(menu.base_price || 0).toFixed(2)}€</span>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            <button onclick="event.stopPropagation(); duplicateMenu(${menu.id})" class="p-1.5 text-black hover:text-[#31713D] hover:bg-green-50 rounded-lg transition-all" title="Duplicar">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); deleteMenu(${menu.id})" class="p-1.5 text-black hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderPagination(page, totalPages, search, category = '') {
+        if (!paginationContainer) return;
+
+        if (!totalPages || totalPages <= 1) {
+            paginationContainer.innerHTML = '';
+            return;
+        }
+
+        const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
+        const categoryParam = category ? `&category=${encodeURIComponent(category)}` : '';
+        const params = searchParam + categoryParam;
+        
+        paginationContainer.innerHTML = `
+            <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Página ${page} de ${totalPages}</span>
+                <div class="flex gap-1">
+                    ${page > 1 ? `<a href="?page=${page-1}${params}" class="p-1.5 border border-gray-300 rounded bg-white hover:bg-gray-50 transition-colors text-black"><i data-lucide="chevron-left" class="w-4 h-4"></i></a>` : ''}
+                    ${page < totalPages ? `<a href="?page=${page+1}${params}" class="p-1.5 border border-gray-300 rounded bg-white hover:bg-gray-50 transition-colors text-black"><i data-lucide="chevron-right" class="w-4 h-4"></i></a>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    // Inicializar iconos al final del script
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+
+<%- include('../partials/footer.ejs') %>

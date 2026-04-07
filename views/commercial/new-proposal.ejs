@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nueva Propuesta - MICE CATERING</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
 </head>
 <body class="bg-gray-50">
 
@@ -16,8 +17,9 @@
 
     <!-- Header -->
     <div class="mb-8">
-        <a href="/dashboard" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-4 inline-block">
-            ← Volver al Dashboard
+        <a href="/dashboard" class="text-[#31713D] hover:text-[#24552E] text-sm font-medium mb-4 inline-flex items-center gap-1.5">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Volver al Dashboard
         </a>
         <h1 class="text-3xl font-bold text-gray-900">Nueva Propuesta</h1>
         <p class="text-gray-500 text-sm mt-1">Rellena los datos básicos para crear una nueva propuesta</p>
@@ -76,7 +78,8 @@
             <!-- Branding Section -->
             <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    🎨 Branding Dinámico (Opcional)
+                    <i data-lucide="palette" class="w-5 h-5 text-blue-600"></i>
+                    <span>Branding Dinámico (Opcional)</span>
                 </h3>
 
                 <!-- Grid: Logo + Color -->
@@ -106,7 +109,7 @@
                         <!-- Upload Progress -->
                         <div id="uploadProgress" class="mt-2 hidden">
                             <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div id="progressBar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                                <div id="progressBar" class="bg-[#31713D] h-2 rounded-full" style="width: 0%"></div>
                             </div>
                             <p class="text-xs text-gray-600 mt-1">Subiendo...</p>
                         </div>
@@ -132,6 +135,14 @@
                                 class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm"
                                 readonly
                             >
+                            <button 
+                                type="button" 
+                                id="btn-eyedropper" 
+                                title="Seleccionar color de la imagen"
+                                class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors hidden"
+                            >
+                                <i data-lucide="pipette" class="w-5 h-5 text-gray-600"></i>
+                            </button>
                         </div>
                         <p class="text-gray-500 text-xs mt-1">Se utilizará en headers y acentos</p>
                     </div>
@@ -146,7 +157,7 @@
                 <a href="/dashboard" class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-center">
                     Cancelar
                 </a>
-                <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-[#31713D] hover:bg-[#24552E] text-white rounded-lg font-medium transition-colors">
                     Crear Propuesta
                 </button>
             </div>
@@ -183,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const uploadProgress = document.getElementById('uploadProgress');
   const progressBar = document.getElementById('progressBar');
   const proposalForm = document.getElementById('proposalForm');
+  const btnEyedropper = document.getElementById('btn-eyedropper');
 
   // ========== Color Picker Sync ==========
   brandColorInput.addEventListener('input', function () {
@@ -191,6 +203,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Initialize with default color
   colorValue.value = brandColorInput.value;
+
+  // ========== EyeDropper API (Opcional) ==========
+  if (window.EyeDropper) {
+    btnEyedropper.classList.remove('hidden');
+    btnEyedropper.addEventListener('click', async () => {
+      try {
+        const eyeDropper = new EyeDropper();
+        const result = await eyeDropper.open();
+        brandColorInput.value = result.sRGBHex;
+        colorValue.value = result.sRGBHex;
+      } catch (e) {
+        console.log('EyeDropper cancelado o error');
+      }
+    });
+
+    // También permitir al hacer clic sobre la imagen del logo
+    previewImg.classList.add('cursor-crosshair');
+    previewImg.title = 'Clic para extraer color';
+    previewImg.addEventListener('click', () => btnEyedropper.click());
+  }
 
   // ========== Logo Upload Handler ==========
   logoInput.addEventListener('change', async function (e) {
@@ -259,6 +291,13 @@ document.addEventListener('DOMContentLoaded', function () {
       // Guardar URL del logo en el formulario
       logoUrlInput.value = result.logoUrl;
 
+      // Actualizar color corporativo automáticamente si viene en la respuesta
+      if (result.brandColor) {
+        brandColorInput.value = result.brandColor;
+        colorValue.value = result.brandColor;
+        console.log('✨ Color extraído automáticamente:', result.brandColor);
+      }
+
       progressBar.style.width = '100%';
       setTimeout(() => {
         uploadProgress.classList.add('hidden');
@@ -281,6 +320,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // El formulario se envía normalmente
     // Los valores de logo_url y brand_color ya están en los inputs hidden
   });
+
+  // Inicializar Lucide
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 });
 </script>
 

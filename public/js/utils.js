@@ -39,7 +39,7 @@ async function fetchAPI(url, options = {}) {
  */
 function showNotification(message, type = 'info', duration = 3000) {
   const colors = {
-    success: 'bg-green-50 border-green-200 text-green-900',
+    success: 'bg-[#31713D] border-[#31713D] text-white',
     error: 'bg-red-50 border-red-200 text-red-900',
     info: 'bg-blue-50 border-blue-200 text-blue-900',
     warning: 'bg-yellow-50 border-yellow-200 text-yellow-900',

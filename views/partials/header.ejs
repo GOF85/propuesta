@@ -1,6 +1,17 @@
 <!-- Global Theme -->
 <link rel="stylesheet" href="/css/theme.css">
 
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- Global Styles for Icons -->
+<style>
+    .lucide {
+        vertical-align: middle;
+        transform: translateY(-1px);
+    }
+</style>
+
 <!-- Navbar / Header -->
 <nav class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center sticky top-0 z-50 print:hidden">
     <div class="flex items-center gap-4">
@@ -10,58 +21,34 @@
     </div>
     
     <div class="flex items-center gap-4">
-        <!-- Admin Dropdown (only for admins) -->
-        <% if (user && user.role === 'admin') { %>
-        <div class="relative group">
-            <a href="/admin" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition text-sm font-semibold flex items-center gap-2 print:hidden">
-                <i data-lucide="settings" class="w-4 h-4"></i>
-                <span>Admin</span>
-                <i data-lucide="chevron-down" class="w-4 h-4"></i>
-            </a>
-            <!-- Dropdown Menu -->
-            <div class="hidden group-hover:block absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                <div class="py-2">
-                    <a href="/admin" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                        <i data-lucide="bar-chart-3" class="w-4 h-4 mr-2"></i>Dashboard Admin
-                    </a>
-                    <div class="border-t border-gray-100 my-1"></div>
-                    <a href="/admin/venues" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
-                        <i data-lucide="building-2" class="w-4 h-4 mr-2"></i>Gestión de Venues
-                    </a>
-                    <a href="/admin/dishes" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 flex items-center">
-                        <i data-lucide="utensils" class="w-4 h-4 mr-2"></i>Gestión de Platos
-                    </a>
-                    <a href="/admin/services" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 flex items-center">
-                        <i data-lucide="target" class="w-4 h-4 mr-2"></i>Gestión de Servicios
-                    </a>
-                </div>
-            </div>
-        </div>
+        <!-- Notificaciones de Chat -->
+        <% if (user && user.role !== 'client') { %>
+        <button id="btn-pending-messages" class="relative p-2 text-gray-500 hover:text-[#31713D] transition-colors" title="Mensajes pendientes">
+            <i data-lucide="message-square" class="w-6 h-6"></i>
+            <% if (locals.totalUnreadChats > 0) { %>
+                <span id="unread-count-badge" class="absolute top-1 right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white leading-none">
+                    <%= totalUnreadChats %>
+                </span>
+            <% } %>
+        </button>
         <% } %>
 
-        <!-- My Proposals Button (for logged in users) -->
-        <% if (user && user.role !== 'admin') { %>
-        <a href="/my-proposals" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition text-sm font-semibold flex items-center gap-2 print:hidden">
-            <i data-lucide="clipboard-list" class="w-4 h-4"></i>
-            <span class="hidden md:inline">Mis Propuestas</span>
+        <!-- Developer Role Toggle -->
+        <% if (locals.isDev) { %>
+        <a href="/dev/toggle-role" class="px-2 py-1 rounded bg-orange-50 border border-orange-200 text-orange-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-orange-100 transition" title="Cambiar Rol (Dev Mode)">
+            <i data-lucide="<%= user && user.role === 'admin' ? 'shield-check' : 'user' %>" class="w-3.5 h-3.5 text-black"></i>
+            <span><%= user && user.role === 'admin' ? 'ADMIN' : 'USER' %></span>
         </a>
         <% } %>
 
-        <!-- Search (Commercial only) -->
-        <% if (user && user.role === 'commercial') { %>
-        <div class="relative hidden md:block">
-            <input 
-                type="text" 
-                placeholder="Buscar cliente, venue..." 
-                class="pl-10 pr-4 py-2 border rounded-lg text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                id="global-search"
-            >
-            <span class="absolute left-3 top-2.5 text-gray-400">
-                <i data-lucide="search" class="w-4 h-4"></i>
-            </span>
-        </div>
+        <!-- Admin Button (only for admins) -->
+        <% if (user && user.role === 'admin') { %>
+        <a href="/admin" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition text-sm font-semibold flex items-center gap-2 print:hidden">
+            <i data-lucide="settings" class="w-4 h-4 text-black"></i>
+            <span>Admin</span>
+        </a>
         <% } %>
-        
+
         <!-- User Menu -->
         <% if (user) { %>
         <div class="flex items-center gap-3 border-l border-gray-200 pl-4">
@@ -74,14 +61,50 @@
                 <div class="text-sm font-medium text-gray-700"><%= user.name %></div>
                 <div class="text-xs text-gray-500"><%= user.role === 'admin' ? 'Administrador' : 'Comercial' %></div>
             </div>
-            <a href="/logout" class="text-gray-400 hover:text-gray-600 ml-2" title="Cerrar sesión">
-                <i data-lucide="log-out" class="w-4 h-4"></i>
+            <a href="/logout" class="text-slate-900 hover:text-gray-600 ml-2" title="Cerrar sesión">
+                <i data-lucide="log-out" class="w-4 h-4 text-black"></i>
             </a>
         </div>
         <% } else { %>
         <div class="flex items-center gap-2">
-            <a href="/login" class="text-blue-600 hover:text-blue-700 font-medium text-sm">Iniciar sesión</a>
+            <a href="/login" class="text-[#31713D] hover:text-[#24552E] font-medium text-sm">Iniciar sesión</a>
         </div>
         <% } %>
     </div>
 </nav>
+
+<script>
+    // Inicialización de iconos con reintentos para asegurar visibilidad
+    function refreshIcons() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshIcons();
+        
+        // Manejador global para el botón de mensajes pendientes
+        const btnPending = document.getElementById('btn-pending-messages');
+        if (btnPending) {
+            btnPending.addEventListener('click', () => {
+                // Si existe la función openPendingSidebar (definida en dashboard), la llama.
+                // Si no, redirige al dashboard.
+                if (typeof window.openPendingSidebar === 'function') {
+                    window.openPendingSidebar();
+                } else {
+                    window.location.href = '/dashboard?status=unread';
+                }
+            });
+        }
+    });
+    window.addEventListener('load', refreshIcons);
+    
+    // Ejecutar inmediatamente si lucide ya está cargado
+    if (typeof lucide !== 'undefined') {
+        refreshIcons();
+    }
+    
+    // Reintentar a los 500ms por si el CDN tarda
+    setTimeout(refreshIcons, 500);
+</script>

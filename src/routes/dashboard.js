@@ -31,7 +31,7 @@ router.use((req, res, next) => {
 router.get('/dashboard', [
   query('status')
     .optional()
-    .isIn(['all', 'draft', 'sent', 'accepted', 'cancelled'])
+    .isIn(['all', 'unread', 'Pipe', 'Aceptada', 'Anulada', 'archived', 'draft', 'sent', 'accepted', 'cancelled'])
     .withMessage('Estado inválido'),
   query('search')
     .optional()
@@ -55,7 +55,7 @@ router.get('/dashboard', [
  * GET /proposal/new
  * Mostrar formulario de nueva propuesta
  */
-router.get('/proposal/new', DashboardController.newProposal);
+router.get('/proposal/new', (req, res, next) => DashboardController.newProposal(req, res, next));
 
 // ============ PROPUESTAS - CRUD ============
 
@@ -165,6 +165,32 @@ router.get('/admin',
 );
 
 /**
+ * GET /admin/sustainability
+ * ADMIN ONLY: Panel de gestión de sostenibilidad
+ */
+router.get('/admin/sustainability',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getSustainabilityPanel(req, res, next);
+  }
+);
+
+/**
+ * POST /admin/sustainability
+ * ADMIN ONLY: Actualizar configuración de sostenibilidad
+ */
+router.post('/admin/sustainability',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.updateSustainability(req, res, next);
+  }
+);
+
+/**
  * GET /admin/venues
  * ADMIN ONLY: Gestión de venues con scraping
  * Requiere rol: admin
@@ -175,6 +201,63 @@ router.get('/admin/venues',
   (req, res, next) => {
     const AdminController = require('../controllers/adminController');
     AdminController.getVenuesListPage(req, res, next);
+  }
+);
+
+/**
+ * GET /admin/venues/queue-template
+ * ADMIN ONLY: Descargar plantilla CSV para cola de scraping
+ */
+router.get('/admin/venues/queue-template',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getQueueTemplate(req, res, next);
+  }
+);
+
+/**
+ * GET /admin/users
+ * ADMIN ONLY: Gestión de usuarios
+ */
+router.get('/admin/users',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getUsersPanel(req, res, next);
+  }
+);
+
+/**
+ * Image Catalog Routes
+ */
+router.get('/admin/images',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getImagesPanel(req, res, next);
+  }
+);
+
+router.post('/admin/catalog/upload',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    console.log('🛤️ [Router] Detectada ruta POST /admin/catalog/upload (Nueva Ruta)');
+    const AdminController = require('../controllers/adminController');
+    AdminController.uploadImage(req, res, next);
+  }
+);
+
+router.post('/admin/images/delete/:id',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.deleteImage(req, res, next);
   }
 );
 
@@ -192,15 +275,286 @@ router.get('/admin/dishes',
 );
 
 /**
- * GET /admin/services
- * ADMIN ONLY: Gestión de servicios
+ * GET /admin/venues/export
+ * ADMIN ONLY: Exportar venues como CSV
  */
-router.get('/admin/services',
+router.get('/admin/venues/export',
   authenticateUser,
   authorizeRole('admin'),
   (req, res, next) => {
     const AdminController = require('../controllers/adminController');
-    AdminController.getServicesPanel(req, res, next);
+    AdminController.exportVenues(req, res, next);
+  }
+);
+
+/**
+ * GET /admin/dishes/export
+ * ADMIN ONLY: Exportar platos como CSV
+ */
+router.get('/admin/dishes/export',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.exportDishes(req, res, next);
+  }
+);
+
+/**
+ * POST /admin/dishes
+ * ADMIN ONLY: Crear nuevo plato
+ */
+router.post('/admin/dishes',
+  authenticateUser,
+  authorizeRole('admin'),
+  [
+    body('name').trim().notEmpty().withMessage('El nombre es requerido'),
+    body('category').optional().trim(),
+    body('base_price').optional().isFloat({ min: 0 }).withMessage('Precio inválido')
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    const AdminController = require('../controllers/adminController');
+    AdminController.createDish(req, res, next);
+  }
+);
+
+/**
+ * PUT /admin/dishes/:id
+ * ADMIN ONLY: Actualizar plato
+ */
+router.put('/admin/dishes/:id',
+  authenticateUser,
+  authorizeRole('admin'),
+  [
+    param('id').isInt().withMessage('ID inválido'),
+    body('name').optional().trim(),
+    body('base_price').optional().isFloat({ min: 0 }).withMessage('Precio inválido')
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    const AdminController = require('../controllers/adminController');
+    AdminController.updateDish(req, res, next);
+  }
+);
+
+/**
+ * DELETE /admin/dishes/:id
+ * ADMIN ONLY: Eliminar plato
+ */
+router.delete('/admin/dishes/:id',
+  authenticateUser,
+  authorizeRole('admin'),
+  [
+    param('id').isInt().withMessage('ID inválido')
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    const AdminController = require('../controllers/adminController');
+    AdminController.deleteDish(req, res, next);
+  }
+);
+
+/**
+ * POST /admin/dishes/:id/duplicate
+ * ADMIN ONLY: Duplicar plato
+ */
+router.post('/admin/dishes/:id/duplicate',
+  authenticateUser,
+  authorizeRole('admin'),
+  [
+    param('id').isInt().withMessage('ID inválido')
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    const AdminController = require('../controllers/adminController');
+    AdminController.duplicateDish(req, res, next);
+  }
+);
+
+/**
+ * POST /admin/dishes/import
+ * ADMIN ONLY: Importar platos desde CSV
+ */
+router.post('/admin/dishes/import',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.importDishes(req, res, next);
+  }
+);
+
+/**
+ * GET /admin/menus
+ * ADMIN ONLY: Gestión de menús del catálogo
+ */
+router.get('/admin/menus',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getMenusPanel(req, res, next);
+  }
+);
+
+/**
+ * POST /admin/menus
+ * ADMIN ONLY: Crear nuevo menú
+ */
+router.post('/admin/menus',
+  authenticateUser,
+  authorizeRole('admin'),
+  [
+    body('name').trim().notEmpty().withMessage('El nombre es requerido'),
+    body('base_price').optional().isFloat({ min: 0 }).withMessage('Precio inválido')
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    const AdminController = require('../controllers/adminController');
+    AdminController.createMenu(req, res, next);
+  }
+);
+
+/**
+ * PUT /admin/menus/:id
+ * ADMIN ONLY: Actualizar menú
+ */
+router.put('/admin/menus/:id',
+  authenticateUser,
+  authorizeRole('admin'),
+  [
+    param('id').isInt().withMessage('ID inválido'),
+    body('name').optional().trim(),
+    body('base_price').optional().isFloat({ min: 0 }).withMessage('Precio inválido')
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    const AdminController = require('../controllers/adminController');
+    AdminController.updateMenu(req, res, next);
+  }
+);
+
+/**
+ * DELETE /admin/menus/:id
+ * ADMIN ONLY: Eliminar menú
+ */
+router.delete('/admin/menus/:id',
+  authenticateUser,
+  authorizeRole('admin'),
+  [
+    param('id').isInt().withMessage('ID inválido')
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    const AdminController = require('../controllers/adminController');
+    AdminController.deleteMenu(req, res, next);
+  }
+);
+
+/**
+ * POST /admin/menus/:id/duplicate
+ * ADMIN ONLY: Duplicar menú
+ */
+router.post('/admin/menus/:id/duplicate',
+  authenticateUser,
+  authorizeRole('admin'),
+  [
+    param('id').isInt().withMessage('ID inválido')
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    const AdminController = require('../controllers/adminController');
+    AdminController.duplicateMenu(req, res, next);
+  }
+);
+
+/**
+ * POST /admin/menus/import
+ * ADMIN ONLY: Importar menús desde CSV
+ */
+router.post('/admin/menus/import',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.importMenus(req, res, next);
+  }
+);
+
+/**
+ * GET /admin/menus/export
+ * ADMIN ONLY: Exportar menús a CSV
+ */
+router.get('/admin/menus/export',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.exportMenus(req, res, next);
+  }
+);
+
+/**
+ * --- CATEGORÍAS ---
+ */
+router.get('/admin/categories',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.getCategoriesPanel(req, res, next);
+  }
+);
+
+router.post('/admin/categories',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.createCategory(req, res, next);
+  }
+);
+
+router.post('/admin/categories/:id',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.updateCategory(req, res, next);
+  }
+);
+
+router.delete('/admin/categories/:id',
+  authenticateUser,
+  authorizeRole('admin'),
+  (req, res, next) => {
+    const AdminController = require('../controllers/adminController');
+    AdminController.deleteCategory(req, res, next);
   }
 );
 

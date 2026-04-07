@@ -19,8 +19,6 @@ CREATE TABLE venues (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    capacity INT DEFAULT 0, -- Capacidad en pax (manual)
-    features JSON, -- ["Luz natural", "Wifi", "Jardín"]
     address VARCHAR(255),
     map_iframe TEXT,
     external_url VARCHAR(255),

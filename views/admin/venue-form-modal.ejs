@@ -29,7 +29,7 @@
   .form-group input,
   .form-group textarea,
   .form-group select {
-    @apply w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500;
+    @apply w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#31713D];
   }
 
   .form-group textarea {
@@ -40,7 +40,7 @@
 <div id="venue-form-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
   <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
     <!-- Header Modal -->
-    <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex justify-between items-center">
+    <div class="sticky top-0 bg-gradient-to-r from-[#31713D] to-[#24552E] text-white p-4 flex justify-between items-center">
       <h2 id="form-title" class="text-xl font-bold flex items-center gap-2">
         <i data-lucide="building-2" class="w-5 h-5"></i> <span>Crear Venue</span>
       </h2>
@@ -90,7 +90,7 @@
           </button>
 
           <button type="submit"
-                  class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition font-medium inline-flex items-center gap-2">
+                  class="px-6 py-2 bg-[#31713D] hover:bg-[#24552E] text-white rounded transition font-medium inline-flex items-center gap-2">
             <span id="submit-icon">✔️</span>
             <span id="submit-text">Guardar Venue</span>
           </button>

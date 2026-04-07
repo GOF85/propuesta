@@ -1,390 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Propuestas - MICE CATERING</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <link rel="stylesheet" href="/css/professional.css">
+    <style>
+        @media print {
+            nav, footer, button, .print-hidden { display: none !important; }
+        }
+
+        /* Animación de entrada suave para mensajes */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scroll suave en el contenedor de mensajes */
+        #chat-messages-container {
+            scroll-behavior: smooth;
+        }
+
+        /* 💬 Estilos específicos para Chat Maximizado */
+        #chat-sidebar.fixed {
+            box-shadow: 0 0 0 100vmax rgba(0,0,0,0.6);
+            max-width: 900px;
+            margin: 2vh auto;
+            height: 96vh !important;
+            border-radius: 0 !important;
+            border: 8px solid white;
+        }
+        
+        #chat-sidebar.fixed #chat-messages-container {
+            padding: 3rem !important;
+            background-color: white !important;
+        }
+
+        /* Cuerpo del mensaje en maximizado */
+        #chat-sidebar.fixed .max-w-\[80\%\] {
+            max-width: 70% !important;
+        }
+
+        #chat-sidebar.fixed p.text-\[13px\] {
+            font-size: 1.125rem !important; /* text-lg */
+            line-height: 1.6 !important;
+        }
+
+        /* Input de chat en maximizado */
+        #chat-sidebar.fixed #chat-input {
+            font-size: 1.125rem !important;
+            padding: 1.25rem 5rem 1.25rem 1.5rem !important;
+            border-radius: 1.5rem !important;
+            background: white !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        #chat-sidebar.fixed #btn-send-message {
+            width: 3rem !important;
+            height: 3rem !important;
+            right: 1rem !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            border-radius: 1.25rem !important;
+        }
+
+        #chat-sidebar.fixed #btn-send-message:hover {
+            transform: translateY(-50%) translateY(-2px) !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
 <%- include('../partials/header') %>
 
-<main class="min-h-screen bg-gray-50 py-8">
+<main class="min-h-screen bg-gray-50 py-1">
   <div class="max-w-7xl mx-auto px-4">
 
     <!-- Breadcrumb -->
-    <nav class="mb-8 flex items-center space-x-2 text-sm">
-      <a href="/dashboard" class="text-blue-600 hover:underline">Dashboard</a>
+    <nav class="mb-2 flex items-center space-x-2 text-xs">
+      <a href="/dashboard" class="text-[#31713D] hover:underline">Dashboard</a>
       <span class="text-gray-400">/</span>
       <span class="text-gray-700 font-medium"><%= proposal.client_name %></span>
     </nav>
 
     <!-- Header con titulo y acciones -->
-    <div class="mb-8 flex items-start justify-between">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">
-          <%= proposal.client_name %>
-        </h1>
-        <p class="text-gray-600 mt-1">
-          Propuesta #<%= proposal.id %> | 
-          Estado: <span class="badge badge-<%= proposal.status %>"><%= statusLabel(proposal.status) %></span>
+    <div class="mb-4 flex flex-col md:flex-row items-center justify-between bg-white px-4 py-3 rounded-none border border-gray-200 shadow-sm gap-4">
+      <div class="flex-1">
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-black text-gray-900 leading-tight">
+            <%= proposal.client_name %>
+          </h1>
+          <span class="badge badge-<%= proposal.status %> px-3 py-1 text-[10px] uppercase tracking-widest font-black shadow-sm">
+            <%= statusLabel(proposal.status) %>
+          </span>
+        </div>
+        <p class="text-gray-500 mt-1 flex items-center gap-3 text-xs">
+          <span class="font-bold text-gray-700 bg-gray-50 px-2 py-0.5 rounded-none border border-gray-100 italic">#<%= proposal.id %></span>
+          <span class="text-gray-300">|</span>
+          <i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i>
+          <span class="font-medium text-gray-600">
+            <%= proposal.event_date ? new Date(proposal.event_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Fecha sin definir' %>
+          </span>
         </p>
       </div>
-      <div class="flex gap-3">
-        <% if (proposal.status === 'draft' || proposal.status === 'accepted') { %>
-          <button id="btn-publish" class="btn btn-primary">
-            📤 Enviar a Cliente
+
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Acciones Principales -->
+        <div class="flex gap-2">
+          <% if (proposal.status === 'Pipe' || proposal.status === 'Aceptada') { %>
+            <form method="POST" action="/proposal/<%= proposal.id %>/publish" class="inline">
+              <button class="bg-[#31713D] text-white px-4 py-2.5 rounded-none hover:bg-black transition flex items-center gap-2 text-xs font-bold shadow-lg shadow-green-100">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                <span>Enviar Propuesta</span>
+              </button>
+            </form>
+          <% } %>
+          
+          <button type="button" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-none hover:bg-gray-50 transition flex items-center gap-2 text-xs font-bold" onclick="window.open('/p/<%= proposal.unique_hash %>', '_blank')">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+            <span>Vista Cliente</span>
           </button>
-        <% } %>
-        <% if (proposal.user_id === user.id) { %>
-          <button class="btn btn-outline" onclick="history.back()">
-            ← Volver
+          
+          <button type="button" class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-none hover:bg-gray-50 transition flex items-center gap-2 text-xs font-bold" onclick="window.print()">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Exportar PDF</span>
           </button>
-        <% } %>
+        </div>
+
+        <div class="h-10 w-px bg-gray-100 hidden md:block mx-2"></div>
+
+        <!-- Toggle Presupuesto en revisión -->
+        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2.5 rounded-none border border-gray-200">
+          <div class="text-right">
+            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block leading-none">Modo</span>
+            <span class="text-[11px] font-bold text-gray-700 block mt-0.5">Revisión</span>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="toggle-is-editing" class="sr-only peer" <%= proposal.is_editing ? 'checked' : '' %> onchange="toggleIsEditing(this)">
+            <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-none after:h-4 after:w-4 after:transition-all peer-checked:bg-[#31713D]"></div>
+          </label>
+        </div>
       </div>
     </div>
 
-    <!-- Contenedor principal (grid 2 columnas) -->
-    <div class="grid grid-cols-3 gap-8">
+    <!-- Contenedor principal en Grid (2 columnas) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
-      <!-- COLUMNA PRINCIPAL (2/3) -->
-      <div class="col-span-2 space-y-8">
+      <!-- Lado Izquierdo: Editor (75% / col-span-9) -->
+      <div class="lg:col-span-9 space-y-4 w-full">
+        
+        <!-- Grid Superior: Información, Comentarios y Condiciones -->
+        <div class="space-y-4 mb-4">
+          
+          <!-- Bloque 1: Información Detallada -->
+          <div class="bg-white rounded-none border border-gray-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-5">
+              <h2 class="text-xs font-black text-[#31713D] flex items-center gap-2 uppercase tracking-widest leading-none">
+                <i data-lucide="info" class="w-4 h-4"></i>
+                Detalle Comercial
+              </h2>
+              <div class="flex items-center gap-3">
+                <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Etiqueta:</span>
+                <select onchange="updateClientCategory(this.value)"
+                        class="px-4 py-1.5 rounded-none text-[10px] font-black uppercase tracking-widest border-2 border-gray-100 bg-gray-50 text-gray-600 focus:border-[#31713D] transition-all cursor-pointer outline-none mr-2">
+                  <option value="" <%= !proposal.client_category ? 'selected' : '' %>>Estándar</option>
+                  <option value="Recurrente" <%= proposal.client_category === 'Recurrente' ? 'selected' : '' %>>Recurrente</option>
+                  <option value="Gran Cuenta" <%= proposal.client_category === 'Gran Cuenta' ? 'selected' : '' %>>Gran Cuenta</option>
+                  <option value="Grandes Eventos" <%= proposal.client_category === 'Grandes Eventos' ? 'selected' : '' %>>Grandes Eventos</option>
+                </select>
 
-        <!-- ════════════════════════════════════════════════════════ -->
-        <!-- SECCIÓN 1: INFORMACIÓN DEL CLIENTE -->
-        <!-- ════════════════════════════════════════════════════════ -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
-          <h2 class="text-xl font-bold text-gray-900 mb-6">📋 Información de la Propuesta</h2>
-
-          <form id="proposal-form" class="space-y-4">
-            <input type="hidden" data-proposal-id="<%= proposal.id %>">
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="form-label">Cliente *</label>
-                <input 
-                  type="text" 
-                  name="client_name" 
-                  value="<%= proposal.client_name %>"
-                  class="form-input"
-                  required
-                >
-              </div>
-              <div>
-                <label class="form-label">Email Cliente</label>
-                <input 
-                  type="email" 
-                  name="client_email" 
-                  value="<%= proposal.client_email || '' %>"
-                  class="form-input"
-                >
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="form-label">Fecha del Evento</label>
-                <input 
-                  type="date" 
-                  name="event_date" 
-                  value="<%= proposal.event_date ? proposal.event_date.split('T')[0] : '' %>"
-                  class="form-input"
-                >
+                <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest pl-4 border-l border-gray-200">Estado:</span>
+                <select id="proposal-status-select" 
+                        name="status"
+                        onchange="updateProposalStatus(this.value)"
+                        class="px-4 py-1.5 rounded-none text-[10px] font-black uppercase tracking-widest border-2 transition-all cursor-pointer outline-none
+                        <%= proposal.status === 'Pipe' ? 'bg-blue-50 text-blue-600 border-blue-100 focus:border-blue-300' : 
+                           proposal.status === 'Aceptada' ? 'bg-green-50 text-[#31713D] border-green-100 focus:border-green-300' : 
+                           'bg-red-50 text-red-600 border-red-100 focus:border-red-300' %>">
+                  <option value="Pipe" <%= proposal.status === 'Pipe' ? 'selected' : '' %>>Pipe</option>
+                  <option value="Aceptada" <%= proposal.status === 'Aceptada' ? 'selected' : '' %>>Aceptada</option>
+                  <option value="Anulada" <%= proposal.status === 'Anulada' ? 'selected' : '' %>>Anulada</option>
+                </select>
               </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="form-label">PAX (Comensales)</label>
-                <input 
-                  type="number" 
-                  name="pax" 
-                  value="<%= proposal.pax || 0 %>"
-                  min="1"
-                  class="form-input"
-                >
+            
+            <form id="proposal-form" class="space-y-6">
+              <input type="hidden" data-proposal-id="<%= proposal.id %>">
+              
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+                <div class="md:col-span-5">
+                  <label class="form-label">Cliente / Título del Evento</label>
+                  <input type="text" name="client_name" value="<%= proposal.client_name %>" class="form-input text-lg font-bold" placeholder="Ej: Evento Corporativo Google" required onchange="updateProposalHeader({ client_name: this.value })">
+                </div>
+                <div class="md:col-span-4">
+                  <label class="form-label">Email de contacto</label>
+                  <input type="email" name="client_email" value="<%= proposal.client_email || '' %>" class="form-input text-base" placeholder="cliente@empresa.com" required>
+                </div>
+                <div class="md:col-span-3">
+                  <label class="form-label"># REF / Oportunidad</label>
+                  <input type="text" name="custom_ref" value="<%= proposal.custom_ref || '' %>" class="form-input text-lg font-black text-[#31713D]" placeholder="2026-12345">
+                </div>
               </div>
-              <div>
-                <label class="form-label">Válida hasta</label>
-                <input 
-                  type="date" 
-                  name="valid_until" 
-                  value="<%= proposal.valid_until ? proposal.valid_until.split('T')[0] : '' %>"
-                  class="form-input"
-                >
+
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-5 items-end pt-4 border-t border-gray-100">
+                <div>
+                  <label class="form-label">Fecha Inicio</label>
+                  <input type="date" name="event_date" value="<%= proposal.event_date ? dayjs(proposal.event_date).format('YYYY-MM-DD') : '' %>" class="form-input" onchange="updateProposalHeader({ event_date: this.value })">
+                </div>
+                <div>
+                  <label class="form-label">Fecha Fin</label>
+                  <input type="date" name="event_end_date" id="event-end-date" value="<%= proposal.event_end_date ? dayjs(proposal.event_end_date).format('YYYY-MM-DD') : '' %>" class="form-input" onchange="updateProposalHeader({ event_end_date: this.value })">
+                </div>
+                <div>
+                  <label class="form-label">Asistentes (PAX)</label>
+                  <input type="number" name="pax" value="<%= proposal.pax %>" class="form-input font-bold text-[#31713D]" onchange="updateProposalHeader({ pax: this.value })">
+                </div>
+                <div>
+                  <label class="form-label">Color Marca</label>
+                  <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-none border border-gray-200">
+                    <div class="relative group cursor-pointer w-10 h-10 flex-shrink-0 bg-white rounded-none border border-gray-200 overflow-hidden flex items-center justify-center" onclick="document.getElementById('logo-upload').click()">
+                      <% if (proposal.logo_url) { %>
+                        <img src="<%= proposal.logo_url %>" id="editor-logo-preview" class="max-w-full max-h-full object-contain">
+                      <% } else { %>
+                        <i data-lucide="image" id="editor-logo-icon" class="w-5 h-5 text-gray-400"></i>
+                      <% } %>
+                    </div>
+                    <input type="file" id="logo-upload" class="hidden" accept="image/*">
+                    <input type="hidden" name="logo_url" value="<%= proposal.logo_url %>">
+                    <input type="color" name="brand_color" id="editor-brand-color" value="<%= proposal.brand_color || '#31713D' %>" class="w-8 h-8 rounded-none border-0 cursor-pointer p-0 bg-transparent">
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label class="form-label">Condiciones Legales</label>
-              <textarea 
-                name="legal_conditions" 
-                rows="4"
-                class="form-input"
-                placeholder="Términos y condiciones..."
-              ><%= proposal.legal_conditions || '' %></textarea>
-            </div>
+            </form>
+          </div>
 
-            <button type="button" id="btn-save-proposal" class="btn btn-secondary w-full">
-              💾 Guardar Cambios
+          <!-- Bloque 2: Comentarios (Accordion - Closed by default) -->
+          <div class="bg-white rounded-none border border-gray-200 shadow-sm overflow-hidden" id="section-comentarios">
+            <button type="button" class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors" onclick="toggleSection('comentarios')">
+              <div class="flex items-center gap-3">
+                <i data-lucide="message-square" id="icon-comentarios" class="w-4 h-4 <%= proposal.legal_conditions ? 'text-[#31713D]' : 'text-gray-400' %>"></i>
+                <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">Comentarios para el Presupuesto</h2>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2" onclick="event.stopPropagation()">
+                  <span class="text-[9px] font-bold text-gray-400 uppercase">Mostrar</span>
+                  <label class="relative inline-flex items-center cursor-pointer scale-75">
+                    <input type="checkbox" name="show_legal_conditions" form="proposal-form" class="sr-only peer" <%= proposal.show_legal_conditions ? 'checked' : '' %> onchange="updateProposalHeader({ show_legal_conditions: this.checked ? 1 : 0 })">
+                    <div class="w-9 h-5 bg-gray-200 rounded-none peer peer-checked:bg-[#31713D] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-none after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                  </label>
+                </div>
+                <i data-lucide="chevron-down" id="chevron-comentarios" class="w-4 h-4 text-gray-400 transition-transform"></i>
+              </div>
             </button>
-          </form>
+            <div id="content-comentarios" class="hidden px-4 pb-4 border-t border-gray-50">
+              <textarea name="legal_conditions" form="proposal-form" class="form-input w-full h-32 text-sm leading-relaxed p-3 border-gray-200 rounded-none focus:ring-2 focus:ring-[#31713D]/20 mt-3" placeholder="Notas para el cliente..." onblur="updateProposalHeader({ legal_conditions: this.value })"><%= proposal.legal_conditions %></textarea>
+            </div>
+          </div>
+
+          <!-- Bloque 3: Condiciones Generales (Accordion - Closed by default) -->
+          <div class="bg-white rounded-none border border-gray-200 shadow-sm overflow-hidden" id="section-general-conditions">
+            <button type="button" class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors" onclick="toggleSection('general-conditions')">
+              <div class="flex items-center gap-3">
+                <i data-lucide="shield-check" class="w-4 h-4 text-gray-400"></i>
+                <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">Condiciones Generales</h2>
+              </div>
+              <div class="flex items-center gap-4">
+                <label class="relative inline-flex items-center cursor-pointer scale-75" onclick="event.stopPropagation()">
+                  <input type="checkbox" name="show_general_conditions" form="proposal-form" class="sr-only peer" <%= proposal.show_general_conditions ? 'checked' : '' %> onchange="updateProposalHeader({ show_general_conditions: this.checked ? 1 : 0 })">
+                  <div class="w-9 h-5 bg-gray-200 rounded-none peer peer-checked:bg-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-none after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+                <i data-lucide="chevron-down" id="chevron-general-conditions" class="w-4 h-4 text-gray-400 transition-transform"></i>
+              </div>
+            </button>
+            <div id="content-general-conditions" class="hidden px-4 pb-4 border-t border-gray-50">
+              <textarea name="general_conditions" form="proposal-form" class="form-input w-full bg-gray-50/50 text-xs text-gray-500 leading-normal p-3 border-gray-200 rounded-none" style="min-height: 200px;" onblur="updateProposalHeader({ general_conditions: this.value })"><%= proposal.general_conditions %></textarea>
+              <p class="text-[10px] text-gray-400 italic mt-2">Guardado automático al salir del campo</p>
+            </div>
+          </div>
         </div>
 
         <!-- ════════════════════════════════════════════════════════ -->
         <!-- SECCIÓN 2: VENUES -->
         <!-- ════════════════════════════════════════════════════════ -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
-          <h2 class="text-xl font-bold text-gray-900 mb-6">🏢 Venues</h2>
-
-          <div class="mb-6 flex gap-2">
-            <select name="venue-selector" class="form-input flex-1">
-              <option value="">Selecciona un venue...</option>
-              <% if (availableVenues) { %>
-                <% availableVenues.forEach(v => { %>
-                  <option value="<%= v.id %>"><%= v.name %></option>
-                <% }); %>
-              <% } %>
-            </select>
-            <button type="button" id="btn-add-venue" class="btn btn-primary">
-              ➕ Agregar
-            </button>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="venues-table w-full text-sm">
-              <thead>
-                <tr class="border-b-2 border-gray-200">
-                  <th class="text-left py-2 px-4 font-semibold">Venue</th>
-                  <th class="text-right py-2 px-4 font-semibold">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <% if (proposal.venues && proposal.venues.length > 0) { %>
-                  <% proposal.venues.forEach(v => { %>
-                    <tr class="venue-row hover:bg-gray-50">
-                      <td class="py-3 px-4"><%= v.name %></td>
-                      <td class="py-3 px-4 text-right">
-                        <button 
-                          type="button" 
-                          class="btn btn-sm btn-danger btn-remove-venue" 
-                          data-venue-id="<%= v.id %>"
-                        >
-                          🗑️ Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  <% }); %>
-                <% } else { %>
-                  <tr>
-                    <td class="py-8 px-4 text-center text-gray-500 col-span-2">
-                      Sin venues agregados
-                    </td>
-                  </tr>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- ════════════════════════════════════════════════════════ -->
-        <!-- SECCIÓN 3: SERVICIOS -->
-        <!-- ════════════════════════════════════════════════════════ -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
-          <h2 class="text-xl font-bold text-gray-900 mb-6">🍽️ Servicios / Hitos</h2>
-
-          <div class="mb-6 flex gap-2">
-            <input 
-              type="text"
-              placeholder="Nombre del servicio (ej: Welcome Coffee)..."
-              id="service-title"
-              class="form-input flex-1"
-            >
-            <select name="service-type" class="form-input">
-              <option value="gastronomy">Gastronomía</option>
-              <option value="logistics">Logística</option>
-              <option value="staff">Personal</option>
-              <option value="other">Otro</option>
-            </select>
-            <button type="button" id="btn-add-service" class="btn btn-primary">
-              ➕ Agregar
-            </button>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="services-table w-full text-sm">
-              <thead>
-                <tr class="border-b-2 border-gray-200">
-                  <th class="text-left py-2 px-4 font-semibold">Servicio</th>
-                  <th class="text-left py-2 px-4 font-semibold">Tipo</th>
-                  <th class="text-right py-2 px-4 font-semibold">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <% if (proposal.services && proposal.services.length > 0) { %>
-                  <% proposal.services.forEach(s => { %>
-                    <tr class="service-row hover:bg-gray-50">
-                      <td class="py-3 px-4"><%= s.title %></td>
-                      <td class="py-3 px-4">
-                        <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                          <%= s.type %>
-                        </span>
-                      </td>
-                      <td class="py-3 px-4 text-right">
-                        <button 
-                          type="button" 
-                          class="btn btn-sm btn-danger btn-remove-service" 
-                          data-service-id="<%= s.id %>"
-                        >
-                          🗑️ Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  <% }); %>
-                <% } else { %>
-                  <tr>
-                    <td class="py-8 px-4 text-center text-gray-500" colspan="3">
-                      Sin servicios agregados
-                    </td>
-                  </tr>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- COLUMNA DERECHA (1/3) - SIDEBAR -->
-      <div class="col-span-1">
-
-        <!-- ════════════════════════════════════════════════════════ -->
-        <!-- WIDGET: RESUMEN FINANCIERO -->
-        <!-- ════════════════════════════════════════════════════════ -->
-        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6 sticky top-8">
-          <h3 class="text-lg font-bold text-gray-900 mb-4">💰 Resumen Financiero</h3>
-
-          <div class="space-y-3">
-            <div class="flex justify-between items-center">
-              <span class="text-gray-600">Base:</span>
-              <span class="text-lg font-semibold text-gray-900">
-                <%= formatCurrency(proposal.totals?.total_base || proposal.total_base || 0) %>
-              </span>
+        <div class="bg-white rounded-none border border-gray-200 shadow-sm" id="section-venues">
+          <!-- Accordion Header -->
+          <button type="button" class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors rounded-none" onclick="toggleSection('venues')">
+            <div class="flex items-center gap-3">
+              <i data-lucide="map-pin" class="w-4 h-4 text-[#31713D]"></i>
+              <div class="text-left">
+                <h2 class="text-sm font-bold text-gray-900">Venues</h2>
+                <% const selectedVenuePv = proposal.venues?.find(v => v.is_selected); %>
+                <p class="text-[10px] font-bold text-[#31713D] uppercase tracking-widest">
+                  <%= selectedVenuePv ? '📍 ' + selectedVenuePv.name : 'Ninguno' %>
+                </p>
+              </div>
             </div>
-
-            <div class="flex justify-between items-center">
-              <span class="text-gray-600">Descuentos:</span>
-              <span class="font-medium text-red-600">
-                -<%= formatCurrency(proposal.totals?.total_discount || 0) %>
-              </span>
-            </div>
-
-            <div class="flex justify-between items-center">
-              <span class="text-gray-600">IVA:</span>
-              <span class="font-medium text-gray-800">
-                <%= formatCurrency(proposal.totals?.total_vat || 0) %>
-              </span>
-            </div>
-
-            <div class="flex justify-between items-center py-3 border-t-2 border-b-2 border-gray-300">
-              <span class="font-bold text-gray-900">TOTAL:</span>
-              <span class="text-2xl font-bold text-blue-600" data-total-final>
-                <%= formatCurrency(proposal.totals?.total_final || proposal.total || 0) %>
-              </span>
-            </div>
-
-            <div class="text-xs text-gray-500 pt-2">
-              Margen: <%= (proposal.totals?.margin_percentage || 0).toFixed(1) %>%
-            </div>
-          </div>
-
-          <button type="button" id="btn-recalculate" class="btn btn-secondary w-full mt-6 text-sm">
-            🔄 Recalcular
+            <i data-lucide="chevron-down" id="chevron-venues" class="w-4 h-4 text-gray-400 transition-transform <%= selectedVenuePv ? '' : 'rotate-180' %>"></i>
           </button>
+
+          <!-- Accordion Content -->
+          <div id="content-venues" class="px-4 pb-4 <%= selectedVenuePv ? 'hidden' : '' %>">
+            <div class="mb-3 space-y-2">
+              <!-- Buscador Catálogo -->
+              <div class="flex gap-2 relative">
+                <div class="relative flex-1">
+                  <input 
+                    type="text" 
+                    id="venue-search-input" 
+                    placeholder="Buscar venue..." 
+                    class="form-input w-full pr-8 text-sm py-2"
+                    autocomplete="off"
+                  >
+                  <!-- Contenedor de Resultados (Dropdown) -->
+                  <div id="venue-results" class="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-none shadow-2xl z-[100] max-h-80 overflow-y-auto hidden">
+                    <% if (availableVenues && availableVenues.length > 0) { %>
+                      <% availableVenues.forEach(v => { %>
+                        <div class="venue-option px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0 flex items-center justify-between group" 
+                             data-id="<%= v.id %>" 
+                             data-name="<%= v.name %>"
+                             data-venue='<%- JSON.stringify(v).replace(/'/g, "&#39;") %>'>
+                          <div class="flex items-center gap-3">
+                            <% 
+                              let firstImg = '/img/venue-placeholder.jpg';
+                              if (v.images) {
+                                try {
+                                  const imgs = typeof v.images === 'string' ? JSON.parse(v.images) : v.images;
+                                  if (imgs && imgs.length > 0) firstImg = imgs[0];
+                                } catch(e) {}
+                              }
+                            %>
+                            <div class="w-10 h-10 rounded-none overflow-hidden bg-gray-100 border border-gray-100">
+                              <img src="<%= firstImg %>" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                              <p class="text-sm font-bold text-gray-900 leading-tight"><%= v.name %></p>
+                              <p class="text-[10px] text-gray-500 uppercase tracking-widest"><%= v.city || 'Ubicación' %></p>
+                            </div>
+                          </div>
+                          <button type="button" onclick="event.stopPropagation(); window.openVenueModal(this.closest('.venue-option').dataset.venue)" 
+                                  class="p-2 opacity-0 group-hover:opacity-100 text-[#31713D] hover:bg-green-50 rounded-none transition-all">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                          </button>
+                        </div>
+                      <% }) %>
+                    <% } else { %>
+                      <div class="p-4 text-center text-gray-400 text-xs italic">No hay venues disponibles</div>
+                    <% } %>
+                  </div>
+                </div>
+                
+                <input type="hidden" id="venue-selected-id" name="venue_id">
+                
+                <button type="button" id="btn-add-venue" class="bg-[#31713D] text-white px-3 py-2 rounded-none hover:bg-black transition text-xs font-bold disabled:opacity-50" disabled>
+                  + Añadir
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="venues-table w-full text-sm">
+                <tbody class="divide-y divide-gray-50">
+                  <% if (proposal.venues && proposal.venues.length > 0) { %>
+                    <% proposal.venues.forEach(v => { %>
+                      <tr class="venue-row hover:bg-gray-50/50 group/row">
+                        <td class="py-3 px-1">
+                          <div class="flex items-center gap-3">
+                            <% 
+                              let tableImg = '/img/venue-placeholder.jpg';
+                               try {
+                                 const imgs = typeof v.images === 'string' ? JSON.parse(v.images) : v.images;
+                                 if (imgs && imgs.length > 0) tableImg = imgs[0];
+                               } catch(e) {}
+                            %>
+                            <div class="w-10 h-10 rounded-none overflow-hidden bg-gray-100 border border-gray-100 cursor-pointer"
+                                 onclick='window.openVenueModal(<%- JSON.stringify(v).replace(/'/g, "&#39;") %>)'>
+                              <img src="<%= tableImg %>" class="w-full h-full object-cover group-hover/row:scale-110 transition-transform">
+                            </div>
+                            <div class="font-medium text-gray-800"><%= v.name %></div>
+                          </div>
+                        </td>
+                        <td class="py-3 px-1 text-center">
+                          <button type="button" class="btn-select-venue p-1 <%= v.is_selected ? 'text-[#31713D]' : 'text-gray-300' %>" data-venue-id="<%= v.id %>">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                          </button>
+                        </td>
+                        <td class="py-3 px-1 text-right">
+                          <div class="flex items-center justify-end gap-2">
+                            <button type="button" class="text-gray-300 hover:text-[#31713D]"
+                                    onclick='window.openVenueModal(<%- JSON.stringify(v).replace(/'/g, "&#39;") %>)'>
+                              <i data-lucide="info" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" class="text-gray-300 hover:text-red-600 btn-remove-venue" data-venue-id="<%= v.id %>">
+                              <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- ════════════════════════════════════════════════════════ -->
-        <!-- WIDGET: ESTADO Y ACCIONES -->
+        <!-- SECCIÓN 3: SERVICIOS (HITOS) -->
         <!-- ════════════════════════════════════════════════════════ -->
-        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-4">⚙️ Acciones</h3>
-
-          <div class="space-y-2">
-            <% if (proposal.status === 'draft') { %>
-              <button class="btn btn-primary w-full text-sm">
-                📤 Enviar a Cliente
+        <section id="section-services" class="bg-white rounded-none border border-gray-200 shadow-sm overflow-hidden mt-4">
+          <div class="px-4 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-none bg-amber-100 flex items-center justify-center">
+                <i data-lucide="layers" class="w-5 h-5 text-amber-600"></i>
+              </div>
+              <div class="cursor-pointer group" onclick="toggleServicesFocusMode()" title="Ampliar vista de servicios">
+                <h2 class="text-base font-bold text-gray-900 group-hover:text-[#31713D] transition">Configuración de Servicios</h2>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-black group-hover:text-[#31713D]/70 transition">Hitos y opciones de menú • Clic para enfoque total</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button type="button" onclick="toggleServicesFocusMode()" class="text-gray-400 hover:text-[#31713D] transition p-2 bg-white rounded-none border border-gray-100 shadow-sm" title="Modo Enfoque">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
               </button>
-              <button class="btn btn-outline w-full text-sm">
-                📋 Descargar PDF
+              <button type="button" onclick="openDiscountsModal()" class="text-gray-400 hover:text-gray-900 transition p-2 bg-white rounded-none border border-gray-100 shadow-sm" title="Gestionar Márgenes y Descuentos">
+                <i data-lucide="percent" class="w-4 h-4"></i>
               </button>
-            <% } %>
+              <button type="button" onclick="openServiceModal()" class="bg-[#31713D] text-white px-4 py-2 rounded-none text-xs font-bold hover:bg-black transition flex items-center gap-2 shadow-lg shadow-green-100">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Añadir Hito
+              </button>
+            </div>
+          </div>
 
-            <% if (proposal.status !== 'cancelled') { %>
-              <form method="POST" action="/proposal/<%= proposal.id %>/cancel" style="display: contents;">
-                <button class="btn btn-outline btn-danger w-full text-sm"
-                        onclick="return confirm('¿Anular esta propuesta?')">
-                  🛑 Anular
+          <div class="p-0">
+            <script>
+              window.servicesMap = <%- JSON.stringify((proposal.services || []).reduce((acc, s) => { acc[s.id] = s; return acc; }, {})) %>;
+            </script>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50 border-b border-gray-100">
+                    <th class="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest w-12 text-center">Nº</th>
+                    <th class="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fecha</th>
+                    <th class="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hito / Servicio</th>
+                    <th class="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">PAX</th>
+                    <th class="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Importe</th>
+                    <th class="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Horario / Dur</th>
+                    <th class="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="services-list" class="divide-y divide-gray-100">
+                  <% if (proposal.services && proposal.services.length > 0) { %>
+                    <% proposal.services.forEach((service, idx) => { %>
+                      <tr class="hover:bg-gray-50 transition-colors group cursor-pointer" 
+                          data-service-id="<%= service.id %>"
+                          onclick="editServiceById('<%= service.id %>')">
+                        <td class="px-3 py-4 text-center align-top">
+                          <span class="inline-flex items-center justify-center w-6 h-6 rounded-none bg-gray-100 text-gray-400 group-hover:bg-[#31713D] group-hover:text-white font-bold text-[10px] transition-all">
+                            <%= idx + 1 %>
+                          </span>
+                        </td>
+                        <!-- FECHA -->
+                        <td class="px-3 py-4 align-top">
+                          <div class="text-[11px] font-bold text-gray-800 whitespace-nowrap">
+                            <i data-lucide="calendar" class="w-3 h-3 inline mr-1 text-gray-300"></i>
+                            <%= service.service_date ? dayjs(service.service_date).format('DD/MM/YYYY') : dayjs(proposal.event_date).format('DD/MM/YYYY') %>
+                          </div>
+                        </td>
+                        <td class="px-3 py-4">
+                          <div class="flex flex-col">
+                            <div class="flex items-center gap-2">
+                              <div class="font-bold text-gray-900 text-sm"><%= service.title %></div>
+                              <span class="text-[8px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest"><%= service.type === 'gastronomy' ? 'GASTRONOMÍA' : (service.type === 'extras' ? 'EXTRAS' : service.type.toUpperCase()) %></span>
+                              <% if (service.location) { %>
+                                <span class="text-[8px] bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest"><%= service.location %></span>
+                              <% } %>
+                              <% if (service.is_multichoice) { %>
+                                <span class="text-[8px] bg-amber-50 text-amber-600 border border-amber-100 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest">MULTICHOICE</span>
+                              <% } %>
+                              <% 
+                                const selIdx = (service.selected_option_index !== null && service.selected_option_index !== undefined) ? parseInt(service.selected_option_index) : null;
+                                const accepted = selIdx !== null ? (service.is_multichoice ? selIdx >= 0 : selIdx === 0) : false;
+                              %>
+                              <% if (accepted) { %>
+                                <span class="text-[9px] bg-green-50 text-[#31713D] border border-green-100 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest ml-2">Cliente aceptó</span>
+                              <% } %>
+                            </div>
+                            <% if (service.is_multichoice) { %>
+                              <% if (selIdx !== null && selIdx >= 0) { %>
+                                <% const sortedOpts = (service.options || []).slice().sort((a,b)=>a.id-b.id); const selOpt = sortedOpts[selIdx]; %>
+                                <div class="mt-2">
+                                  <span class="text-[10px] bg-green-50 text-[#31713D] px-2 py-1 rounded font-black">Seleccionado: <%= selOpt ? selOpt.name : '' %></span>
+                                </div>
+                              <% } %>
+                            <% } %>
+                            
+                            <!-- RESUMEN DE OPCIONES (Miniatura) -->
+                            <div class="mt-2 flex flex-wrap gap-2">
+                              <% if (service.options && service.options.length > 0) { %>
+                                <% service.options.forEach(opt => { %>
+                                  <div class="bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-none text-[10px] text-gray-500">
+                                    <span class="font-black"><%= opt.name %></span> 
+                                    <span class="opacity-40 ml-1">(<%= opt.items?.length || 0 %> ítems)</span>
+                                  </div>
+                                <% }); %>
+                              <% } else { %>
+                                <p class="text-[10px] text-gray-400 italic">Sin opciones configuradas</p>
+                              <% } %>
+                            </div>
+                          </div>
+                        </td>
+                        <% const _servicePax = (service.price_model === 'fixed') ? null : (service.pax || proposal.pax); %>
+                        <td class="px-3 py-4 text-center align-top whitespace-nowrap">
+                          <span class="text-xs font-bold <%= service.pax ? 'text-[#31713D]' : 'text-gray-400' %>">
+                            <% if (service.price_model === 'fixed') { %>
+                              PRECIO FIJO
+                            <% } else { %>
+                              <%= service.pax || proposal.pax %> PAX
+                            <% } %>
+                          </span>
+                          <div class="text-[9px] text-gray-400 mt-1 font-medium"><%= service.vat_rate %>% IVA Incl.</div>
+                        </td>
+                        <td class="px-3 py-4 text-center align-top whitespace-nowrap">
+                          <% if (service.price_model === 'fixed') { %>
+                            <div class="text-sm font-black text-gray-900">PRECIO FIJO</div>
+                          <% } else { %>
+                            <div class="text-sm font-black text-gray-900"><%= formatCurrency((service.price_per_pax || 0) * Number(_servicePax || 0)) %></div>
+                          <% } %>
+                        </td>
+                        <td class="px-3 py-4 align-top text-center whitespace-nowrap">
+                          <div class="inline-flex flex-col items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-2 py-1.5 rounded-none border border-gray-100">
+                            <div class="flex items-center gap-1">
+                              <i data-lucide="clock" class="w-3 h-3 text-gray-300"></i>
+                              <%= service.start_time ? service.start_time.substring(0,5) : '--:--' %>
+                              <span class="text-gray-300">→</span>
+                              <%= service.end_time ? service.end_time.substring(0,5) : (service.duration ? 'Auto' : '--:--') %>
+                            </div>
+                            <% if (service.duration) { %>
+                              <div class="text-[10px] font-black text-[#31713D] bg-green-100/50 px-1.5 rounded-none uppercase tracking-tighter">
+                                <%= service.duration %> MIN
+                              </div>
+                            <% } %>
+                          </div>
+                        </td>
+                        <td class="px-3 py-4 align-top text-center border-l border-gray-100">
+                          <div class="flex items-center justify-center gap-1">
+                            <button type="button" 
+                                    class="p-2 rounded-none text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition"
+                                    onclick="event.stopPropagation(); duplicateService(<%= service.id %>)"
+                                    title="Duplicar Hito">
+                              <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" 
+                                    class="p-2 rounded-none text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
+                                    onclick="event.stopPropagation(); deleteService(<%= service.id %>)"
+                                    title="Eliminar Hito">
+                              <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="7" class="px-4 py-16 text-center">
+                        <div class="flex flex-col items-center justify-center gap-3">
+                          <div class="w-16 h-16 bg-gray-50 rounded-none flex items-center justify-center border border-gray-100">
+                             <i data-lucide="utensils-crossed" class="w-8 h-8 text-gray-200"></i>
+                          </div>
+                          <p class="text-sm text-gray-400 font-medium">Aún no has configurado ningún servicio.</p>
+                          <button type="button" onclick="openServiceModal()" class="bg-[#31713D] text-white px-6 py-2.5 rounded-none text-xs font-bold uppercase tracking-wider hover:bg-black transition shadow-lg shadow-green-100 mt-2">
+                            Añadir Hito / Servicio
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- RESUMEN FINANCIERO (Dual: Aprobado vs Potencial) -->
+        <!-- ════════════════════════════════════════════════════════ -->
+        <div class="sticky bottom-1 z-40 mt-3 bg-white rounded-none border-2 border-gray-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden print:relative print:bottom-0 print:shadow-none print:mt-8 group/totals transition-all hover:translate-y-[-1px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <!-- Desktop Header -->
+          <div class="bg-gray-900 px-4 py-1.5 flex items-center justify-between text-white border-b-2 border-black">
+            <div class="flex items-center gap-3">
+              <h3 class="text-[10px] font-black uppercase tracking-tighter flex items-center gap-2 italic leading-none">
+                <i data-lucide="banknote" class="w-3 h-3 text-[#31713D]"></i>
+                Control Económico
+              </h3>
+              <!-- Barra de Acceso Rápido Integrada -->
+              <div class="hidden md:flex items-center gap-2 border-l border-white/10 pl-3">
+                <button type="button" onclick="openServiceModal()" class="text-[8px] font-black text-white/50 hover:text-white transition-colors flex items-center gap-1 uppercase">
+                  <i data-lucide="plus" class="w-2.5 h-2.5 text-[#31713D]"></i> Hito
                 </button>
-              </form>
-            <% } %>
+                <button type="button" onclick="openDiscountsModal()" class="text-[8px] font-black text-white/50 hover:text-white transition-colors flex items-center gap-1 uppercase">
+                  <i data-lucide="minus" class="w-2.5 h-2.5 text-red-400"></i> Descuento
+                </button>
+                <button type="button" onclick="window.open('/p/<%= proposal.unique_hash %>', '_blank')" class="text-[8px] font-black text-white/50 hover:text-white transition-colors flex items-center gap-1 uppercase">
+                  <i data-lucide="eye" class="w-2.5 h-2.5 text-blue-400"></i> Preview
+                </button>
+                <button type="button" onclick="validateProposalComplete()" class="text-[8px] font-black text-[#31713D] hover:text-green-400 transition-colors flex items-center gap-1 uppercase">
+                  <i data-lucide="check-circle-2" class="w-2.5 h-2.5"></i> Validar
+                </button>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2">
+                <span class="w-1 h-1 rounded-none bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]"></span>
+                <span class="text-[7px] font-black uppercase tracking-widest text-green-400">Live</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="p-0">
+            <div class="bg-white p-1.5 px-4">
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                <!-- Base -->
+                <div class="flex flex-col">
+                  <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Base Imponible</span>
+                  <div class="text-base lg:text-xl font-black text-gray-900 tracking-tighter leading-none" data-subtotal-base>
+                    <%= formatCurrency(proposal.totals?.total_base || 0) %>
+                  </div>
+                </div>
 
-            <% if (proposal.status !== 'accepted' && proposal.status !== 'cancelled') { %>
-              <button class="btn btn-outline btn-danger w-full text-sm">
-                🗑️ Archivar
-              </button>
-            <% } %>
+                <!-- Descuentos -->
+                <div class="flex flex-col cursor-pointer group/desc" onclick="openDiscountsModal()">
+                  <span class="text-[8px] font-black text-red-500/60 uppercase tracking-widest mb-0.5 group-hover/desc:text-red-600 transition-colors">Deducciones</span>
+                  <div class="text-base lg:text-xl font-black text-red-600 tracking-tighter leading-none" data-total-discount>
+                    -<%= formatCurrency(proposal.totals?.total_discount || 0) %>
+                  </div>
+                </div>
 
-            <button class="btn btn-outline w-full text-sm" onclick="window.print()">
-              🖨️ Imprimir
+                <!-- IVA -->
+                <div class="hidden lg:flex flex-col">
+                  <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">IVA Total</span>
+                  <div class="text-base lg:text-xl font-black text-gray-800 tracking-tighter leading-none" data-total-vat>
+                    <%= formatCurrency(proposal.totals?.total_vat || 0) %>
+                  </div>
+                </div>
+
+                <!-- TOTAL FINAL -->
+                <div class="flex flex-col justify-center">
+                  <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Total Propuesta</span>
+                  <div class="text-xl lg:text-2xl font-black text-gray-900 tracking-tighter leading-none" data-total-final>
+                    <%= formatCurrency(proposal.totals?.total_final || 0) %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Potencial (Mini-footer) -->
+            <div class="bg-amber-50/50 px-4 py-1 border-t border-gray-100 flex items-center justify-between text-[7px] font-black uppercase tracking-widest">
+              <div class="flex items-center gap-4 cursor-pointer group/max" onclick="openMaxPotentialModal()">
+                <span class="text-amber-700/60 flex items-center gap-1 italic group-hover/max:text-amber-700 transition-colors"><i data-lucide="trending-up" class="w-2.5 h-2.5"></i> Máx. Potencial:</span>
+                <span class="text-amber-700 text-[10px]" data-max-final><%= formatCurrency(proposal.totals?.total_max_potential || 0) %></span>
+              </div>
+              <div class="flex items-center gap-3">
+                <!-- Espacio para otros indicadores si fuera necesario -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- Fin Lado Izquierdo: Editor -->
+
+      <!-- Sidebar: Chat & Negociación (25% / col-span-3) -->
+      <aside id="chat-sidebar" class="lg:col-span-3 sticky top-20 bg-white rounded-none border-2 border-black shadow-xl flex flex-col h-[450px] lg:h-[750px] overflow-hidden print:hidden transition-all">
+        <div class="bg-gray-900 px-5 py-4 border-b border-gray-800 flex items-center justify-between cursor-pointer group shrink-0" onclick="toggleMaximizeChat(event)">
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <i data-lucide="message-square" class="w-5 h-5 text-[#31713D]"></i>
+            </div>
+            <div>
+              <h3 class="font-black text-white text-[10px] uppercase tracking-widest leading-none">Negociación</h3>
+              <p class="text-[9px] text-white/60 mt-1 uppercase tracking-tighter">Historial de mensajes</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="chat-unread-count" class="hidden bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-none font-black shadow-lg animate-bounce">0</span>
+            <button class="p-1.5 rounded-none hover:bg-white/10 transition-colors">
+              <i data-lucide="maximize-2" id="chat-maximize-icon" class="w-4 h-4 text-white/40"></i>
             </button>
           </div>
         </div>
 
-        <!-- ════════════════════════════════════════════════════════ -->
-        <!-- WIDGET: INFORMACIÓN -->
-        <!-- ════════════════════════════════════════════════════════ -->
-        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-6 text-sm">
-          <h3 class="font-bold text-gray-900 mb-3">ℹ️ Información</h3>
-
-          <div class="space-y-2 text-gray-600">
-            <p>
-              <strong>Creada:</strong> <%= formatDate(proposal.created_at) %>
-            </p>
-            <p>
-              <strong>Estado:</strong> 
-              <span class="badge badge-<%= proposal.status %>">
-                <%= statusLabel(proposal.status) %>
-              </span>
-            </p>
-            <% if (proposal.event_date) { %>
-              <p>
-                <strong>Evento:</strong> <%= formatDate(proposal.event_date) %>
-              </p>
-            <% } %>
+        <!-- Mensajes -->
+        <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-2 bg-white flex flex-col">
+          <div class="text-center py-12">
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-black/5 rounded-none shadow-sm border border-black/20 mb-3">
+              <i data-lucide="message-circle" class="w-6 h-6 text-black/20 animate-pulse"></i>
+            </div>
+            <p class="text-[10px] text-black/40 font-bold uppercase tracking-widest">Iniciando conexión segura...</p>
           </div>
         </div>
 
-      </div>
+        <!-- Input Area -->
+        <div class="p-4 border-t-2 border-black/20 bg-white shrink-0">
+          <form id="chat-form" class="relative group">
+            <textarea 
+              id="chat-input" 
+              rows="1" 
+              style="min-height: 44px; max-height: 150px;"
+              class="w-full pr-12 pl-4 py-3 border-2 border-black rounded-none focus:ring-4 focus:ring-black/20 focus:border-black focus:outline-none resize-none text-[13px] transition-all bg-white placeholder:text-black/50 leading-tight"
+              placeholder="Escribe tu mensaje aquí..."
+            ></textarea>
+            <button 
+              type="submit"
+              id="btn-send-message"
+              class="absolute right-2 top-1.5 w-8 h-8 bg-[#31713D] text-white rounded-none hover:bg-[#24552E] transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center shadow-lg shadow-[#31713D]/20 active:scale-90"
+              disabled
+            >
+              <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+          </form>
+          <div class="flex justify-between items-center mt-2 px-1">
+            <p class="text-[9px] text-gray-300 font-medium">Pulsa Enter para enviar</p>
+            <div class="flex items-center gap-1">
+              <i data-lucide="shield-check" class="w-2.5 h-2.5 text-gray-200"></i>
+              <span class="text-[9px] text-gray-200 uppercase tracking-tighter">Encriptado</span>
+            </div>
+          </div>
+        </div>
+      </aside>
 
-    </div>
+    </div> <!-- Fin Contenedor principal Grid -->
 
   </div>
 </main>
 
-<!-- Script de editor -->
-<script src="/js/editor.js" defer></script>
-
 <!-- Estilos personalizados para editor -->
 <style>
   .form-label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply block text-xs font-bold text-gray-400 mb-1 uppercase tracking-wide;
   }
 
   .form-input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    @apply w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-2 focus:ring-[#31713D] focus:border-transparent text-sm;
   }
 
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all cursor-pointer;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-none font-bold transition-all cursor-pointer text-sm;
   }
 
   .btn-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700;
+    @apply bg-[#31713D] text-white hover:bg-black;
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-900 hover:bg-gray-300;
+    @apply bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200;
   }
 
   .btn-outline {
@@ -392,31 +769,27 @@
   }
 
   .btn-danger {
-    @apply bg-red-100 text-red-700 hover:bg-red-200;
+    @apply bg-red-50 text-red-600 hover:bg-red-100;
   }
 
   .btn-sm {
-    @apply px-3 py-1 text-xs;
+    @apply px-2 py-1 text-xs;
   }
 
   .badge {
-    @apply inline-block px-2 py-1 rounded text-xs font-semibold;
+    @apply inline-block px-2 py-0.5 rounded-none text-[10px] font-bold uppercase tracking-widest;
   }
 
-  .badge-draft {
-    @apply bg-yellow-100 text-yellow-800;
+  .badge-Pipe {
+    @apply bg-blue-50 text-blue-600 border border-blue-100;
   }
 
-  .badge-sent {
-    @apply bg-blue-100 text-blue-800;
+  .badge-Aceptada {
+    @apply bg-green-50 text-[#31713D] border border-green-100;
   }
 
-  .badge-accepted {
-    @apply bg-green-100 text-green-800;
-  }
-
-  .badge-cancelled {
-    @apply bg-red-100 text-red-700;
+  .badge-Anulada {
+    @apply bg-red-50 text-red-600 border border-red-100;
   }
 
   @keyframes slideIn {
@@ -441,6 +814,22 @@
     }
   }
 
+  /* Spinner used during modal synchronization */
+  .loader {
+    border-top-color: #31713D;
+    -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+  }
+
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   /* Print-safe */
   @media print {
     .btn, nav, .sticky, button {
@@ -449,4 +838,833 @@
   }
 </style>
 
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- BOTÓN FLOTANTE DE GUARDADO -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="fixed bottom-8 right-8 z-[100] print:hidden">
+  <button type="button" id="btn-save-proposal" 
+          class="bg-[#31713D] text-white p-8 rounded-none shadow-2xl hover:bg-black transition-all flex items-center justify-center active:scale-95 group overflow-hidden" 
+          title="Guardar Cambios">
+    <i data-lucide="save" class="w-12 h-12 group-hover:scale-110 transition-transform"></i>
+    <div id="save-status-dot" class="w-3.5 h-3.5 bg-amber-400 border border-white rounded-none absolute top-4 right-4 opacity-0 transition-opacity"></div>
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL: DETALLE DE DESCUENTOS -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="discountsModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden z-[110] flex items-center justify-center p-4">
+  <div class="bg-white rounded-none shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+    <!-- Header -->
+    <div class="bg-red-600 px-6 py-4 text-white flex items-center justify-between">
+      <h2 class="text-lg font-bold flex items-center gap-2">
+        <i data-lucide="ticket" class="w-5 h-5"></i>
+        <span>Detalle de Descuentos</span>
+      </h2>
+      <button type="button" onclick="closeDiscountsModal()" class="text-white/70 hover:text-white transition">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6">
+      <!-- Sección de Edición: Añadir nueva línea -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-none border border-gray-200 space-y-4">
+        <p class="text-[10px] font-black text-[#31713D] uppercase tracking-widest mb-2 flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+          Añadir Nueva Línea de Descuento
+        </p>
+        
+        <div class="space-y-3">
+          <!-- Motivo del Descuento -->
+          <div class="space-y-1">
+            <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-tight ml-1">Concepto / Motivo</label>
+            <input type="text" id="new_discount_name" 
+                   class="w-full bg-white border-gray-200 rounded-none px-4 py-2 text-sm focus:ring-2 focus:ring-[#31713D] transition-all"
+                   placeholder="Ej: Descuento comercial por volumen...">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Tipo de Descuento -->
+            <div class="space-y-1">
+              <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-tight ml-1">Tipo</label>
+              <select id="new_discount_type" class="w-full bg-white border-gray-200 rounded-none px-4 py-2 text-sm focus:ring-2 focus:ring-[#31713D] transition-all font-bold">
+                <option value="percentage">Porcentaje (%)</option>
+                <option value="fixed">Fijo (€)</option>
+              </select>
+            </div>
+
+            <!-- Valor -->
+            <div class="space-y-1">
+              <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-tight ml-1">Valor</label>
+              <div class="relative">
+                <input type="number" id="new_discount_value" step="0.01" min="0"
+                       class="w-full bg-white border-gray-200 rounded-none px-4 py-2 text-sm focus:ring-2 focus:ring-[#31713D] transition-all font-black">
+              </div>
+            </div>
+          </div>
+
+          <button type="button" onclick="handleAddDiscountLine()" 
+                  class="w-full py-2.5 bg-gray-900 text-white rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-[#31713D] transition-all flex items-center justify-center gap-2 mt-2">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            Añadir Descuento
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Líneas Aplicadas</p>
+        <div id="discounts-content" class="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+          <% if (proposal.totals?.discounts && proposal.totals.discounts.length > 0) { %>
+            <% proposal.totals.discounts.forEach(d => { %>
+              <div class="flex items-center justify-between p-3 bg-red-50 rounded-none border border-red-100 group">
+                <div class="flex-1">
+                  <p class="text-[11px] font-black text-gray-900 flex items-center gap-2">
+                    <%= d.name %>
+                    <% if (d.type === 'percentage') { %>
+                       <span class="bg-red-200 text-red-700 text-[8px] px-1.5 py-0.5 rounded-none ml-1"><%= d.value %>%</span>
+                    <% } %>
+                  </p>
+                  <p class="text-[9px] text-red-500 font-bold uppercase tracking-widest">
+                    <%= d.type === 'percentage' ? 'Porcentual' : 'Importe Fijo' %>
+                  </p>
+                </div>
+                <div class="flex items-center gap-4">
+                  <p class="text-xs font-black text-red-600">-<%= formatCurrency(d.amount) %></p>
+                  <button type="button" onclick="handleDeleteDiscountLine('<%= d.id %>')" 
+                          class="p-1.5 text-red-200 hover:text-red-600 transition-colors">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="text-center py-6 bg-gray-50 rounded-none border border-dashed border-gray-200">
+              <i data-lucide="info" class="w-8 h-8 text-gray-200 mx-auto mb-2"></i>
+              <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Sin descuentos activos</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center bg-gray-50 -mx-6 px-6 py-4">
+        <div class="flex flex-col">
+          <span class="text-gray-400 font-black uppercase tracking-widest text-[9px]">Total Ahorro</span>
+          <span class="text-xs font-bold text-gray-400 italic">IVA no incluido</span>
+        </div>
+        <span class="text-xl font-black text-red-600" data-modal-total-discount>-<%= formatCurrency(proposal.totals?.total_discount || 0) %></span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bg-gray-50 px-6 py-4 flex justify-end items-center">
+      <button type="button" onclick="closeDiscountsModal()" class="bg-white border border-gray-200 text-gray-700 px-6 py-2.5 rounded-none font-bold hover:bg-gray-50 transition shadow-sm text-sm">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL: DETALLE MÁXIMO POTENCIAL -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="maxPotentialModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden z-[110] flex items-center justify-center p-4">
+  <div class="bg-white rounded-none shadow-2xl max-w-xl w-full overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200 border-2 border-amber-500">
+    <!-- Header -->
+    <div class="bg-amber-500 px-6 py-4 text-white flex items-center justify-between">
+      <h2 class="text-lg font-bold flex items-center gap-2">
+        <i data-lucide="trending-up" class="w-5 h-5"></i>
+        <span>Análisis de Escenario Máximo</span>
+      </h2>
+      <button type="button" onclick="closeMaxPotentialModal()" class="text-white/70 hover:text-white transition">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6">
+      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+        Este importe se generaría si el cliente elige la opción de mayor valor en cada hito multichoice:
+      </p>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b-2 border-amber-100">
+              <th class="py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hito / Selección</th>
+              <th class="py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Unitario</th>
+              <th class="py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Pax</th>
+              <th class="py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody id="max-potential-table-body" class="text-xs">
+            <% if (proposal.totals?.max_breakdown && proposal.totals.max_breakdown.length > 0) { %>
+              <% proposal.totals.max_breakdown.forEach(item => { %>
+                <tr class="border-b border-amber-50">
+                  <td class="py-3 pr-4">
+                    <p class="font-black text-gray-900 uppercase tracking-tighter"><%= item.name %></p>
+                  </td>
+                  <td class="py-3 text-right font-bold text-gray-600">
+                    <%= formatCurrency(item.price_pax) %>
+                  </td>
+                  <% if (item.price_model === 'fixed') { %>
+                    <td class="py-3 text-right text-gray-500">—</td>
+                  <% } else { %>
+                    <td class="py-3 text-right text-gray-500">x <%= item.pax %></td>
+                  <% } %>
+                  <td class="py-3 text-right font-black text-gray-900">
+                    <%= formatCurrency(item.subtotal) %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-6 pt-6 border-t-2 border-dashed border-gray-100 flex items-center justify-between">
+        <div class="flex flex-col">
+          <span class="text-gray-400 font-black uppercase tracking-widest text-[9px]">Potencial Máximo Bruto</span>
+          <span class="text-xs font-bold text-gray-400 italic">IVA e impuestos incluidos</span>
+        </div>
+        <span class="text-2xl font-black text-amber-600" data-modal-max-potential><%= formatCurrency(proposal.totals?.total_max_potential || 0) %></span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bg-gray-50 px-6 py-4 flex justify-end items-center">
+      <button type="button" onclick="closeMaxPotentialModal()" class="bg-white border border-gray-200 text-gray-700 px-6 py-2.5 rounded-none font-bold hover:bg-gray-50 transition shadow-sm text-sm">
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL: GESTIÓN DE HITO / SERVICIO -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="serviceModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden z-[200] flex items-center justify-center p-4 overflow-y-auto">
+  <!-- Sync Spinner (visible while modal data syncs) -->
+  <div id="service-sync-spinner" class="hidden absolute inset-0 z-[250] flex items-center justify-center">
+    <div class="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+      <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+    </div>
+  </div>
+  <div class="bg-white rounded-none shadow-2xl max-w-2xl w-full flex flex-col animate-in fade-in zoom-in duration-200 my-auto">
+    <!-- Header -->
+    <div class="bg-gray-900 px-6 py-4 text-white flex items-center justify-between sticky top-0 z-10">
+      <h2 id="service-modal-title" class="text-lg font-bold flex items-center gap-2">
+        <i data-lucide="calendar-plus" class="w-5 h-5 text-amber-500"></i>
+        <span>Hito del Evento</span>
+      </h2>
+      <div class="flex items-center gap-4">
+        <button type="button" onclick="toggleModalZoom('serviceModal')" class="text-white/50 hover:text-white transition allow-during-sync" title="Maximizar">
+          <i data-lucide="maximize" class="w-5 h-5"></i>
+        </button>
+        <button type="button" onclick="closeServiceModal()" class="text-white/50 hover:text-white transition allow-during-sync">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body (Scrollable container) -->
+    <div class="flex-1 overflow-y-auto max-h-[80vh] custom-scrollbar">
+      <form id="service-form" class="p-6 space-y-6">
+        <input type="hidden" name="service_id" id="modal-service-id">
+        
+        <div>
+          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Nombre del Hito *</label>
+          <input type="text" id="modal-service-title" required
+                 class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all font-bold text-gray-900 text-sm shadow-sm"
+                 placeholder="Ej: Cóctel de Bienvenida...">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Tipo de Servicio</label>
+            <select id="modal-service-type" 
+                    onchange="handleServiceTypeChange(this.value)"
+                    class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all font-bold text-gray-700 text-sm shadow-sm">
+              <option value="gastronomy">Gastronomía</option>
+              <option value="logistics">Logística / Montaje</option>
+              <option value="staff">Personal</option>
+              <option value="extras">Extras / Otros</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Localización / Sala</label>
+            <input type="text" id="modal-service-location" 
+                   class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all font-bold text-gray-700 text-sm shadow-sm"
+                   placeholder="Ej: Salón Noble, Terraza, Planta 2...">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Fecha del Hito</label>
+                 <input type="date" id="modal-service-date" 
+                   class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all font-bold text-gray-700 text-sm shadow-sm"
+                   value="<%= proposal.event_date ? dayjs(proposal.event_date).format('YYYY-MM-DD') : '' %>">
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Asistentes (PAX)</label>
+            <input type="number" id="modal-service-pax" placeholder="Vacío = Precio Nominal"
+                   class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent font-bold text-sm shadow-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Inicio</label>
+            <input type="time" id="modal-service-start" 
+                   class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all font-bold text-gray-700 text-sm shadow-sm">
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Duración (min)</label>
+            <input type="number" id="modal-service-duration" value="60"
+                   class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all font-bold text-gray-700 text-sm shadow-sm">
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Fin</label>
+            <input type="time" id="modal-service-end" 
+                   class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all font-bold text-gray-700 text-sm shadow-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Tipo de IVA (%)</label>
+          <select id="modal-service-vat" 
+                  class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all font-bold text-gray-700 text-sm shadow-sm">
+            <option value="10.00">Gastronomía (10%)</option>
+            <option value="21.00">Servicios / Logística (21%)</option>
+            <option value="4.00">Superreducido (4%)</option>
+            <option value="0.00">Exento (0%)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1.5 ml-1">Notas Internas</label>
+          <textarea id="modal-service-comments" rows="2"
+                    class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all text-xs shadow-sm font-medium"
+                    placeholder="Detalles logísticos o aclaraciones sobre el servicio..."></textarea>
+        </div>
+
+        <div id="multichoice-container" class="bg-amber-50 rounded-none p-4 border border-amber-100 mt-2">
+          <label class="flex items-center gap-4 cursor-pointer">
+            <input type="checkbox" id="modal-service-multichoice" class="w-5 h-5 rounded-none border-gray-300 text-amber-600 focus:ring-amber-500">
+            <div>
+              <span class="text-xs font-black text-amber-900 block uppercase tracking-wide">Modo Multichoice (Opción A / B)</span>
+              <p class="text-[10px] text-amber-600 font-bold leading-relaxed">El cliente verá las opciones como alternativas y deberá seleccionar una.</p>
+            </div>
+          </label>
+        </div>
+
+        <!-- ÁREA DE GESTIÓN DE OPCIONES (Sólo visible al editar) -->
+        <div id="modal-options-container" class="mt-8 pt-8 border-t-2 border-dashed border-gray-100 hidden pb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4 text-amber-500"></i>
+            Opciones y Menús
+          </h3>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="openMenuCatalogForService()" class="text-[10px] font-black text-amber-700 bg-amber-50 px-3 py-1.5 rounded-none border border-amber-500 hover:bg-black hover:text-white transition uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="book-open" class="w-3 h-3"></i>
+              + Menú del Catálogo
+            </button>
+            <button type="button" onclick="addOptionFromModal()" class="text-[10px] font-black text-[#31713D] bg-green-50 px-3 py-1.5 rounded-none border border-green-500 hover:bg-black hover:text-white transition uppercase tracking-widest shadow-sm">
+              + Añadir Opción
+            </button>
+          </div>
+        </div>
+        <div id="modal-options-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+          <!-- Se llena dinámicamente vía JS -->
+        </div>
+      </div>
+    </form>
+  </div>
+
+    <!-- Footer -->
+    <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-100 sticky bottom-0 z-10 rounded-none">
+      <button type="button" onclick="closeServiceModal()" class="text-gray-400 hover:text-gray-600 font-bold text-[10px] uppercase tracking-widest transition allow-during-sync">
+        Cancelar
+      </button>
+      <button type="button" onclick="saveService()" 
+              class="bg-[#31713D] text-white px-8 py-2.5 rounded-none font-bold hover:bg-black transition shadow-lg shadow-green-100 flex items-center gap-2 text-sm">
+        <i data-lucide="save" class="w-4 h-4"></i>
+        <span>Guardar Cambios</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL: EDICIÓN DE ÍTEM (PLATO / PRODUCTO) -->
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL: EDITAR OPCIÓN / MENÚ (Metadata) -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="optionModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden z-[220] flex items-center justify-center p-4">
+  <div class="bg-white rounded-none shadow-2xl max-w-lg w-full overflow-hidden flex flex-col border border-gray-100 animate-in fade-in zoom-in duration-200">
+    <div class="bg-amber-500 px-6 py-4 text-white flex items-center justify-between">
+      <h2 class="text-lg font-bold flex items-center gap-2">
+        <i data-lucide="layers" class="w-5 h-5"></i>
+        <span>Editar Opción de Menú</span>
+      </h2>
+      <button type="button" onclick="closeOptionModal()" class="text-white/70 hover:text-white transition">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </div>
+    <div class="p-6 space-y-5">
+      <input type="hidden" id="modal-option-id">
+      <div>
+        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Nombre de la Opción (Ej: Opción A - Menú Ejecutivo)</label>
+        <input type="text" id="modal-option-name" 
+               class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all font-bold text-gray-900 shadow-sm border">
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Precio por Persona (€)</label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</span>
+          <input type="number" id="modal-option-price" step="0.01"
+                 class="w-full bg-gray-50 border-gray-200 rounded-none pl-9 pr-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-transparent font-black text-gray-900 shadow-sm border">
+        </div>
+      </div>
+    </div>
+    <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-100">
+      <button type="button" onclick="closeOptionModal()" class="text-gray-400 hover:text-gray-600 font-bold text-[10px] uppercase tracking-widest transition">
+        Cancelar
+      </button>
+      <button type="button" onclick="saveOptionChanges()" 
+              class="bg-amber-500 text-white px-8 py-2.5 rounded-none font-bold hover:bg-black transition shadow-lg shadow-amber-100 flex items-center gap-2 text-sm">
+        <i data-lucide="save" class="w-4 h-4"></i>
+        <span>Guardar Opción</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL: EDITAR DETALLE DEL ÍTEM (Plato Ad-hoc) -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="itemModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden z-[230] flex items-center justify-center p-4">
+  <div class="bg-white rounded-none shadow-2xl max-w-2xl w-full flex flex-col animate-in fade-in zoom-in duration-200 border border-gray-100 overflow-hidden max-h-[90vh]">
+    <!-- Header -->
+    <div class="bg-[#31713D] px-6 py-4 text-white flex items-center justify-between sticky top-0 z-10">
+      <h2 class="text-lg font-bold flex items-center gap-2">
+        <i data-lucide="edit-3" class="w-5 h-5"></i>
+        <span>Personalizar Plato en Propuesta</span>
+      </h2>
+      <button type="button" onclick="closeItemModal()" class="text-white/70 hover:text-white transition">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </div>
+
+    <!-- Body Scrollable -->
+    <div class="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+      <input type="hidden" id="modal-item-id">
+      <input type="hidden" id="modal-item-allergens">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Nombre Comercial</label>
+            <input type="text" id="modal-item-name" 
+                   class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] border font-bold text-gray-900 shadow-sm">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Descripción / Ingredientes</label>
+            <textarea id="modal-item-description" rows="4"
+                      class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 focus:ring-2 focus:ring-[#31713D] border text-xs text-gray-600 shadow-sm"
+                      placeholder="Detalles específicos para este cliente..."></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Precio Unit. (€)</label>
+              <input type="number" id="modal-item-price" step="0.01"
+                     class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 border font-black text-gray-900 text-sm">
+            </div>
+            <div>
+              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">IVA (%)</label>
+              <input type="number" id="modal-item-vat" step="0.01"
+                     class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 border font-black text-gray-900 text-sm">
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Alérgenos (Solo en esta propuesta)</label>
+            <div id="item-allergens-grid" class="grid grid-cols-4 gap-2 bg-gray-50 p-3 rounded-none border border-gray-200">
+               <!-- Se genera vía JS helper -->
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Imagen Personalizada (URL)</label>
+            <input type="text" id="modal-item-image" 
+                   class="w-full bg-gray-50 border-gray-200 rounded-none px-4 py-2.5 border text-[10px] text-gray-500 font-mono"
+                   placeholder="https://...">
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-green-50 rounded-none p-4 border border-green-100 flex items-start gap-3">
+        <i data-lucide="info" class="w-5 h-5 text-green-600 mt-0.5"></i>
+        <p class="text-[11px] text-green-800 leading-relaxed font-medium">
+          Estás editando una <strong>instancia local</strong> de este plato. Estos cambios aparecerán únicamente en esta propuesta comercial y el cliente verá exactamente lo que escribas aquí. El catálogo maestro permanecerá intacto.
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-100 sticky bottom-0 z-10">
+      <button type="button" onclick="closeItemModal()" class="text-gray-400 hover:text-gray-600 font-bold text-[10px] uppercase tracking-widest transition">
+        Cancelar
+      </button>
+      <button type="button" onclick="saveItemChanges()" 
+              class="bg-[#31713D] text-white px-8 py-2.5 rounded-none font-bold hover:bg-black transition shadow-lg shadow-green-100 flex items-center gap-2 text-sm">
+        <i data-lucide="save" class="w-4 h-4"></i>
+        <span>Guardar Cambios Ad-hoc</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL: SELECTOR DE PLATOS / MENÚS (CATÁLOGO) -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="dishSelectorModal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm hidden z-[250] flex items-center justify-center p-4">
+    <div class="bg-gray-50 rounded-none shadow-2xl w-full max-w-7xl h-[90vh] overflow-hidden flex flex-col border border-white/20 animate-in fade-in zoom-in duration-300">
+        
+        <!-- Header: Search & Filter -->
+        <div class="bg-white p-8 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="flex items-center gap-6">
+                <div class="w-16 h-16 bg-black text-white rounded-none flex items-center justify-center shadow-xl shadow-gray-200">
+                    <i data-lucide="utensils-crossed" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-black text-gray-900 tracking-tighter leading-none">Catálogo Gastronómico</h2>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Selecciona un menú completo para importar a tu propuesta</p>
+                </div>
+            </div>
+
+            <div class="flex flex-1 max-w-xl items-center gap-3">
+                <div class="flex-1 flex gap-2">
+                    <div class="relative flex-1 group">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#31713D] transition-colors"></i>
+                        <input type="text" 
+                               id="dish-search-input"
+                               placeholder="Buscar por nombre..." 
+                               class="w-full pl-12 pr-6 py-4 bg-gray-50 border-gray-100 rounded-none focus:ring-4 focus:ring-[#31713D]/10 focus:border-[#31713D] transition-all font-medium text-gray-800 border"
+                               oninput="filterCatalog()">
+                    </div>
+                    <select id="catalog-category-filter" 
+                            class="bg-gray-50 border-gray-100 rounded-none px-4 py-4 text-xs font-bold uppercase tracking-widest text-gray-500 focus:ring-4 focus:ring-[#31713D]/10 focus:border-[#31713D] outline-none border w-40"
+                            onchange="filterCatalog()">
+                        <option value="">Categoría</option>
+                    </select>
+                </div>
+                <button onclick="closeDishSelector()" class="bg-gray-100 hover:bg-gray-200 text-gray-500 p-4 rounded-none transition-all">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Categorías (Tabs) -->
+        <div class="bg-white px-8 pb-4 flex gap-4 overflow-x-auto no-scrollbar">
+            <button type="button" id="tab-menus" onclick="switchDishTab('menus')"
+                    class="px-8 py-2.5 bg-white text-[#31713D] shadow-sm border border-gray-100 rounded-none font-black text-[10px] uppercase tracking-widest transition-all">
+                Catálogo de Menús
+            </button>
+            <button type="button" id="tab-dishes" onclick="switchDishTab('dishes')"
+                    class="px-8 py-2.5 text-gray-500 hover:text-gray-900 border border-transparent rounded-none font-black text-[10px] uppercase tracking-widest transition-all">
+                Platos Sueltos
+            </button>
+        </div>
+
+        <!-- Scrollable content -->
+        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div id="dish-items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Se inyecta vía JS (editor-dishes.js) -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-white p-6 border-t border-gray-50 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-none bg-green-500 animate-pulse"></div>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Catálogo Conectado ERP Real-Time</span>
+            </div>
+            <p class="text-xs text-gray-400 italic">Los precios mostrados son "Base". Pueden ser modificados individualmente tras la importación.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL: DETALLES DEL VENUE (Para el Editor) -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="modal-venue-details" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[60] p-4 backdrop-blur-md">
+  <div class="bg-white rounded-none shadow-2xl max-w-5xl w-full h-[85vh] overflow-hidden flex flex-col md:flex-row transform transition-all border border-white/20">
+    <!-- Left Column: Carousel (50%) + Map (50%) -->
+    <div class="w-full md:w-1/2 h-full flex flex-col bg-gray-100 border-r border-gray-100">
+      <!-- Top 50%: Image Carousel -->
+      <div class="h-1/2 relative bg-gray-900 group overflow-hidden">
+        <div id="modal-venue-carousel" class="flex h-full w-full transition-transform duration-500 ease-out">
+           <!-- Imágenes inyectadas vía JS -->
+        </div>
+        
+        <!-- Navigation Arrows -->
+        <button onclick="prevVenueImage()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/90 backdrop-blur p-2 rounded-none text-white hover:text-gray-900 transition-all shadow-lg opacity-0 group-hover:opacity-100 z-20">
+          <i data-lucide="chevron-left" class="w-6 h-6"></i>
+        </button>
+        <button onclick="nextVenueImage()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/90 backdrop-blur p-2 rounded-none text-white hover:text-gray-900 transition-all shadow-lg opacity-0 group-hover:opacity-100 z-20">
+          <i data-lucide="chevron-right" class="w-6 h-6"></i>
+        </button>
+
+        <!-- Counter Indicator -->
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md px-4 py-1.5 rounded-none border border-white/10 flex items-center gap-2 z-20">
+          <span id="carousel-current" class="text-white font-black text-xs">1</span>
+          <span class="text-white/40 font-bold text-[10px]">/</span>
+          <span id="carousel-total" class="text-white/60 font-bold text-xs">0</span>
+        </div>
+      </div>
+
+      <!-- Bottom 50%: Operational Map -->
+      <div class="h-1/2 relative">
+        <div id="modal-venue-map-container" class="w-full h-full bg-gray-50">
+          <iframe id="modal-venue-map" width="100%" height="100%" style="border:0;" src="" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Side -->
+    <div class="w-full md:w-1/2 flex flex-col h-full bg-white">
+      <!-- Header -->
+      <div class="p-8 pb-4 flex justify-between items-start">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] uppercase font-black tracking-[0.3em] text-[#31713D]">Detalles del Espacio</span>
+          </div>
+          <h2 id="modal-venue-title" class="text-4xl font-black text-gray-900 leading-none tracking-tighter">Nombre del Venue</h2>
+        </div>
+        <button onclick="closeVenueModal()" class="p-2.5 bg-gray-50 hover:bg-red-50 hover:text-red-500 rounded-none transition-all border border-gray-100">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 overflow-y-auto px-8 py-0 space-y-6">
+        <div class="space-y-2">
+          <p class="text-[10px] uppercase font-bold tracking-widest text-gray-400">Descripción</p>
+          <p id="modal-venue-description" class="text-sm text-gray-600 leading-relaxed italic">Sin descripción.</p>
+        </div>
+
+        <div id="modal-venue-address-container" class="space-y-2 bg-gray-50 p-6 rounded-none border border-gray-100">
+          <p class="text-[10px] uppercase font-bold tracking-widest text-gray-400">Dirección</p>
+          <div class="flex items-start gap-3">
+             <i data-lucide="map-pin" class="w-5 h-5 text-blue-500 mt-0.5"></i>
+             <p id="modal-venue-address" class="text-sm font-bold text-gray-800">Cargando...</p>
+          </div>
+        </div>
+
+        <div id="modal-venue-link-container" class="pt-4">
+           <a id="modal-venue-link" href="#" target="_blank" class="w-full py-4 bg-gray-900 text-white rounded-none font-bold flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl">
+             <i data-lucide="external-link" class="w-5 h-5 text-blue-400"></i>
+             Ver en micecatering.com
+           </a>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="p-6 border-t border-gray-100 bg-gray-50/50">
+        <div id="modal-select-container" class="hidden">
+           <button id="btn-confirm-select-venue" class="w-full py-4 bg-[#31713D] text-white rounded-none font-black uppercase tracking-widest hover:brightness-110 shadow-xl flex items-center justify-center gap-3 transition-all">
+             <i data-lucide="check-circle" class="w-6 h-6"></i>
+             ELEGIR ESTE ESPACIO
+           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Zoom de Imágenes (Lightbox) -->
+<div id="modal-venue-zoom" class="fixed inset-0 bg-black/95 hidden z-[70] flex flex-col items-center justify-center p-4 md:p-12 backdrop-blur-sm">
+  <button onclick="closeVenueZoom()" class="absolute top-6 right-6 text-white/50 hover:text-white transition-colors p-2 z-[80]">
+    <i data-lucide="x" class="w-10 h-10"></i>
+  </button>
+  <div class="relative w-full max-w-6xl aspect-[16/9] md:h-[80vh]">
+    <div class="w-full h-full overflow-hidden">
+      <div id="zoom-carousel" class="flex h-full w-full transition-transform duration-500 ease-out"></div>
+    </div>
+    <button id="zoom-prev" onclick="changeZoomImage(-1)" class="absolute left-0 md:-left-16 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors p-4 z-10">
+      <i data-lucide="chevron-left" class="w-12 h-12"></i>
+    </button>
+    <button id="zoom-next" onclick="changeZoomImage(1)" class="absolute right-0 md:-right-16 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors p-4 z-10">
+      <i data-lucide="chevron-right" class="w-12 h-12"></i>
+    </button>
+    <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 flex gap-3 items-center">
+      <span id="zoom-current" class="text-white font-black text-xl">1</span>
+      <span class="text-white/20 text-sm">/</span>
+      <span id="zoom-total" class="text-white/40 font-bold text-lg">0</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODAL: MULTIMEDIA DE OPCIÓN (Gastronomía Refactor) -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="optionMediaModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden z-[240] flex items-center justify-center p-4">
+  <div class="bg-white rounded-none shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200 border border-gray-100">
+    <!-- Header -->
+    <div class="bg-gray-900 px-8 py-6 text-white flex items-center justify-between">
+      <div>
+        <h2 id="modal-media-title" class="text-xl font-black italic tracking-tighter uppercase">Multimedia: Menú</h2>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Imágenes y metadatos comerciales de la opción</p>
+      </div>
+      <button type="button" onclick="closeOptionMediaModal()" class="text-white/50 hover:text-white transition p-2 bg-white/10 rounded-none">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-8 space-y-8 overflow-y-auto max-h-[70vh] custom-scrollbar">
+      <!-- Descripción -->
+      <div class="space-y-2">
+        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Descripción Comercial</label>
+        <textarea id="modal-media-description" rows="3"
+                  class="w-full bg-gray-50 border-gray-200 rounded-none px-5 py-4 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all text-sm italic font-medium text-gray-600"
+                  placeholder="Ej: Una selección mediterránea con toques de vanguardia..."></textarea>
+      </div>
+
+      <!-- Badges -->
+      <div class="space-y-2">
+        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Etiquetas (Separadas por coma)</label>
+        <input type="text" id="modal-media-badges"
+               class="w-full bg-gray-50 border-gray-200 rounded-none px-5 py-4 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-bold text-gray-900 text-sm"
+               placeholder="RECOMENDADO, VEGANO, MICE CHOICE...">
+      </div>
+
+      <!-- Video URL -->
+      <div class="space-y-2">
+        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Video URL (MP4)</label>
+        <input type="url" id="modal-media-video-url"
+               class="w-full bg-gray-50 border-gray-200 rounded-none px-5 py-4 focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all font-medium text-gray-900 text-sm"
+               placeholder="https://img.micecatering.eu/uploads/original/.../video.mp4">
+        <p class="text-[10px] text-gray-400 ml-1">Opcional. Se mostrará en el modal del cliente junto al carrusel.</p>
+      </div>
+
+      <!-- Imágenes -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Galería de Imágenes (URLs)</label>
+          <div class="flex gap-2">
+            <input type="text" id="modal-media-new-image" 
+                   class="bg-gray-50 border-gray-200 rounded-none px-4 py-1.5 text-xs focus:ring-2 focus:ring-[#31713D]" 
+                   placeholder="Pega URL aquí...">
+            <button type="button" onclick="addOptionImageUrl()" class="bg-[#31713D] text-white px-4 py-1.5 rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-black transition">
+              Añadir
+            </button>
+          </div>
+        </div>
+        
+        <div id="modal-media-images-container" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <!-- Dinámico -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bg-gray-50 px-8 py-5 flex items-center justify-between border-t border-gray-100">
+      <button type="button" onclick="closeOptionMediaModal()" class="text-gray-400 hover:text-gray-600 font-black text-[10px] uppercase tracking-widest transition">
+        Cancelar
+      </button>
+      <button type="button" onclick="saveOptionMedia()" 
+              class="bg-[#31713D] text-white px-8 py-3 rounded-none font-black hover:bg-black transition shadow-lg shadow-green-100 flex items-center gap-3 text-[10px] uppercase tracking-widest">
+        <i data-lucide="save" class="w-4 h-4"></i>
+        <span>Guardar Multimedia</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <%- include('../partials/footer') %>
+
+<!-- Scripts externos -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/es.js"></script>
+<script>
+  // Inicialización inmediata de Lucide para evitar iconos vacíos
+  lucide.createIcons();
+</script>
+
+<!-- Scripts de la Aplicación -->
+<script src="/js/utils.js" defer></script>
+<script src="/js/editor.js" defer></script>
+<script src="/js/editor-chat.js" defer></script>
+<script src="/js/editor-dishes.js" defer></script>
+
+<script>
+  /**
+   * Toggle Modal Zoom (Full Screen)
+   */
+  function toggleModalZoom(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    const content = modal.querySelector('.bg-white, .max-w-xl, .max-w-4xl, .max-w-lg, .max-w-5xl, .max-w-3xl');
+    if (!content) return;
+
+    if (content.classList.contains('max-w-none')) {
+      const prevClass = content.getAttribute('data-prev-max-w') || 'max-w-xl';
+      content.classList.remove('max-w-none', 'w-[98vw]', 'h-[98vh]', 'rounded-none');
+      content.classList.add(prevClass, 'rounded-none');
+    } else {
+      let currentMaxW = 'max-w-xl';
+      ['max-w-xl', 'max-w-4xl', 'max-w-lg', 'max-w-5xl', 'max-w-3xl'].forEach(c => {
+        if (content.classList.contains(c)) currentMaxW = c;
+      });
+      content.setAttribute('data-prev-max-w', currentMaxW);
+      content.classList.remove(currentMaxW, 'rounded-none');
+      content.classList.add('max-w-none', 'w-[98vw]', 'h-[98vh]', 'rounded-none');
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+
+  /**
+   * Click fuera del modal para cerrar
+   */
+  document.addEventListener('mousedown', function(e) {
+    const modals = [
+      'serviceModal', 
+      'dishSelectorModal', 
+      'itemModal', 
+      'discountsModal', 
+      'modal-venue-details'
+    ];
+
+    modals.forEach(id => {
+      const modal = document.getElementById(id);
+      if (modal && !modal.classList.contains('hidden')) {
+        const content = modal.querySelector('.bg-white, .bg-gray-50, .max-w-3xl, .max-w-xl, .max-w-lg, .max-w-5xl');
+        if (content && !content.contains(e.target)) {
+          // Si el ID es especial, llamar a su función de cierre
+          if (id === 'serviceModal') closeServiceModal();
+          else if (id === 'dishSelectorModal') closeDishSelector();
+          else if (id === 'itemModal') closeItemModal();
+          else if (id === 'discountsModal') closeDiscountsModal();
+          else if (id === 'modal-venue-details') {
+             // Close venue modal (assuming closeVenueModal exists)
+             modal.classList.add('hidden');
+          }
+          else modal.classList.add('hidden');
+        }
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -18,6 +18,8 @@ const pool = mariadb.createPool({
   enableKeepAlive: true,
   keepAliveInterval: 30000,
   connectTimeout: 10000,
+  insertIdAsNumber: true, // Evita problemas con JSON.stringify
+  bigIntAsNumber: true,    // Convierte BigInt a Number automáticamente
 });
 
 /**

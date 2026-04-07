@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - MICE Catering</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Global Theme CSS -->
+    <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+<%- include('../partials/header') %>
+
+<main class="max-w-7xl mx-auto px-6 py-8 min-h-screen">
+    <%- include('../partials/flash-messages') %>
+
+    <!-- Header Principal -->
+    <div class="mb-8">
+        <div class="bg-black rounded-2xl p-6 text-white shadow-xl overflow-hidden relative border border-gray-800">
+            <!-- Decorative circle -->
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-white opacity-5 rounded-full"></div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between relative z-10 gap-4 text-center md:text-left">
+                <div class="flex flex-col md:flex-row items-center gap-5">
+                    <div class="bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/5">
+                        <i data-lucide="users" class="w-8 h-8 text-[#31713D]"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-black mb-0.5 tracking-tight">Gestión de Usuarios</h1>
+                        <p class="text-gray-400 text-sm font-medium">Administra el equipo comercial y administradores</p>
+                    </div>
+                </div>
+                <div class="bg-white/5 px-6 py-3 rounded-2xl backdrop-blur-md border border-white/5">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Total registrados</div>
+                    <div class="text-4xl font-black text-[#31713D]" id="user-count-badge"><%= totalUsers %></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Herramientas -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-3 mb-6">
+        <div class="relative w-full md:w-80">
+            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400">
+                <i data-lucide="search" class="w-4 h-4"></i>
+            </span>
+            <input type="text" id="user-search" onkeyup="filterUsers()" 
+                   class="block w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all outline-none text-sm" 
+                   placeholder="Buscar usuario...">
+        </div>
+        
+        <button onclick="openUserModal('new')" class="w-full md:w-auto bg-[#31713D] hover:bg-black text-white px-6 py-2 rounded-xl font-bold shadow-md transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-sm">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            <span>Nuevo Usuario</span>
+        </button>
+    </div>
+
+    <!-- Listado de Usuarios -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100">
+                <thead class="bg-gray-50/50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Usuario</th>
+                        <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Rol</th>
+                        <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Teléfono</th>
+                        <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Alta</th>
+                        <th class="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Gestión</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50" id="users-table-body">
+                    <% users.forEach(user => { %>
+                    <tr class="user-row hover:bg-gray-50/80 transition-colors group">
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 mr-3">
+                                    <% if (user.avatar_url) { %>
+                                        <img class="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm" src="<%= user.avatar_url %>" alt="<%= user.name %>">
+                                    <% } else { %>
+                                        <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200">
+                                            <i data-lucide="user" class="w-5 h-5"></i>
+                                        </div>
+                                    <% } %>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-black text-gray-900 mb-0.5"><%= user.name %></div>
+                                    <div class="text-[11px] font-medium text-gray-400"><%= user.email %></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            <% if (user.role === 'admin') { %>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-black text-white uppercase tracking-tighter">
+                                    ADMIN
+                                </span>
+                            <% } else { %>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-[#31713D] text-white uppercase tracking-tighter">
+                                    COMERCIAL
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-xs font-semibold text-gray-500">
+                            <%= user.phone || '—' %>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-xs font-medium text-gray-400">
+                            <%= new Date(user.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) %>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-right">
+                            <div class="flex justify-end gap-1 items-center">
+                                <button onclick="openUserModal('edit', '<%= user.id %>')" class="p-1.5 text-black hover:text-[#31713D] transition-colors" title="Editar">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <% if (locals.user && locals.user.id !== user.id) { %>
+                                    <button onclick="deleteUser('<%= user.id %>', '<%= user.name %>')" class="p-1.5 text-black hover:text-red-500 transition-colors" title="Eliminar">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                <% } %>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+        <% if (users.length === 0) { %>
+            <div class="text-center py-20 px-4">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="users" class="w-10 h-10 text-gray-200"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">No hay usuarios</h3>
+                <p class="text-gray-500 max-w-xs mx-auto mt-2">No se han encontrado usuarios registrados. Haz clic en "Nuevo Usuario" para comenzar.</p>
+            </div>
+        <% } %>
+    </div>
+</main>
+
+<!-- Modal Usuario -->
+<div id="user-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all border border-gray-100">
+        <div class="p-6 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+            <div>
+                <h2 id="modal-title" class="text-xl font-black text-gray-900 tracking-tight">Crear Usuario</h2>
+                <p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Datos del equipo comercial</p>
+            </div>
+            <button onclick="closeUserModal()" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white shadow-sm border border-gray-200 text-gray-400 hover:text-black transition-all hover:rotate-90">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+        
+        <form id="user-form" onsubmit="event.preventDefault(); saveUser();" class="p-6 space-y-4">
+            <input type="hidden" id="user-id">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Nombre Completo</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </span>
+                        <input type="text" id="user-name" required 
+                               class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all outline-none text-sm" 
+                               placeholder="Ej: David García">
+                    </div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Email de acceso</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                        </span>
+                        <input type="email" id="user-email" required 
+                               class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all outline-none text-sm" 
+                               placeholder="ejemplo@email.com">
+                    </div>
+                </div>
+
+                <div id="password-field" class="md:col-span-2">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5" id="pass-label">Contraseña</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
+                        </span>
+                        <input type="password" id="user-pass" 
+                               class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all outline-none text-sm" 
+                               placeholder="••••••••">
+                    </div>
+                    <p class="text-[9px] font-bold text-[#31713D] mt-1 uppercase tracking-wide hidden" id="pass-help">💡 Dejar vacío para no cambiar</p>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Teléfono</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                            <i data-lucide="phone" class="w-4 h-4"></i>
+                        </span>
+                        <input type="text" id="user-phone" 
+                               class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all outline-none text-sm" 
+                               placeholder="600 000 000">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Rol</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400 pointer-events-none">
+                            <i data-lucide="shield" class="w-4 h-4"></i>
+                        </span>
+                        <select id="user-role" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all outline-none cursor-pointer text-sm appearance-none">
+                            <option value="commercial">Comercial</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">URL Foto / Avatar</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                            <i data-lucide="image" class="w-4 h-4"></i>
+                        </span>
+                        <input type="url" id="user-avatar" 
+                               class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#31713D] focus:border-transparent transition-all outline-none text-sm" 
+                               placeholder="https://ejemplo.com/foto.jpg">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 flex gap-2">
+                <button type="button" onclick="closeUserModal()" 
+                        class="flex-1 px-4 py-3 border border-gray-200 text-gray-400 rounded-xl font-bold hover:bg-gray-50 transition-colors uppercase tracking-widest text-[10px]">
+                    Cancelar
+                </button>
+                <button type="submit" id="btn-save-user"
+                        class="flex-1 px-4 py-3 bg-black text-white rounded-xl font-black shadow-lg hover:bg-[#31713D] transform hover:-translate-y-0.5 transition-all uppercase tracking-widest text-[10px]">
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    // Inicializar Lucide
+    lucide.createIcons();
+    
+    let mode = 'new';
+    
+    function filterUsers() {
+        const query = document.getElementById('user-search').value.toLowerCase();
+        const rows = document.querySelectorAll('.user-row');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    }
+
+    async function openUserModal(m, id = null) {
+        mode = m;
+        const modal = document.getElementById('user-modal');
+        const form = document.getElementById('user-form');
+        const passHelp = document.getElementById('pass-help');
+        const passLabel = document.getElementById('pass-label');
+        const passInput = document.getElementById('user-pass');
+        
+        modal.classList.remove('hidden');
+        form.reset();
+        
+        if (mode === 'new') {
+            document.getElementById('modal-title').innerText = 'Crear Nuevo Usuario';
+            document.getElementById('user-id').value = '';
+            passInput.required = true;
+            passHelp.classList.add('hidden');
+            passLabel.innerText = 'Contraseña *';
+        } else {
+            document.getElementById('modal-title').innerText = 'Editar Usuario';
+            document.getElementById('user-id').value = id;
+            passInput.required = false;
+            passHelp.classList.remove('hidden');
+            passLabel.innerText = 'Nueva Contraseña';
+            await fetchUserData(id);
+        }
+    }
+
+    function closeUserModal() {
+        document.getElementById('user-modal').classList.add('hidden');
+    }
+
+    async function fetchUserData(id) {
+        try {
+            const res = await fetch(`/api/admin/users/${id}`);
+            const data = await res.json();
+            if (data.success) {
+                const u = data.user;
+                document.getElementById('user-name').value = u.name;
+                document.getElementById('user-email').value = u.email;
+                document.getElementById('user-phone').value = u.phone || '';
+                document.getElementById('user-role').value = u.role;
+                document.getElementById('user-avatar').value = u.avatar_url || '';
+            }
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    }
+
+    async function saveUser() {
+        const id = document.getElementById('user-id').value;
+        const btn = document.getElementById('btn-save-user');
+        const originalText = btn.innerText;
+        
+        btn.innerText = 'Guardando...';
+        btn.disabled = true;
+
+        const data = {
+            name: document.getElementById('user-name').value,
+            email: document.getElementById('user-email').value,
+            phone: document.getElementById('user-phone').value,
+            role: document.getElementById('user-role').value,
+            password: document.getElementById('user-pass').value,
+            avatar_url: document.getElementById('user-avatar').value
+        };
+
+        const url = mode === 'new' ? '/api/admin/users' : `/api/admin/users/${id}`;
+        const method = mode === 'new' ? 'POST' : 'PUT';
+
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + (result.error || result.message));
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        } catch (err) {
+            alert('Error al guardar el usuario');
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    async function deleteUser(id, name) {
+        if (!confirm(`¿Estás seguro de que deseas eliminar a ${name}?\n\nEsta acción es irreversible.`)) return;
+
+        try {
+            const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+            const result = await res.json();
+            if (result.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + (result.error || result.message));
+            }
+        } catch (err) {
+            alert('Error al conectar con el servidor');
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -9,12 +9,17 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const fileUpload = require('express-fileupload');
 const path = require('path');
+const dayjs = require('dayjs');
+require('dayjs/locale/es'); // Importar locale español
+dayjs.locale('es'); // Establecer como global
 require('dotenv').config();
 
 const { errorHandler, authorizeRole } = require('./middleware/auth');
 const DashboardController = require('./controllers/dashboardController');
 const AdminController = require('./controllers/adminController');
 const ClientController = require('./controllers/clientController');
+const ChatService = require('./services/ChatService');
+const SustainabilityService = require('./services/SustainabilityService');
 
 // Helper: Admin-only middleware
 const requireAdmin = authorizeRole('admin');
@@ -56,6 +61,33 @@ app.use(session({
   },
 }));
 
+// Robust req.user assignment and normalization
+app.use((req, res, next) => {
+  if (req.session && req.session.user) {
+    const sUser = req.session.user;
+    req.user = {
+      id: sUser.id || sUser.ID,
+      role: sUser.role || sUser.ROLE,
+      name: sUser.name || sUser.NAME || sUser.username,
+      email: sUser.email || sUser.EMAIL
+    };
+  }
+  next();
+});
+
+// Contador global de mensajes no leídos (solo para comerciales/admin)
+app.use(async (req, res, next) => {
+  res.locals.totalUnreadChats = 0;
+  if (req.user && req.user.role !== 'client') {
+    try {
+      res.locals.totalUnreadChats = await ChatService.getTotalUnreadForUser(req.user.id, req.user.role);
+    } catch (err) {
+      console.error('Error in unread count middleware:', err);
+    }
+  }
+  next();
+});
+
 // Flash messages
 app.use(flash());
 
@@ -73,10 +105,13 @@ app.use((req, res, next) => {
  * - helpers: funciones de formato
  */
 app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
+  res.locals.user = req.user || null;
+  res.locals.isDev = process.env.NODE_ENV !== 'production';
   res.locals.success_msg = req.flash('success');
   res.locals.error_msg = req.flash('error');
   res.locals.info_msg = req.flash('info');
+  res.locals.dayjs = dayjs;
+  res.locals.sustainabilityConfig = SustainabilityService.getConfig();
   
   // Helpers para vistas
   res.locals.formatCurrency = (amount) => {
@@ -90,18 +125,19 @@ app.use((req, res, next) => {
   res.locals.formatDate = (date) => {
     if (!date) return '';
     return new Date(date).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
     });
   };
   
   res.locals.statusLabel = (status) => {
     const labels = {
-      'draft': 'Borrador',
-      'sent': 'Enviada',
-      'accepted': 'Aceptada',
-      'cancelled': 'Anulada'
+      'Pipe': 'Pipe',
+      'Aceptada': 'Aceptada',
+      'Anulada': 'Anulada',
+      'archived': 'Archivada'
     };
     return labels[status] || status;
   };
@@ -110,73 +146,11 @@ app.use((req, res, next) => {
 });
 
 // ============ RUTAS PRINCIPALES ============
-// RUTA DE LOGIN - Simple
-app.get('/login', (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html>
-<head><title>Login</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-900 min-h-screen flex items-center justify-center">
-<div class="bg-white p-8 rounded max-w-md w-full">
-<h1 class="text-2xl font-bold mb-6">MICE - Iniciar Sesión</h1>
-<form method="POST" action="/login">
-<input type="email" name="email" placeholder="test@example.com" value="test@example.com" class="w-full border p-2 mb-4 rounded" required>
-<input type="password" name="password" placeholder="password123" value="password123" class="w-full border p-2 mb-4 rounded" required>
-<button type="submit" class="w-full bg-blue-600 text-white p-2 rounded">Entrar</button>
-</form>
-</div>
-</body>
-</html>`);
-});
-
-app.post('/login', (req, res) => {
-  if (req.body.email === 'test@example.com' && req.body.password === 'password123') {
-    req.session.user = { id: 12, email: 'test@example.com', name: 'Test', role: 'admin' };
-    return res.redirect('/dashboard');
-  }
-  res.redirect('/login');
-});
 
 // RUTA ROOT
 app.get('/', (req, res) => {
   if (req.session.user) return res.redirect('/dashboard');
   res.redirect('/login');
-});
-
-// RUTA DASHBOARD - Real
-app.get('/dashboard', async (req, res, next) => {
-  if (!req.session.user) return res.redirect('/login');
-  
-  try {
-    console.log('✅ Dashboard: Llamando a DashboardController.getProposals()');
-    await DashboardController.getProposals(req, res, next);
-  } catch (err) {
-    console.error('❌ Dashboard Error:', err.message || err);
-    // Fallback: mostrar dashboard vacío en caso de error
-    return res.render('commercial/dashboard', {
-      proposals: [],
-      currentFilter: 'all',
-      searchTerm: '',
-      pageNumber: 1
-    });
-  }
-});
-
-app.get('/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/login');
-});
-
-// ============ RUTAS DE CLIENTE (Protegidas - Login requerido) ============
-app.get('/my-proposals', async (req, res, next) => {
-  if (!req.session.user) return res.redirect('/login');
-  
-  try {
-    await ClientController.getClientDashboard(req, res);
-  } catch (err) {
-    console.error('Client Dashboard Error:', err);
-    req.flash('error', 'Error al cargar tus propuestas');
-    res.redirect('/login');
-  }
 });
 
 app.post('/admin/dishes/import', requireAdmin, (req, res) => {
@@ -191,16 +165,18 @@ app.post('/admin/dishes/:id/delete', requireAdmin, (req, res) => {
   AdminController.deleteDish(req, res);
 });
 
-// ============ RUTAS ADMIN: SERVICES ============
-app.get('/admin/services', requireAdmin, async (req, res, next) => {
-  try {
-    await AdminController.getServicesPanel(req, res);
-  } catch (err) {
-    console.error('Admin Services Error:', err);
-    req.flash('error', 'Error al cargar panel de servicios');
-    res.redirect('/dashboard');
-  }
-});
+// ============ RUTAS DEV (Solo desarrollo) ============
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/dev/toggle-role', (req, res) => {
+    if (!req.session.user) {
+      req.session.user = { id: 1, name: 'Dev User', role: 'admin', email: 'dev@micecatering.com' };
+    } else {
+      req.session.user.role = req.session.user.role === 'admin' ? 'commercial' : 'admin';
+    }
+    req.flash('info', `Rol cambiado a: ${req.session.user.role === 'admin' ? 'Administrador' : 'Comercial'}`);
+    res.redirect(req.get('referer') || '/dashboard');
+  });
+}
 
 // ============ RUTAS - Orden importante ============
 const routes = require('./routes/index');

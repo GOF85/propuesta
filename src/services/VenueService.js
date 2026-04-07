@@ -3,10 +3,6 @@
  * Propósito: Scraping de venues desde micecatering.com + Descarga/optimización de imágenes
  * Pattern: Puppeteer scraping → ImageService processing → DB persistence
  * 
- * Características:
- * ✅ Scraping Puppeteer de micecatering.com
- * ✅ Anti-hotlinking: descarga imágenes externas → optimiza con Sharp
- * ✅ Fallback a formulario manual si scraping falla
  * ✅ Deep insert/update con transacciones
  */
 
@@ -25,7 +21,38 @@ class VenueService {
   }
 
   /**
-   * 🌐 SCRAPING DESDE URL PERSONALIZADA
+   * 🛡️ HELPER: Parse JSON seguro
+   * Intenta parsear JSON, si falla retorna default
+   * Maneja casos donde el valor ya es un objeto
+   * @param {string|object|array} value - String, objeto o array a procesar
+   * @param {*} defaultValue - Valor por defecto si falla
+   * @returns {*} Array u objeto parseado, o defaultValue
+   */
+  safeJsonParse(value, defaultValue = null) {
+    try {
+      // Si ya es un array u objeto, devolverlo tal cual
+      if (Array.isArray(value)) {
+        return value;
+      }
+      if (typeof value === 'object' && value !== null) {
+        return value;
+      }
+      
+      // Si es string, intentar parsear
+      if (typeof value === 'string') {
+        return JSON.parse(value);
+      }
+      
+      // Tipo inválido, retornar default
+      return defaultValue;
+    } catch (err) {
+      const preview = typeof value === 'string' ? value.substring(0, 50) : String(value).substring(0, 50);
+      console.warn(`⚠️  JSON parse error: ${preview}... → Using default`);
+      return defaultValue;
+    }
+  }
+
+  /**
    * Extrae venue desde URL específica proporcionada por usuario
    * Soporta páginas individuales de venues (no listados)
    * 
@@ -34,7 +61,7 @@ class VenueService {
    * 
    * Ejemplo:
    *   const venue = await VenueService.scrapeFromCustomUrl('https://www.micecatering.com/venues/salon-madrid');
-   *   // Retorna: {name, description, capacity_*, features, images: [...], external_url}
+   *   // Retorna: {name, description, images: [...], external_url}
    */
   async scrapeFromCustomUrl(targetUrl) {
     let browser;
@@ -84,30 +111,51 @@ class VenueService {
         name = cleanText(name);
 
         // Extraer descripción
-        let description = document.querySelector('.venue-description, .description, [class*="description"], p')?.textContent ||
-                       document.querySelector('meta[name="description"]')?.content || '';
-      description = cleanText(description);
-
-      // MEJORADO: Buscar descripción en Elementor (micecatering.com)
-      const elementorDesc = document.querySelector('.elementor-tab-content .normalmio p')?.textContent;
-      if (elementorDesc) {
-        description = cleanText(elementorDesc);
-      }
-
-      // Extraer capacidades - REMOVIDO (se darán manualmente desde BD)
-      // const cocktailMatch = ...
-      // const banquetMatch = ...
-      // const theaterMatch = ...
-
-      // Extraer características (features)
-      const features = [];
-      const featureElements = document.querySelectorAll('.feature, .amenity, [class*="feature"], [class*="amenity"], li');
-      featureElements.forEach(el => {
-        const text = cleanText(el.textContent);
-        if (text && text.length < 50 && text.length > 2) {
-          features.push(text);
+        let description = '';
+        
+        // 1. Buscar en divs de tabs Elementor activos - pero solo párrafos largos
+        const elementorTabContent = document.querySelector('[class*="elementor-tab-content"][class*="elementor-active"]');
+        if (elementorTabContent) {
+          const paragraphs = elementorTabContent.querySelectorAll('p');
+          // Buscar el párrafo más largo (probable descripción)
+          let longestPara = '';
+          paragraphs.forEach(p => {
+            const text = cleanText(p.textContent);
+            if (text.length > longestPara.length) {
+              longestPara = text;
+            }
+          });
+          if (longestPara.length > 100) {
+            description = longestPara;
+          }
         }
-      });
+        
+        // 2. Si no encontró descripción larga en tabs, buscar todos los párrafos largos
+        if (!description || description.length < 100) {
+          const allParas = document.querySelectorAll('p');
+          let longestFound = '';
+          allParas.forEach(p => {
+            const text = cleanText(p.textContent);
+            // Filtrar párrafos que parecen ser descripciones (100+ caracteres, sin ser demasiado cortos)
+            if (text.length > 100 && text.length > longestFound.length) {
+              // Evitar párrafos que son claramente CTAs o widgets
+              if (!text.includes('presupuesto') && !text.includes('favoritos') && !text.includes('compartir')) {
+                longestFound = text;
+              }
+            }
+          });
+          if (longestFound.length > 100) {
+            description = longestFound;
+          }
+        }
+        
+        // 3. Fallback a meta description si todo lo anterior falla
+        if (!description || description.length < 50) {
+          description = document.querySelector('meta[name="description"]')?.content || 
+                       document.querySelector('.venue-description, .description, [class*="description"]')?.textContent || '';
+        }
+        
+        description = cleanText(description);
 
       // Extraer dirección - MEJORADO para micecatering.com
       let address = '';
@@ -147,7 +195,6 @@ class VenueService {
           name,
           description,
           // Capacidad: se da manualmente en BD (no se scraepea)
-          features: [...new Set(features)].slice(0, 10), // Eliminar duplicados, max 10
           address,
           images: [...new Set(images)] // Todas las imágenes del slider (sin límite)
         };
@@ -180,12 +227,10 @@ class VenueService {
         }
       }
 
-      // Construir venue final (capacity manual)
+      // Construir venue final
       const venue = {
         name: venueData.name || 'Venue sin nombre',
         description: venueData.description || '',
-        capacity: 0, // Dato manual en BD (default 0)
-        features: venueData.features.filter(Boolean),
         address: venueData.address,
         external_url: targetUrl,
         images: processedImages,
@@ -208,13 +253,13 @@ class VenueService {
   /**
    * 🌐 SCRAPING PRINCIPAL (LISTA DE VENUES)
    * Extrae venues de micecatering.com usando Puppeteer
-   * Incluye: nombre, descripción, capacidades, características, imágenes
+   * Incluye: nombre, descripción, imágenes
    * 
    * @returns {Promise<Array>} Array de venues scrapeados
    * 
    * Ejemplo:
    *   const venues = await VenueService.scrapeVenues();
-   *   // Retorna: [{name, description, capacity_*, features, images_processed: [...]}]
+   *   // Retorna: [{name, description, images_processed: [...]}]
    */
   async scrapeVenues() {
     let browser;
@@ -241,13 +286,13 @@ class VenueService {
       );
 
       // Navegar a página de venues
-      const venuesUrl = 'https://www.micecatering.com/venues'; // Ajustar según estructura real
+      const venuesUrl = 'https://micecatering.com/espacios/'; 
       
       console.log(`📍 Navegando a: ${venuesUrl}`);
       await page.goto(venuesUrl, { waitUntil: 'networkidle2', timeout: this.scraperTimeout });
 
-      // Esperar a que carguen elementos de venue (ajustar selector según HTML real)
-      await page.waitForSelector('.venue-card, [data-venue-item], .venue-item', {
+      // Esperar a que carguen elementos de venue (ajustar según estructura HTML real)
+      await page.waitForSelector('article, .elementor-post, a[href*="/espacio/"]', {
         timeout: 10000
       }).catch(() => {
         console.warn('⚠️  Selector de venue no encontrado, usando alternativa...');
@@ -257,53 +302,33 @@ class VenueService {
       const venuesData = await page.evaluate(() => {
         const venues = [];
         
-        // Selectores comunes (ajustar según estructura HTML real)
+        // Selectores comunes
         const venueElements = document.querySelectorAll(
-          '.venue-card, [data-venue-item], .venue-item, article'
+          'article, .elementor-post, .venue-card'
         );
 
         venueElements.forEach((el) => {
           try {
-            const name = el.querySelector('.venue-name, h2, h3')?.textContent?.trim() ||
-                        el.querySelector('[data-name]')?.textContent?.trim() ||
+            const nameLink = el.querySelector('h2 a, h3 a, a[href*="/espacio/"]');
+            const name = nameLink?.textContent?.trim() || 
+                        el.querySelector('h2, h3')?.textContent?.trim() || 
                         'Sin nombre';
 
-            const description = el.querySelector('.venue-description, p, .description')?.textContent?.trim() ||
-                               el.querySelector('[data-description]')?.textContent?.trim() ||
-                               '';
+            const description = el.querySelector('.elementor-post__excerpt, p')?.textContent?.trim() || '';
 
-            // Capacidades (buscar números)
-            const capacityText = el.textContent;
-            const capacityCocktail = parseInt(capacityText.match(/cocktail[:\s]*(\d+)/i)?.[1] || 0);
-            const capacityBanquet = parseInt(capacityText.match(/banquet[:\s]*(\d+)/i)?.[1] || 0);
-            const capacityTheater = parseInt(capacityText.match(/theater[:\s]*(\d+)/i)?.[1] || 0);
+            // Imágenes
+            const img = el.querySelector('img');
+            const images = img ? [img.src || img.dataset.src] : [];
 
-            // Características (buscar tags/badges)
-            const features = Array.from(el.querySelectorAll('.feature, .badge, .tag')).map(
-              (b) => b.textContent?.trim()
-            ).filter(Boolean);
+            // URL externa
+            const externalUrl = nameLink?.href || el.querySelector('a')?.href || '';
 
-            // Dirección
-            const address = el.querySelector('.address, [data-address]')?.textContent?.trim() || '';
-
-            // Imágenes (obtener URLs completas)
-            const imageElements = el.querySelectorAll('img, [data-image]');
-            const images = Array.from(imageElements)
-              .map((img) => img.src || img.getAttribute('data-image'))
-              .filter((src) => src && (src.startsWith('http') || src.startsWith('/')));
-
-            // URL externa (link al sitio original)
-            const externalUrl = el.querySelector('a')?.href || '';
-
-            // Agregar si hay datos válidos
-            if (name && name !== 'Sin nombre') {
+            if (name && name !== 'Sin nombre' && externalUrl.includes('/espacio/')) {
               venues.push({
                 name,
                 description,
-                capacity: 0,
-                features: features.length > 0 ? features : null,
-                address,
-                images, // URLs sin procesar aún
+                address: '',
+                images,
                 external_url: externalUrl
               });
             }
@@ -312,8 +337,45 @@ class VenueService {
           }
         });
 
+        // Fallback a links directos
+        if (venues.length === 0) {
+            const links = Array.from(document.querySelectorAll('a[href*="/espacio/"]'));
+            links.forEach(link => {
+                const name = link.textContent.trim();
+                const currentHref = link.href;
+                if (name.length > 3 && !venues.find(v => v.external_url === currentHref)) {
+                    venues.push({
+                        name,
+                        description: '',
+                        address: '',
+                        images: [],
+                        external_url: currentHref
+                    });
+                }
+            });
+        }
+
         return venues;
       });
+
+      // Complementar con links directos para asegurar capturar todos
+      const extraLinks = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('a[href*="/espacio/"]'))
+          .map(a => ({ name: a.textContent.trim(), href: a.href }))
+          .filter(a => a.name.length > 3 && !a.name.toLowerCase().includes('más'));
+      });
+
+      for (const link of extraLinks) {
+        if (!venuesData.find(v => v.external_url === link.href)) {
+          venuesData.push({
+            name: link.name,
+            description: '',
+            address: '',
+            images: [],
+            external_url: link.href
+          });
+        }
+      }
 
       console.log(`✅ Scraping completado: ${venuesData.length} venues encontrados`);
 
@@ -517,8 +579,9 @@ class VenueService {
       return `<iframe width="100%" height="400" style="border:0;" src="https://www.google.com/maps/embed/v1/place?q=${encodedAddress}&key=${apiKey}" allowfullscreen="" loading="lazy"></iframe>`;
     }
 
-    // Fallback a OpenStreetMap
-    return `<iframe width="100%" height="400" style="border:0;" src="https://www.openstreetmap.org/export/embed.html?bbox=${encodedAddress}" allowfullscreen="" loading="lazy"></iframe>`;
+    // Fallback gratuito y funcional para direcciones
+    // Google Maps (unofficial but widely used compatible embed)
+    return `<iframe width="100%" height="400" style="border:0;" src="https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>`;
   }
 
   /**
@@ -526,29 +589,26 @@ class VenueService {
    * Maneja creación new + actualización existing
    * Usa prepared statements para security
    * 
-   * @param {Object} venueData - {name, description, capacity, features, address, images, external_url, map_iframe}
+   * @param {Object} venueData - {name, description, address, images, external_url, map_iframe}
    * @param {Number} existingId - ID del venue si es update (optional)
    * @returns {Promise<Number>} ID del venue creado/actualizado
    */
   async insertOrUpdateVenue(venueData, existingId = null) {
     const conn = await pool.getConnection();
     try {
-      const featuresJson = venueData.features ? JSON.stringify(venueData.features) : null;
       const imagesJson = venueData.images ? JSON.stringify(venueData.images) : null;
 
       if (existingId) {
         // UPDATE
         await conn.query(
           `UPDATE venues SET
-             name = ?, description = ?, capacity = ?,
-             features = ?, address = ?, external_url = ?,
+             name = ?, description = ?,
+             address = ?, external_url = ?,
              images = ?, map_iframe = ?
            WHERE id = ?`,
           [
             venueData.name,
             venueData.description,
-            venueData.capacity || 0,
-            featuresJson,
             venueData.address,
             venueData.external_url,
             imagesJson,
@@ -562,13 +622,11 @@ class VenueService {
         // INSERT
         const result = await conn.query(
           `INSERT INTO venues 
-             (name, description, capacity, features, address, external_url, images, map_iframe)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+             (name, description, address, external_url, images, map_iframe)
+           VALUES (?, ?, ?, ?, ?, ?)`,
           [
             venueData.name,
             venueData.description,
-            venueData.capacity || 0,
-            featuresJson,
             venueData.address,
             venueData.external_url,
             imagesJson,
@@ -576,13 +634,13 @@ class VenueService {
           ]
         );
         console.log(`✅ Venue creado: ID ${result.insertId}`);
-        return result.insertId;
+        return Number(result.insertId);  // Convertir BigInt a number
       }
     } catch (err) {
       console.error(`❌ Error en insertOrUpdateVenue: ${err.message}`);
       throw err;
     } finally {
-      conn.end();
+      conn.release();
     }
   }
 
@@ -658,7 +716,7 @@ class VenueService {
    * 📋 OBTENER TODOS LOS VENUES
    * Lista todos los venues disponibles
    * 
-   * @param {Object} filters - {search, minCapacity}
+   * @param {Object} filters - {search}
    * @returns {Promise<Array>}
    */
   async getAll(filters = {}) {
@@ -668,17 +726,16 @@ class VenueService {
       const params = [];
       const conditions = [];
 
+      // Filtro: solo venues scrapeados (con URL de micecatering.com)
+      if (filters.scrapedOnly) {
+        conditions.push('external_url LIKE "https://micecatering.com/%"');
+      }
+
       // Filtro: búsqueda por nombre
       if (filters.search) {
         conditions.push('(name LIKE ? OR description LIKE ?)');
         const searchTerm = `%${filters.search}%`;
         params.push(searchTerm, searchTerm);
-      }
-
-      // Filtro: capacidad mínima
-      if (filters.minCapacity) {
-        conditions.push('capacity >= ?');
-        params.push(filters.minCapacity);
       }
 
       if (conditions.length > 0) {
@@ -689,18 +746,17 @@ class VenueService {
 
       const result = await conn.query(query, params);
 
-      // Parsear JSON fields
+      // Parsear JSON fields (con fallback seguro para datos corruptos)
       return result.map((venue) => ({
         ...venue,
-        features: venue.features ? JSON.parse(venue.features) : [],
-        images: venue.images ? JSON.parse(venue.images) : []
+        images: venue.images ? this.safeJsonParse(venue.images, []) : []
       }));
 
     } catch (err) {
       console.error(`❌ Error en getAll: ${err.message}`);
       throw err;
     } finally {
-      conn.end();
+      conn.release();
     }
   }
 
@@ -721,15 +777,14 @@ class VenueService {
       const venue = result[0];
       return {
         ...venue,
-        features: venue.features ? JSON.parse(venue.features) : [],
-        images: venue.images ? JSON.parse(venue.images) : []
+        images: venue.images ? this.safeJsonParse(venue.images, []) : []
       };
 
     } catch (err) {
       console.error(`❌ Error en getById: ${err.message}`);
       throw err;
     } finally {
-      conn.end();
+      conn.release();
     }
   }
 
@@ -752,8 +807,6 @@ class VenueService {
       const processed = {
         name: venueData.name.trim(),
         description: '',
-        capacity: 0,
-        features: [],
         address: '',
         external_url: venueData.external_url?.trim() || '',
         images: [],
@@ -781,17 +834,9 @@ class VenueService {
         throw new Error('El nombre del venue es obligatorio');
       }
 
-      // Procesar igual que createManual
-      let features = venueData.features;
-      if (typeof features === 'string') {
-        features = features.split(',').map((f) => f.trim()).filter(Boolean);
-      }
-
       const processed = {
         name: venueData.name.trim(),
         description: venueData.description?.trim() || '',
-        capacity: parseInt(venueData.capacity) || 0,
-        features: features || [],
         address: venueData.address?.trim() || '',
         external_url: venueData.external_url?.trim() || '',
         images: venueData.images || [],
@@ -822,7 +867,127 @@ class VenueService {
       console.error(`❌ Error en delete: ${err.message}`);
       throw err;
     } finally {
-      conn.end();
+      conn.release();
+    }
+  }
+
+  /**
+   * 🕒 GESTIÓN DE COLAS DE SCRAPING (PENDING SCRAPES)
+   */
+
+  /**
+   * Obtener todas las URLs pendientes de scrape
+   */
+  async getPendingScrapes() {
+    const conn = await pool.getConnection();
+    try {
+      return await conn.query('SELECT * FROM pending_scrapes ORDER BY status ASC, created_at DESC');
+    } catch (err) {
+      console.error(`❌ Error en getPendingScrapes: ${err.message}`);
+      return [];
+    } finally {
+      conn.release();
+    }
+  }
+
+  /**
+   * Agregar una nueva URL a la cola de pendientes
+   */
+  async addPendingScrape(url) {
+    const conn = await pool.getConnection();
+    try {
+      if (!url || !url.startsWith('http')) {
+        throw new Error('URL inválida. Debe comenzar con http:// o https://');
+      }
+
+      // Limpiar URL
+      const cleanUrl = url.trim();
+
+      // 1. Verificar si ya existe en la cola (con status pending o processing)
+      const existingInQueue = await conn.query(
+        'SELECT id FROM pending_scrapes WHERE url = ? AND (status = "pending" OR status = "processing")',
+        [cleanUrl]
+      );
+
+      if (existingInQueue.length > 0) {
+        return existingInQueue[0].id;
+      }
+
+      // 2. Verificar si ya existe en venues
+      const existingVenue = await conn.query(
+        'SELECT id FROM venues WHERE external_url = ?',
+        [cleanUrl]
+      );
+
+      if (existingVenue.length > 0) {
+        throw new Error('Este venue ya existe en la base de datos.');
+      }
+
+      const result = await conn.query(
+        'INSERT INTO pending_scrapes (url, status) VALUES (?, "pending") ON DUPLICATE KEY UPDATE status = "pending", error_message = NULL',
+        [cleanUrl]
+      );
+      return result.insertId || result[0]?.insertId;
+    } catch (err) {
+      console.error(`❌ Error en addPendingScrape: ${err.message}`);
+      throw err;
+    } finally {
+      conn.release();
+    }
+  }
+
+  /**
+   * Eliminar una URL de la cola
+   */
+  async deletePendingScrape(id) {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query('DELETE FROM pending_scrapes WHERE id = ?', [id]);
+      return true;
+    } catch (err) {
+      console.error(`❌ Error en deletePendingScrape: ${err.message}`);
+      throw err;
+    } finally {
+      conn.release();
+    }
+  }
+
+  /**
+   * Actualizar estado de un scrape pendiente
+   */
+  async updatePendingStatus(id, status, errorMsg = null) {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query(
+        'UPDATE pending_scrapes SET status = ?, error_message = ? WHERE id = ?',
+        [status, errorMsg, id]
+      );
+      return true;
+    } catch (err) {
+      console.error(`❌ Error en updatePendingStatus: ${err.message}`);
+      throw err;
+    } finally {
+      conn.release();
+    }
+  }
+
+  /**
+   * Eliminar TODOS los venues de la base de datos
+   * ⚠️ CUIDADO: Esta operación es irreversible
+   * @returns {number} Cantidad de venues eliminados
+   */
+  async deleteAll() {
+    const conn = await pool.getConnection();
+    try {
+      const result = await conn.query('DELETE FROM venues');
+      const count = result.affectedRows;
+      console.log(`✅ BASE DE DATOS LIMPIADA: ${count} venues eliminados`);
+      return count;
+    } catch (err) {
+      console.error(`❌ Error en deleteAll: ${err.message}`);
+      throw err;
+    } finally {
+      conn.release();
     }
   }
 }

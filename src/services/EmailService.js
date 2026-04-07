@@ -222,6 +222,40 @@ exports.sendModificationRequest = async (options) => {
 };
 
 // ════════════════════════════════════════════════════════════════
+// NOTIFICACIÓN: MENSAJE DEL COMERCIAL (AL CLIENTE)
+// ════════════════════════════════════════════════════════════════
+
+exports.sendCommercialMessageNotification = async (options) => {
+  const { to, clientName, proposalId, message, hash } = options;
+
+  const subject = `💬 Nuevo mensaje sobre tu propuesta #${proposalId}`;
+  
+  const body = `
+    <p>Hola ${clientName},</p>
+    <p>Has recibido un nuevo mensaje de nuestro equipo comercial respecto a tu propuesta:</p>
+    <blockquote style="border-left: 4px solid #31713D; padding: 10px; background: #f9f9f9;">
+      "${message}"
+    </blockquote>
+    <p>Haz clic en el botón de abajo para ver y responder:</p>
+  `;
+
+  const ctaUrl = `${process.env.APP_DOMAIN}/p/${hash}`;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: to,
+      subject: subject,
+      html: htmlTemplate(subject, body, ctaUrl, 'Ver y responder')
+    });
+    console.log(`✓ Email comercial enviado a ${to}`);
+  } catch (err) {
+    console.error('Error enviando email al cliente:', err);
+    throw err;
+  }
+};
+
+// ════════════════════════════════════════════════════════════════
 // UTILIDAD: PROBAR CONEXIÓN
 // ════════════════════════════════════════════════════════════════
 

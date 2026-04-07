@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión Sostenibilidad - Panel Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50">
+
+<%- include('../partials/header') %>
+
+<main class="max-w-7xl mx-auto px-6 py-12">
+    <%- include('../partials/flash-messages') %>
+
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <i data-lucide="leaf" class="text-[#31713D] w-8 h-8"></i>
+                Configuración de Sostenibilidad
+            </h1>
+            <p class="text-gray-500 mt-1">Personaliza los textos, imágenes y pilares de sostenibilidad mostrados en las propuestas.</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <button type="button" onclick="addNewPilar()" class="bg-[#31713D] text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-green-700 transition flex items-center gap-2">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+                Añadir Pilar
+            </button>
+            <a href="/admin" class="flex items-center gap-2 text-[#31713D] font-medium hover:underline">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulario Principal -->
+    <form action="/admin/sustainability" method="POST" id="sustainability-form">
+        
+        <div id="pilares-container" class="space-y-6">
+            <% config.forEach((pilar, index) => { %>
+                <div class="pilar-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" data-index="<%= index %>">
+                    <!-- Cabecera del Pilar -->
+                    <div class="bg-gray-50 px-6 py-3 border-b border-gray-200 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="pilar-number w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-700 text-sm">
+                                <%= index + 1 %>
+                            </span>
+                            <h2 class="pilar-label font-bold text-gray-800 text-sm uppercase tracking-tight">
+                                <%= pilar.pilar %>
+                            </h2>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">ID: <%= pilar.id %></span>
+                            <button type="button" onclick="removePilar(this)" class="text-red-400 hover:text-red-600 transition p-1" title="Eliminar este pilar">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contenido del Pilar -->
+                    <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        
+                        <!-- Columna Izquierda: Datos Básicos -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Título del Pilar</label>
+                                <input type="text" name="pilar" value="<%= pilar.pilar %>" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                    data-key="pilar">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Título Principal</label>
+                                <input type="text" name="titulo" value="<%= pilar.titulo %>" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                    data-key="titulo">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Palabra Destacada</label>
+                                <input type="text" name="destaque" value="<%= pilar.destaque %>" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                    data-key="destaque">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Descripción</label>
+                                <textarea name="descripcion" rows="3" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                    data-key="descripcion"><%= pilar.descripcion %></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Icono (Lucide)</label>
+                                    <input type="text" name="icon" value="<%= pilar.icon %>" 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                        data-key="icon">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Color HEX</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" name="color" value="<%= pilar.color %>" 
+                                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                            data-key="color">
+                                        <div class="w-10 h-10 rounded border" style="background-color: <%= pilar.color %>"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha: Multimedia y Avanzado -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">URL de Imagen</label>
+                                <input type="text" name="imagen" value="<%= pilar.imagen %>" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none mb-2"
+                                    data-key="imagen">
+                                <div class="w-full h-32 rounded-lg bg-gray-100 overflow-hidden border border-dashed border-gray-300">
+                                    <img src="<%= pilar.imagen %>" class="w-full h-full object-cover">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">
+                                    Contenido Técnico (JSON)
+                                </label>
+                                <% 
+                                    let advancedField = '';
+                                    let advancedKey = '';
+                                    if (pilar.tags) { advancedField = JSON.stringify(pilar.tags, null, 2); advancedKey = 'tags'; }
+                                    else if (pilar.features) { advancedField = JSON.stringify(pilar.features, null, 2); advancedKey = 'features'; }
+                                    else if (pilar.cards) { advancedField = JSON.stringify(pilar.cards, null, 2); advancedKey = 'cards'; }
+                                    else if (pilar.items) { advancedField = JSON.stringify(pilar.items, null, 2); advancedKey = 'items'; }
+                                    else if (pilar.certificates) { advancedField = JSON.stringify(pilar.certificates, null, 2); advancedKey = 'certificates'; }
+                                    else { advancedField = '[]'; advancedKey = 'tags'; } // Default
+                                %>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <select class="text-[10px] bg-gray-100 border-none rounded px-1 py-0.5" data-adv-key="true">
+                                        <option value="tags" <%= advancedKey === 'tags' ? 'selected' : '' %>>tags</option>
+                                        <option value="features" <%= advancedKey === 'features' ? 'selected' : '' %>>features</option>
+                                        <option value="cards" <%= advancedKey === 'cards' ? 'selected' : '' %>>cards</option>
+                                        <option value="items" <%= advancedKey === 'items' ? 'selected' : '' %>>items</option>
+                                        <option value="certificates" <%= advancedKey === 'certificates' ? 'selected' : '' %>>certificates</option>
+                                    </select>
+                                </div>
+                                <textarea rows="5" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-xs bg-gray-900 text-green-400"
+                                    data-key="advanced"
+                                    data-json="true"><%= advancedField %></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <input type="hidden" name="sustainabilityConfig" id="sustainabilityConfigInput">
+
+        <!-- Acciones Inferiores -->
+        <div class="mt-8 bg-white p-6 rounded-xl border border-gray-200 flex items-center justify-between shadow-lg sticky bottom-6">
+            <div class="text-sm text-gray-500">
+                <i data-lucide="info" class="w-4 h-4 inline-block -mt-1 mr-1"></i>
+                Se guardará directamente en <code>src/config/sustainability.js</code>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/admin" class="px-6 py-2 text-gray-600 font-bold hover:bg-gray-100 rounded-lg transition">Cancelar</a>
+                <button type="button" onclick="prepareAndSubmit()" class="bg-[#31713D] text-white px-8 py-2 rounded-lg font-bold shadow-md hover:bg-green-700 transition flex items-center gap-2">
+                    <i data-lucide="save" class="w-5 h-5"></i>
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </form>
+</main>
+
+<%- include('../partials/footer') %>
+
+<script>
+    lucide.createIcons();
+
+    function addNewPilar() {
+        const container = document.getElementById('pilares-container');
+        const index = container.querySelectorAll('.pilar-card').length;
+        const id = Date.now();
+
+        const cardHtml = `
+            <div class="pilar-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" data-index="${index}">
+                <div class="bg-gray-50 px-6 py-3 border-b border-gray-200 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <span class="pilar-number w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-700 text-sm">
+                            ${index + 1}
+                        </span>
+                        <h2 class="pilar-label font-bold text-gray-800 text-sm uppercase tracking-tight">
+                            NUEVO PILAR
+                        </h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">ID: ${id}</span>
+                        <button type="button" onclick="removePilar(this)" class="text-red-400 hover:text-red-600 transition p-1">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Título del Pilar</label>
+                            <input type="text" value="0${index + 1} / Nuevo" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" data-key="pilar">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Título Principal</label>
+                            <input type="text" value="Título Ejemplo" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" data-key="titulo">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Palabra Destacada</label>
+                            <input type="text" value="Ejemplo." class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" data-key="destaque">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Descripción</label>
+                            <textarea rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" data-key="descripcion">Breve descripción del nuevo pilar...</textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Icono (Lucide)</label>
+                                <input type="text" value="leaf" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" data-key="icon">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Color HEX</label>
+                                <input type="text" value="#31713D" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" data-key="color">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">URL de Imagen</label>
+                            <input type="text" value="" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" data-key="imagen">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Contenido Técnico (JSON)</label>
+                            <div class="flex items-center gap-2 mb-1">
+                                <select class="text-[10px] bg-gray-100 border-none rounded px-1 py-0.5" data-adv-key="true">
+                                    <option value="tags">tags</option>
+                                    <option value="features">features</option>
+                                    <option value="cards">cards</option>
+                                    <option value="items">items</option>
+                                    <option value="certificates">certificates</option>
+                                </select>
+                            </div>
+                            <textarea rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none font-mono text-xs bg-gray-900 text-green-400" data-key="advanced" data-json="true">[]</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const div = document.createElement('div');
+        div.innerHTML = cardHtml.trim();
+        container.appendChild(div.firstChild);
+        lucide.createIcons();
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    function removePilar(btn) {
+        if (!confirm('¿Estás seguro de eliminar este pilar?')) return;
+        btn.closest('.pilar-card').remove();
+        reorderNumbers();
+    }
+
+    function reorderNumbers() {
+        document.querySelectorAll('.pilar-number').forEach((num, i) => {
+            num.textContent = i + 1;
+        });
+    }
+
+    function prepareAndSubmit() {
+        const pilares = [];
+        const cards = document.querySelectorAll('.pilar-card');
+        const form = document.getElementById('sustainability-form');
+        const hiddenInput = document.getElementById('sustainabilityConfigInput');
+
+        let hasError = false;
+
+        cards.forEach((card, index) => {
+            const pilarObj = {
+                id: parseInt(card.querySelector('.font-mono').textContent.replace('ID: ', '')) || (index + 1),
+                bgColor: "bg-white",
+                textColor: "text-gray-900"
+            };
+
+            const inputs = card.querySelectorAll('[data-key]');
+            inputs.forEach(input => {
+                const key = input.getAttribute('data-key');
+                const isJson = input.getAttribute('data-json') === 'true';
+                let value = input.value;
+
+                if (key === 'advanced') {
+                    const advKey = card.querySelector('[data-adv-key]').value;
+                    try {
+                        pilarObj[advKey] = JSON.parse(value);
+                    } catch (e) {
+                        alert('Error JSON en el pilar ' + (index + 1));
+                        hasError = true;
+                    }
+                } else {
+                    pilarObj[key] = value;
+                }
+            });
+            pilares.push(pilarObj);
+        });
+
+        if (hasError) return;
+
+        hiddenInput.value = JSON.stringify(pilares);
+        form.submit();
+    }
+</script>
+
+</body>
+</html>

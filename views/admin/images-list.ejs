@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Imágenes - MICE Catering</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Global Theme CSS -->
+    <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+<%- include('../partials/header') %>
+
+<main class="max-w-7xl mx-auto px-6 py-8 min-h-screen">
+    <%- include('../partials/flash-messages') %>
+
+    <!-- Header Principal -->
+    <div class="mb-8">
+        <div class="bg-black rounded-2xl p-6 text-white shadow-xl overflow-hidden relative border border-gray-800">
+            <!-- Decorative circle -->
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-white opacity-5 rounded-full"></div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between relative z-10 gap-4 text-center md:text-left">
+                <div class="flex flex-col md:flex-row items-center gap-5">
+                    <div class="bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/5">
+                        <i data-lucide="image" class="w-8 h-8 text-[#31713D]"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-black mb-0.5 tracking-tight">Catálogo de Imágenes</h1>
+                        <p class="text-gray-400 text-sm font-medium">Gestiona y optimiza los recursos visuales del sistema</p>
+                    </div>
+                </div>
+                <div class="bg-white/5 px-6 py-3 rounded-2xl backdrop-blur-md border border-white/5">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Total imágenes</div>
+                    <div class="text-4xl font-black text-[#31713D]"><%= totalImages %></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Herramientas & Upload -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Formulario de Subida -->
+        <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm self-start">
+            <h2 class="text-sm font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                Importar imagen
+            </h2>
+            <form action="/admin/catalog/upload" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <!-- Nombre personalizado -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-widest">Nombre del recurso <span class="text-red-500">*</span></label>
+                    <input type="text" name="customName" required placeholder="Ej: Logo MICE Catering..." class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#31713D] outline-none">
+                    <p class="text-[9px] text-[#31713D] mt-1 italic font-bold">Obligatorio: Este nombre se usará en el catálogo</p>
+                </div>
+
+                <!-- Tabs/Options: Local vs URL -->
+                <div class="flex gap-2 p-1 bg-gray-100 rounded-xl mb-4">
+                    <button type="button" onclick="setUploadMode('local')" id="btn-mode-local" class="flex-1 py-1.5 text-[10px] font-black uppercase rounded-lg bg-white shadow-sm transition-all">Archivo</button>
+                    <button type="button" onclick="setUploadMode('url')" id="btn-mode-url" class="flex-1 py-1.5 text-[10px] font-black uppercase rounded-lg text-gray-400 hover:text-gray-600 transition-all">URL</button>
+                </div>
+
+                <!-- Input Local -->
+                <div id="container-local" class="relative group">
+                    <div class="border-2 border-dashed border-gray-200 rounded-xl p-8 transition-all group-hover:border-[#31713D] group-hover:bg-gray-50 text-center cursor-pointer" onclick="document.getElementById('image-upload').click()">
+                        <input type="file" name="image" id="image-upload" class="hidden" accept="image/*" onchange="previewSelectedImage(this)">
+                        <div id="upload-preview" class="hidden mb-3">
+                            <img id="preview-img" src="#" class="max-h-32 mx-auto rounded-lg shadow-sm">
+                        </div>
+                        <div id="upload-placeholder">
+                            <i data-lucide="image-plus" class="w-10 h-10 text-gray-300 mx-auto mb-2 group-hover:text-[#31713D]"></i>
+                            <p class="text-xs font-bold text-gray-500">Selecciona o arrastra</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input URL -->
+                <div id="container-url" class="hidden">
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-widest">URL de la imagen</label>
+                    <div class="relative">
+                        <i data-lucide="link" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                        <input type="url" name="imageUrl" id="imageUrl" oninput="previewUrlImage(this.value)" placeholder="https://ejemplo.com/foto.jpg" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#31713D] outline-none">
+                    </div>
+                    <div id="url-preview" class="hidden mt-3 text-center">
+                        <img id="preview-url-img" src="#" class="max-h-32 mx-auto rounded-lg shadow-sm border border-gray-100">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-black hover:bg-[#31713D] text-white py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 mt-4 shadow-lg active:scale-95">
+                    <i data-lucide="check-circle" class="w-4 h-4 text-white"></i>
+                    <span>Procesar y Guardar</span>
+                </button>
+                <p class="text-[10px] text-gray-400 text-center italic">Optimización WebP Automática</p>
+            </form>
+        </div>
+
+        <!-- Grid de Imágenes -->
+        <div class="lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <div class="relative w-full md:w-64">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                    </span>
+                    <input type="text" id="image-search" onkeyup="filterImages()" 
+                           class="block w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#31713D] outline-none" 
+                           placeholder="Buscar por nombre...">
+                </div>
+                <div class="text-[10px] font-bold text-gray-400 uppercase">Ordenado por fecha desc</div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="image-grid">
+                <% images.forEach(img => { %>
+                <div class="image-card group bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
+                    <!-- Preview Container -->
+                    <div class="aspect-square relative bg-gray-100 overflow-hidden">
+                        <img src="<%= img.path %>" alt="<%= img.original_name %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        
+                        <!-- Overlay Actions -->
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button onclick="copyToClipboard('<%= img.path %>')" class="p-2 bg-white rounded-lg text-gray-900 hover:bg-[#31713D] hover:text-white transition-colors title='Copiar URL'">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                            <form action="/admin/images/delete/<%= img.id %>" method="POST" onsubmit="return confirm('¿Eliminar esta imagen del catálogo? Se borrará el archivo físico.')">
+                                <button type="submit" class="p-2 bg-white rounded-lg text-red-600 hover:bg-red-600 hover:text-white transition-colors title='Eliminar'">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Meta -->
+                    <div class="p-3">
+                        <div class="text-[10px] font-black text-gray-900 truncate mb-1" title="<%= img.original_name %>">
+                            <%= img.original_name %>
+                        </div>
+                        <div class="flex justify-between items-center text-[9px] text-gray-400 font-bold uppercase tabular-nums">
+                            <span><%= img.width %>x<%= img.height %></span>
+                            <span><%= img.size_kb %> KB</span>
+                        </div>
+                    </div>
+                </div>
+                <% }) %>
+                
+                <% if (images.length === 0) { %>
+                <div class="col-span-full py-20 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                    <i data-lucide="image-off" class="w-12 h-12 text-gray-300 mx-auto mb-3"></i>
+                    <p class="text-gray-500 font-bold">No hay imágenes en el catálogo</p>
+                    <p class="text-[10px] text-gray-400 mt-1 uppercase">Sube tu primera imagen para empezar</p>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Inicializar Lucide Icons
+    lucide.createIcons();
+
+    let uploadMode = 'local';
+
+    /**
+     * Alternar entre subida local y URL
+     */
+    function setUploadMode(mode) {
+        uploadMode = mode;
+        const btnLocal = document.getElementById('btn-mode-local');
+        const btnUrl = document.getElementById('btn-mode-url');
+        const containerLocal = document.getElementById('container-local');
+        const containerUrl = document.getElementById('container-url');
+
+        if (mode === 'local') {
+            btnLocal.classList.add('bg-white', 'shadow-sm');
+            btnLocal.classList.remove('text-gray-400');
+            btnUrl.classList.remove('bg-white', 'shadow-sm');
+            btnUrl.classList.add('text-gray-400');
+            containerLocal.classList.remove('hidden');
+            containerUrl.classList.add('hidden');
+        } else {
+            btnUrl.classList.add('bg-white', 'shadow-sm');
+            btnUrl.classList.remove('text-gray-400');
+            btnLocal.classList.remove('bg-white', 'shadow-sm');
+            btnLocal.classList.add('text-gray-400');
+            containerUrl.classList.remove('hidden');
+            containerLocal.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Preview de imagen seleccionada antes de subir
+     */
+    function previewSelectedImage(input) {
+        const preview = document.getElementById('upload-preview');
+        const img = document.getElementById('preview-img');
+        const placeholder = document.getElementById('upload-placeholder');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    /**
+     * Preview de imagen desde URL
+     */
+    function previewUrlImage(url) {
+        const preview = document.getElementById('url-preview');
+        const img = document.getElementById('preview-url-img');
+        
+        if (url && (url.startsWith('http') || url.startsWith('https'))) {
+            img.src = url;
+            preview.classList.remove('hidden');
+            img.onerror = () => preview.classList.add('hidden');
+        } else {
+            preview.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Copiar URL al portapapeles
+     */
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('URL copiada al portapapeles');
+        });
+    }
+
+    /**
+     * Filtrar imágenes por nombre
+     */
+    function filterImages() {
+        const query = document.getElementById('image-search').value.toLowerCase();
+        const cards = document.querySelectorAll('.image-card');
+        
+        cards.forEach(card => {
+            const name = card.querySelector('.truncate').innerText.toLowerCase();
+            if (name.includes(query)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
+
+<%- include('../partials/footer') %>
+</body>
+</html>
