@@ -162,7 +162,7 @@ class EditorController {
         return res.status(403).json({ success: false });
       }
 
-      let { title, type, service_date, start_time, end_time, duration, comments, location, vat_rate, pax, is_multichoice, price_model } = req.body;
+      let { title, type, service_date, start_time, end_time, duration, comments, location, vat_rate, pax, is_multichoice, is_optional, price_model } = req.body;
       
       // Sanitización
       service_date = service_date || null;
@@ -171,12 +171,13 @@ class EditorController {
       duration = parseInt(duration) || 0;
       comments = comments || null;
       location = location || null;
-      vat_rate = vat_rate || (type === 'gastronomy' ? 21.00 : 10.00);
+      vat_rate = vat_rate || (type === 'gastronomy' ? 10.00 : 21.00);
       pax = pax ? parseInt(pax) : null; // null significa heredar de propuesta
       price_model = price_model || 'pax';
       
-      // Interpretación robusta de multichoice (soporta bool o int 0/1)
+      // Interpretación robusta de flags booleanos (soporta bool o int 0/1)
       const isMC = (is_multichoice === true || is_multichoice === 1 || is_multichoice === '1' || is_multichoice === 'true') ? 1 : 0;
+      const isOptional = (is_optional === true || is_optional === 1 || is_optional === '1' || is_optional === 'true') ? 1 : 0;
 
       const { pool } = require('../config/db');
       const conn = await pool.getConnection();
@@ -185,8 +186,8 @@ class EditorController {
         const nextOrder = (maxOrderRes && maxOrderRes.max_order !== null) ? (maxOrderRes.max_order + 1) : 0;
         
         const result = await conn.query(
-          'INSERT INTO proposal_services (proposal_id, title, type, order_index, service_date, start_time, end_time, duration, comments, location, vat_rate, pax, is_multichoice, price_model, selected_option_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
-          [id, title, type, nextOrder, service_date, start_time, end_time, duration, comments, location, vat_rate, pax, isMC, price_model, null]
+          'INSERT INTO proposal_services (proposal_id, title, type, order_index, service_date, start_time, end_time, duration, comments, location, vat_rate, pax, is_multichoice, is_optional, price_model, selected_option_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+          [id, title, type, nextOrder, service_date, start_time, end_time, duration, comments, location, vat_rate, pax, isMC, isOptional, price_model, null]
         );
         
         const newId = result.insertId || (result[0] && result[0].insertId);
@@ -208,7 +209,7 @@ class EditorController {
         return res.status(403).json({ success: false, message: 'No tienes permiso' });
       }
 
-      let { title, type, service_date, start_time, end_time, duration, comments, location, pax, vat_rate, is_multichoice, price_model } = req.body;
+      let { title, type, service_date, start_time, end_time, duration, comments, location, pax, vat_rate, is_multichoice, is_optional, price_model } = req.body;
       
       // Sanitización
       service_date = service_date || null;
@@ -221,15 +222,16 @@ class EditorController {
       vat_rate = vat_rate ? parseFloat(vat_rate) : null;
       price_model = price_model || 'pax';
       
-      // Interpretación robusta de multichoice (soporta bool o int 0/1)
+      // Interpretación robusta de flags booleanos (soporta bool o int 0/1)
       const isMC = (is_multichoice === true || is_multichoice === 1 || is_multichoice === '1' || is_multichoice === 'true') ? 1 : 0;
+      const isOptional = (is_optional === true || is_optional === 1 || is_optional === '1' || is_optional === 'true') ? 1 : 0;
 
       const { pool } = require('../config/db');
       const conn = await pool.getConnection();
       try {
         await conn.query(
-          'UPDATE proposal_services SET title = ?, type = ?, service_date = ?, start_time = ?, end_time = ?, duration = ?, comments = ?, location = ?, pax = ?, vat_rate = ?, is_multichoice = ?, price_model = ? WHERE id = ? AND proposal_id = ?',
-          [title, type, service_date, start_time, end_time, duration, comments, location, pax, vat_rate, isMC, price_model, serviceId, id]
+          'UPDATE proposal_services SET title = ?, type = ?, service_date = ?, start_time = ?, end_time = ?, duration = ?, comments = ?, location = ?, pax = ?, vat_rate = ?, is_multichoice = ?, is_optional = ?, price_model = ? WHERE id = ? AND proposal_id = ?',
+          [title, type, service_date, start_time, end_time, duration, comments, location, pax, vat_rate, isMC, isOptional, price_model, serviceId, id]
         );
         
         console.log(`[EditorController] Service ${serviceId} updated`);

@@ -219,9 +219,12 @@ function openServiceModal() {
   document.getElementById('modal-service-id').value = '';
   document.getElementById('service-form').reset();
   
-  // Ocultar opciones para hito nuevo
+  // Ocultar opciones para hito nuevo, pero permitir configurar su naturaleza desde el inicio
   document.getElementById('modal-options-container')?.classList.add('hidden');
-  document.getElementById('multichoice-container')?.classList.add('hidden');
+  document.getElementById('multichoice-container')?.classList.remove('hidden');
+  document.getElementById('optional-container')?.classList.remove('hidden');
+  if (document.getElementById('modal-service-multichoice')) document.getElementById('modal-service-multichoice').checked = false;
+  if (document.getElementById('modal-service-optional')) document.getElementById('modal-service-optional').checked = false;
   
   // Valores por defecto inteligentes
   const eventDate = document.getElementById('event-date')?.value;
@@ -540,12 +543,13 @@ function renderMainServicesTable() {
               <div class="font-bold text-gray-900 text-sm">${service.title}</div>
               <span class="text-[8px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-black uppercase tracking-widest">${typeLabel}</span>
               ${service.location ? `<span class="text-[8px] bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded font-black uppercase tracking-widest">${service.location}</span>` : ''}
-              ${service.is_multichoice ? '<span class="text-[8px] bg-amber-50 text-amber-600 border border-amber-100 px-1.5 py-0.5 rounded font-black uppercase tracking-widest">MULTICHOICE</span>' : ''}
+              ${service.is_multichoice ? '<span class="text-[8px] bg-gray-100 text-gray-600 border border-gray-200 px-1.5 py-0.5 rounded font-black uppercase tracking-widest">MULTICHOICE</span>' : ''}
+              ${service.is_optional ? '<span class="text-[8px] bg-gray-50 text-gray-600 border border-dashed border-gray-300 px-1.5 py-0.5 rounded font-black uppercase tracking-widest">OPCIONAL</span>' : ''}
               ${(() => {
                 try {
                   const selIdx = (service.selected_option_index !== null && service.selected_option_index !== undefined) ? Number(service.selected_option_index) : null;
                   const accepted = selIdx !== null ? (service.is_multichoice ? selIdx >= 0 : selIdx === 0) : false;
-                  if (accepted) return `<span class="text-[9px] bg-green-50 text-[#31713D] border border-green-100 px-1.5 py-0.5 rounded font-black uppercase tracking-widest ml-2">Cliente aceptó</span>`;
+                  if (accepted) return `<span class="text-[9px] bg-green-50 text-[#31713D] border border-green-100 px-1.5 py-0.5 rounded font-black uppercase tracking-widest ml-2">${service.is_optional ? 'Cliente añadió' : 'Cliente aceptó'}</span>`;
                 } catch (e) { /* ignore */ }
                 return '';
               })()}
@@ -561,7 +565,7 @@ function renderMainServicesTable() {
                 const sorted = (service.options || []).slice().sort((a,b) => a.id - b.id);
                 const sel = sorted[selIdx];
                 if (!sel) return '';
-                return `<div class="mt-2"><span class="text-[10px] bg-green-50 text-[#31713D] px-2 py-1 rounded font-black">Seleccionado: ${escapeHtml(sel.name)}</span></div>`;
+                return `<div class="mt-2"><span class="text-[10px] bg-green-50 text-[#31713D] px-2 py-1 rounded font-black">${service.is_optional ? 'Añadido:' : 'Seleccionado:'} ${escapeHtml(sel.name)}</span></div>`;
               } catch (e) { return ''; }
             })()}
           </div>
@@ -820,6 +824,7 @@ function editService(service) {
   const modalLocation = document.getElementById('modal-service-location');
   const modalComments = document.getElementById('modal-service-comments');
   const multichoiceCheck = document.getElementById('modal-service-multichoice');
+  const optionalCheck = document.getElementById('modal-service-optional');
 
   const titleSpan = document.getElementById('service-modal-title')?.querySelector('span');
   if (titleSpan) titleSpan.textContent = 'Editar Hito';
@@ -859,9 +864,13 @@ function editService(service) {
   if (multichoiceCheck) {
     multichoiceCheck.checked = !!service.is_multichoice;
   }
+  if (optionalCheck) {
+    optionalCheck.checked = !!(service.is_optional === true || service.is_optional === 1 || service.is_optional === '1');
+  }
 
   // Mostrar contenedores de edición avanzada
   document.getElementById('multichoice-container')?.classList.remove('hidden');
+  document.getElementById('optional-container')?.classList.remove('hidden');
   
   const modal = document.getElementById('serviceModal');
   modal.classList.remove('hidden');
@@ -1078,7 +1087,8 @@ async function saveService(shouldClose = true) {
     vat_rate: document.getElementById('modal-service-vat').value ? parseFloat(document.getElementById('modal-service-vat').value) : null,
     location: document.getElementById('modal-service-location')?.value.trim() || null,
     comments: document.getElementById('modal-service-comments').value.trim() || null,
-    is_multichoice: document.getElementById('modal-service-multichoice')?.checked ? 1 : 0
+    is_multichoice: document.getElementById('modal-service-multichoice')?.checked ? 1 : 0,
+    is_optional: document.getElementById('modal-service-optional')?.checked ? 1 : 0
   };
 
   if (!payload.title) return showNotification('El título es obligatorio', 'warning');
@@ -1106,8 +1116,9 @@ async function saveService(shouldClose = true) {
         refreshProposalData();
     } else {
         // Modo silencioso (para habilitar opciones)
-        if (!id && result.id) {
-            idField.value = result.id;
+        const createdServiceId = result.serviceId || result.id;
+        if (!id && createdServiceId) {
+            idField.value = createdServiceId;
             document.getElementById('modal-options-container').classList.remove('hidden');
             renderModalOptions([]); // Vacío inicialmente
             showNotification('Hito creado. Ya puedes añadir opciones.', 'success');

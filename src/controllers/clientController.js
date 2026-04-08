@@ -16,6 +16,11 @@ const logger = require('../utils/logger');
  * @returns {{ choices: array, stats: object }}
  */
 function buildProposalStats(details) {
+  const isOptionalService = (service) => {
+    const value = service?.is_optional;
+    return value === true || value === 1 || value === '1';
+  };
+
   const isServiceCompleted = (service) => {
     const idx = service?.selected_option_index;
     if (idx === null || idx === undefined || idx === '') return false;
@@ -40,18 +45,23 @@ function buildProposalStats(details) {
     });
   }
 
-  // Services with options
-  const servicesWithOptions = (details.services || []).filter(s => s.options && s.options.length > 0);
-  servicesWithOptions.forEach(s => {
+  // Solo los servicios requeridos deben contar para el progreso.
+  const servicesWithOptions = (details.services || []).filter((service) => {
+    return Array.isArray(service.options)
+      && service.options.length > 0
+      && !isOptionalService(service);
+  });
+
+  servicesWithOptions.forEach((service) => {
     choices.push({
-      id: `service_${s.id}`,
-      label: s.title || `Servicio ${s.id}`,
-      is_completed: isServiceCompleted(s),
+      id: `service_${service.id}`,
+      label: service.title || `Servicio ${service.id}`,
+      is_completed: isServiceCompleted(service),
       type: 'service'
     });
   });
 
-  const completedCount = choices.filter(c => c.is_completed).length;
+  const completedCount = choices.filter(choice => choice.is_completed).length;
   const totalCount = choices.length;
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 100;
 
@@ -61,7 +71,7 @@ function buildProposalStats(details) {
       total_choices: totalCount,
       completed_choices: completedCount,
       progress_percentage: progress,
-      pending_choices: choices.filter(c => !c.is_completed),
+      pending_choices: choices.filter(choice => !choice.is_completed),
       all_completed: progress === 100
     }
   };
@@ -131,46 +141,7 @@ exports.getProposalJSON = async (req, res, next) => {
     if (!proposal) return res.status(404).json({ success: false, message: 'No encontrado' });
 
     const details = await ProposalService.getProposalById(proposal.id);
-    
-    // Calcular progreso: incluir venue + todos los servicios que tengan opciones
-    const isServiceCompleted = (service) => {
-      const idx = service?.selected_option_index;
-      if (idx === null || idx === undefined || idx === '') return false;
-
-      const numericIdx = Number(idx);
-      if (Number.isNaN(numericIdx) || numericIdx < 0) return false;
-
-      return service?.is_multichoice ? numericIdx >= 0 : numericIdx === 0;
-    };
-
-    const choices = [];
-
-    // 1. Venue
-    const venueSelected = details.venues.some(v => v.is_selected);
-    const venueCount = details.venues.length;
-    if (venueCount > 0) {
-      choices.push({
-        id: 'venue',
-        label: venueSelected ? 'Espacio confirmado' : 'Falta selección de espacio',
-        is_completed: venueSelected,
-        type: 'venue'
-      });
-    }
-
-    // 2. Servicios (tanto multichoice como non-multichoice) que representen una decisión
-    const servicesWithOptions = details.services.filter(s => s.options && s.options.length > 0);
-    servicesWithOptions.forEach(s => {
-      choices.push({
-        id: `service_${s.id}`,
-        label: s.title || `Servicio ${s.id}`,
-        is_completed: isServiceCompleted(s),
-        type: 'service'
-      });
-    });
-
-    const completedCount = choices.filter(c => c.is_completed).length;
-    const totalCount = choices.length;
-    const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 100;
+    const { choices, stats } = buildProposalStats(details);
 
     res.json({
       success: true,
@@ -178,14 +149,8 @@ exports.getProposalJSON = async (req, res, next) => {
         ...proposal,
         ...details
       },
-      stats: {
-        total_choices: totalCount,
-        completed_choices: completedCount,
-        progress_percentage: progress,
-        pending_choices: choices.filter(c => !c.is_completed),
-        all_completed: progress === 100
-      },
-      choices: choices
+      stats,
+      choices
     });
   } catch (err) {
     console.error('Error in getProposalJSON:', err);

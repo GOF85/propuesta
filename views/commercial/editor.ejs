@@ -486,21 +486,24 @@
                                 <span class="text-[8px] bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest"><%= service.location %></span>
                               <% } %>
                               <% if (service.is_multichoice) { %>
-                                <span class="text-[8px] bg-amber-50 text-amber-600 border border-amber-100 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest">MULTICHOICE</span>
+                                <span class="text-[8px] bg-gray-100 text-gray-600 border border-gray-200 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest">MULTICHOICE</span>
+                              <% } %>
+                              <% if (service.is_optional) { %>
+                                <span class="text-[8px] bg-gray-50 text-gray-600 border border-dashed border-gray-300 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest">OPCIONAL</span>
                               <% } %>
                               <% 
                                 const selIdx = (service.selected_option_index !== null && service.selected_option_index !== undefined) ? parseInt(service.selected_option_index) : null;
                                 const accepted = selIdx !== null ? (service.is_multichoice ? selIdx >= 0 : selIdx === 0) : false;
                               %>
                               <% if (accepted) { %>
-                                <span class="text-[9px] bg-green-50 text-[#31713D] border border-green-100 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest ml-2">Cliente aceptó</span>
+                                <span class="text-[9px] bg-green-50 text-[#31713D] border border-green-100 px-1.5 py-0.5 rounded-none font-black uppercase tracking-widest ml-2"><%= service.is_optional ? 'Cliente añadió' : 'Cliente aceptó' %></span>
                               <% } %>
                             </div>
                             <% if (service.is_multichoice) { %>
                               <% if (selIdx !== null && selIdx >= 0) { %>
                                 <% const sortedOpts = (service.options || []).slice().sort((a,b)=>a.id-b.id); const selOpt = sortedOpts[selIdx]; %>
                                 <div class="mt-2">
-                                  <span class="text-[10px] bg-green-50 text-[#31713D] px-2 py-1 rounded font-black">Seleccionado: <%= selOpt ? selOpt.name : '' %></span>
+                                  <span class="text-[10px] bg-green-50 text-[#31713D] px-2 py-1 rounded font-black"><%= service.is_optional ? 'Añadido:' : 'Seleccionado:' %> <%= selOpt ? selOpt.name : '' %></span>
                                 </div>
                               <% } %>
                             <% } %>
@@ -1149,14 +1152,26 @@
                     placeholder="Detalles logísticos o aclaraciones sobre el servicio..."></textarea>
         </div>
 
-        <div id="multichoice-container" class="bg-amber-50 rounded-none p-4 border border-amber-100 mt-2">
-          <label class="flex items-center gap-4 cursor-pointer">
-            <input type="checkbox" id="modal-service-multichoice" class="w-5 h-5 rounded-none border-gray-300 text-amber-600 focus:ring-amber-500">
-            <div>
-              <span class="text-xs font-black text-amber-900 block uppercase tracking-wide">Modo Multichoice (Opción A / B)</span>
-              <p class="text-[10px] text-amber-600 font-bold leading-relaxed">El cliente verá las opciones como alternativas y deberá seleccionar una.</p>
-            </div>
-          </label>
+        <div class="grid md:grid-cols-2 gap-3 mt-2">
+          <div id="multichoice-container" class="bg-gray-50 rounded-none p-4 border border-gray-200">
+            <label class="flex items-center gap-4 cursor-pointer">
+              <input type="checkbox" id="modal-service-multichoice" class="w-5 h-5 rounded-none border-gray-300 text-[#31713D] focus:ring-[#31713D]">
+              <div>
+                <span class="text-xs font-black text-gray-800 block uppercase tracking-wide">Modo Multichoice</span>
+                <p class="text-[10px] text-gray-500 font-bold leading-relaxed">El cliente verá varias alternativas y tendrá que escoger una.</p>
+              </div>
+            </label>
+          </div>
+
+          <div id="optional-container" class="bg-gray-50 rounded-none p-4 border border-dashed border-gray-300">
+            <label class="flex items-center gap-4 cursor-pointer">
+              <input type="checkbox" id="modal-service-optional" class="w-5 h-5 rounded-none border-gray-300 text-[#31713D] focus:ring-[#31713D]">
+              <div>
+                <span class="text-xs font-black text-gray-800 block uppercase tracking-wide">Servicio opcional</span>
+                <p class="text-[10px] text-gray-500 font-bold leading-relaxed">No bloquea el 100% de progreso del cliente y se presenta como añadido voluntario.</p>
+              </div>
+            </label>
+          </div>
         </div>
 
         <!-- ÁREA DE GESTIÓN DE OPCIONES (Sólo visible al editar) -->

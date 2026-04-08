@@ -140,6 +140,7 @@ router.post(
   body('comments').optional({ checkFalsy: true }).trim(),
   body('location').optional({ checkFalsy: true }).trim(),
   body('is_multichoice').optional().toBoolean(),
+  body('is_optional').optional().toBoolean(),
   validate,
   (req, res, next) => editorController.addService(req, res, next)
 );
@@ -164,6 +165,7 @@ router.put(
   body('comments').optional({ checkFalsy: true }).trim(),
   body('location').optional({ checkFalsy: true }).trim(),
   body('is_multichoice').optional().toBoolean(),
+  body('is_optional').optional().toBoolean(),
   validate,
   (req, res, next) => editorController.updateService(req, res, next)
 );

@@ -1,89 +1,95 @@
 <!-- Header Navigation for Client View -->
+<%
+  const selectedVenueHeader = proposal.venues ? proposal.venues.find(v => v.is_selected) : null;
+  let headImg = null;
+  if (selectedVenueHeader && selectedVenueHeader.images) {
+    try {
+      const imgs = typeof selectedVenueHeader.images === 'string' ? JSON.parse(selectedVenueHeader.images) : selectedVenueHeader.images;
+      if (Array.isArray(imgs) && imgs.length > 0) headImg = imgs[0];
+    } catch (e) {
+      const clean = String(selectedVenueHeader.images).replace(/[\[\]"']/g, '').trim();
+      headImg = clean.split(',')[0];
+    }
+  }
+%>
+
 <div class="sticky top-0 z-50 print:hidden">
-  <header class="brand-bg text-white shadow-lg border-b border-white/10">
-    <div class="max-w-7xl mx-auto px-5 py-0.5">
-      <div class="flex items-center justify-between">
-        
-        <!-- Logo & Branding Section -->
-        <div class="flex items-center h-full">
-          <div class="bg-white px-5 py-1 flex items-center shadow-md border-x border-gray-100">
-            <img src="/logomice.png" alt="MICE Catering" class="h-7 w-auto object-contain" />
-          </div>
+  <header class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0">
+        <div class="w-8 h-8 bg-black flex items-center justify-center text-white font-black text-sm">M</div>
+        <div class="min-w-0">
+          <span class="block font-semibold text-gray-900 tracking-tight">MICE CATERING</span>
+          <span class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] leading-none">Corporate proposals</span>
         </div>
+      </div>
 
-        <!-- Help Section (Right) -->
-        <div class="flex items-center space-x-4 text-sm">
-          <div class="flex items-center gap-2.5 bg-white/10 px-3 py-1 rounded-none border border-white/20 cursor-pointer hover:bg-white/20 transition-all opacity-90 hover:opacity-100" onclick="openCommercialModal()">
-            <div class="text-right hidden sm:block">
-              <p class="text-[9px] font-black uppercase tracking-widest leading-none mb-0.5 opacity-60">Asesor</p>
-              <p class="font-bold text-[11px]"><%= proposal.commercial_name %></p>
-            </div>
-            <div class="w-6 h-6 rounded-none bg-white/20 border border-white/30 overflow-hidden flex-shrink-0">
-               <% if (proposal.commercial_avatar) { %>
-                  <img src="<%= proposal.commercial_avatar %>" alt="<%= proposal.commercial_name %>" class="w-full h-full object-cover">
-               <% } else { %>
-                  <div class="w-full h-full flex items-center justify-center">
-                    <i data-lucide="user" class="w-4 h-4 text-white"></i>
-                  </div>
-               <% } %>
-            </div>
+      <div class="flex items-center gap-2 md:gap-4">
+        <% if (proposal.logo_url) { %>
+          <div class="hidden md:flex items-center justify-center bg-white border border-gray-200 px-4 py-2 shadow-sm">
+            <img src="<%= proposal.logo_url %>" alt="<%= proposal.client_name %>" class="h-7 w-auto object-contain grayscale opacity-80">
           </div>
-          <button onclick="toggleChat(event)" class="group flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-none transition-all border border-white/20 relative">
-            <div class="relative">
-              <i data-lucide="message-circle" class="w-4.5 h-4.5 text-white"></i>
-              <span id="chat-badge-header" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-none hidden"></span>
-            </div>
-            <span class="text-[11px] font-black uppercase tracking-widest hidden md:block">Chat en vivo</span>
-          </button>
-        </div>
+        <% } %>
 
+        <button onclick="openCommercialModal()" class="hidden md:inline-flex items-center gap-2 text-[11px] font-bold text-gray-700 hover:text-[#31713D] border border-gray-200 px-3 py-2 bg-white transition-colors">
+          <i data-lucide="user-round" class="w-4 h-4"></i>
+          <span><%= proposal.commercial_name || 'Tu asesor' %></span>
+        </button>
+
+        <button onclick="toggleChat(event)" class="group inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-3 py-2 transition-colors relative shadow-sm">
+          <div class="relative">
+            <i data-lucide="message-circle" class="w-4 h-4 text-white"></i>
+            <span id="chat-badge-header" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white hidden"></span>
+          </div>
+          <span class="text-[11px] font-black uppercase tracking-widest hidden sm:block">Chat</span>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- Info Bar (Integrated into Header sticky) -->
-  <nav class="bg-white border-b-2 border-black overflow-x-auto no-scrollbar shadow-xl">
-    <div class="max-w-7xl mx-auto flex flex-row items-stretch gap-0">
-      <% 
-        const selectedVenueHeader = proposal.venues ? proposal.venues.find(v => v.is_selected) : null;
-      %>
-      <!-- Venue Card -->
-      <div class="flex-[1.8] min-w-[240px] bg-[#31713D] text-white px-5 py-2.5 flex items-center gap-3 cursor-pointer hover:brightness-110 transition-all group"
+  <div class="bg-gray-50/90 backdrop-blur border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between gap-4">
+      <nav class="flex items-center gap-2 overflow-x-auto hide-scrollbar text-sm font-medium text-gray-600">
+        <a href="#inicio" class="px-3 py-1.5 whitespace-nowrap hover:text-[#31713D] transition-colors">Inicio</a>
+        <a href="#venues-section" class="px-3 py-1.5 whitespace-nowrap hover:text-[#31713D] transition-colors">Espacios</a>
+        <a href="#timeline-section" class="px-3 py-1.5 whitespace-nowrap hover:text-[#31713D] transition-colors">Programa</a>
+        <a href="#gastronomia-section" class="px-3 py-1.5 whitespace-nowrap hover:text-[#31713D] transition-colors">Gastronomía</a>
+        <a href="#total-budget" class="px-3 py-1.5 whitespace-nowrap hover:text-[#31713D] transition-colors">Presupuesto</a>
+      </nav>
+
+      <button onclick="toggleSidebar()" class="shrink-0 inline-flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-900 hover:border-black transition-colors shadow-sm">
+        <i data-lucide="list-checks" class="w-4 h-4 text-[#31713D]"></i>
+        <span>Mi selección</span>
+        <span id="sidebar-count" class="bg-[#31713D] text-white min-w-[20px] h-5 px-1.5 flex items-center justify-center text-[9px] font-black">0</span>
+        <span id="header-pending-badge" onclick="window.scrollToFirstPendingChoice(event)" title="Ir al primer pendiente" class="hidden inline-flex bg-amber-400 text-black min-w-[20px] h-5 px-1.5 items-center justify-center text-[9px] font-black uppercase cursor-pointer hover:bg-amber-300 transition-colors">0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-3 grid grid-cols-1 md:grid-cols-[1.35fr_0.8fr_0.8fr_1fr] gap-3 items-stretch">
+      <div class="bg-[#31713D] text-white px-4 py-3 flex items-center gap-3 cursor-pointer hover:brightness-110 transition-all group min-w-0"
            <% if (selectedVenueHeader) { %>
              data-venue='<%- JSON.stringify(selectedVenueHeader).replace(/'/g, "&#39;") %>'
              onclick="openVenueModal(this.dataset.venue)"
            <% } %>>
-        <div id="header-venue-icon" class="w-9 h-9 flex-shrink-0 bg-white/10 flex items-center justify-center border border-white/20 overflow-hidden">
-          <% 
-            let headImg = null;
-            if (selectedVenueHeader && selectedVenueHeader.images) {
-              try {
-                const imgs = typeof selectedVenueHeader.images === 'string' ? JSON.parse(selectedVenueHeader.images) : selectedVenueHeader.images;
-                if (Array.isArray(imgs) && imgs.length > 0) headImg = imgs[0];
-              } catch(e) {
-                // simple fallback
-                const clean = String(selectedVenueHeader.images).replace(/[\[\]"']/g, '').trim();
-                headImg = clean.split(',')[0];
-              }
-            }
-          %>
+        <div id="header-venue-icon" class="w-10 h-10 flex-shrink-0 bg-white/10 flex items-center justify-center border border-white/20 overflow-hidden">
           <% if (headImg) { %>
             <img src="<%= headImg %>" class="w-full h-full object-cover" alt="Venue">
           <% } else { %>
-            <i data-lucide="map-pin" class="w-5 h-5 text-white/50"></i>
+            <i data-lucide="map-pin" class="w-5 h-5 text-white/60"></i>
           <% } %>
         </div>
         <div class="min-w-0">
-          <p class="text-[9px] font-black text-white/50 uppercase tracking-[0.3em] leading-none mb-1">Ubicación</p>
+          <p class="text-[9px] font-black text-white/60 uppercase tracking-[0.3em] leading-none mb-1">Ubicación</p>
           <p id="header-venue-name" class="text-base font-black tracking-tighter uppercase truncate leading-none">
-            <%= selectedVenueHeader ? selectedVenueHeader.name : 'Múltiples Opciones' %>
+            <%= selectedVenueHeader ? selectedVenueHeader.name : 'Múltiples opciones' %>
           </p>
         </div>
       </div>
 
-      <!-- PAX Card -->
-      <div class="flex-1 min-w-[130px] bg-white px-5 py-2.5 flex items-center gap-3 border-r border-gray-100">
-        <div class="w-9 h-9 flex-shrink-0 bg-gray-50 flex items-center justify-center text-[#31713D] border border-gray-100">
+      <div class="bg-white border border-gray-200 px-4 py-3 flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 flex-shrink-0 bg-gray-50 flex items-center justify-center text-[#31713D] border border-gray-100">
           <i data-lucide="users" class="w-4.5 h-4.5"></i>
         </div>
         <div>
@@ -92,75 +98,56 @@
         </div>
       </div>
 
-      <!-- Date Card -->
-      <div class="flex-1 min-w-[170px] bg-white px-5 py-2.5 flex items-center gap-3 border-r border-gray-100">
-        <div class="w-9 h-9 flex-shrink-0 bg-gray-50 flex items-center justify-center text-[#31713D] border border-gray-100">
+      <div class="bg-white border border-gray-200 px-4 py-3 flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 flex-shrink-0 bg-gray-50 flex items-center justify-center text-[#31713D] border border-gray-100">
           <i data-lucide="calendar" class="w-4.5 h-4.5"></i>
         </div>
         <div>
           <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] leading-none mb-1">Fecha</p>
           <p class="text-xl font-black text-gray-900 tracking-tighter uppercase leading-none">
-            <%= dayjs(proposal.event_date).format('DD MMM YY').toUpperCase() %>
+            <%= proposal.event_date ? dayjs(proposal.event_date).format('DD MMM YY').toUpperCase() : '--' %>
           </p>
         </div>
       </div>
 
-      <!-- Mis Elecciones Card -->
-      <button onclick="toggleSidebar()" class="flex-[1.2] min-w-[210px] bg-black text-white px-6 py-2.5 flex items-center justify-between group transition-all hover:bg-gray-800 active:scale-95 border-l border-white/10">
-        <div class="flex items-center gap-3 text-left">
-          <div class="w-9 h-9 flex-shrink-0 bg-white/10 flex items-center justify-center text-green-400 border border-white/5">
-            <i data-lucide="list-checks" class="w-4.5 h-4.5"></i>
+      <button onclick="toggleSidebar()" class="bg-black text-white px-4 py-3 flex items-center justify-between gap-3 group transition-all hover:bg-gray-800 min-w-0">
+        <div class="flex items-center gap-3 text-left min-w-0">
+          <div class="w-10 h-10 flex-shrink-0 bg-white/10 flex items-center justify-center text-green-400 border border-white/10">
+            <i data-lucide="clipboard-list" class="w-4.5 h-4.5"></i>
           </div>
-          <div class="flex flex-col">
-            <div class="text-base font-black text-white tracking-tighter leading-none uppercase flex items-center gap-2">
-              Tu Selección
-              <span id="sidebar-count" class="bg-green-500 text-black w-5 h-5 flex items-center justify-center text-[9px] font-black">0</span>
-              <span id="header-pending-badge" onclick="window.scrollToFirstPendingChoice(event)" title="Ir al primer pendiente" class="hidden bg-amber-400 text-black min-w-[20px] h-5 px-1.5 flex items-center justify-center text-[9px] font-black uppercase cursor-pointer hover:bg-amber-300 transition-colors">0</span>
-            </div>
-            <p id="header-pending-text" onclick="window.scrollToFirstPendingChoice(event)" class="text-[8px] font-black uppercase tracking-wider text-amber-300/90 mt-0.5 cursor-pointer hover:text-amber-200 transition-colors" title="Ir al primer pendiente">Pendientes: 0</p>
+          <div class="min-w-0">
+            <div class="text-[10px] font-black text-white uppercase tracking-[0.2em] leading-none mb-1">Resumen</div>
+            <p id="header-pending-text" onclick="window.scrollToFirstPendingChoice(event)" class="text-[9px] font-bold text-amber-300/90 uppercase tracking-wider truncate cursor-pointer hover:text-amber-200 transition-colors" title="Ir al primer pendiente">Pendientes: 0</p>
           </div>
         </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-white/30 group-hover:translate-x-1 transition-transform"></i>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-white/40 group-hover:translate-x-1 transition-transform"></i>
       </button>
     </div>
-  </nav>
 
-  <!-- 🎯 QUICK DECISION GUIDE -->
-  <div id="progress-container" class="bg-white border-b border-black/10 shadow-sm overflow-hidden">
-    <div id="quick-decision-rail" class="max-w-7xl mx-auto px-5 py-1.5 bg-gray-50/60 flex items-center gap-2 overflow-x-auto no-scrollbar">
-      <span class="text-[8px] font-black uppercase tracking-widest text-gray-500">Siguiente paso:</span>
-      <span class="text-[8px] font-bold uppercase tracking-wider text-gray-400">Calculando…</span>
+    <div id="progress-container" class="border-t border-gray-100">
+      <div id="quick-decision-rail" class="max-w-7xl mx-auto px-4 md:px-8 py-2 bg-gray-50/60 flex items-center gap-2 overflow-x-auto hide-scrollbar">
+        <span class="text-[8px] font-black uppercase tracking-widest text-gray-500">Siguiente paso:</span>
+        <span class="text-[8px] font-bold uppercase tracking-wider text-gray-400">Calculando…</span>
+      </div>
     </div>
   </div>
 </div>
-</div>
 
-<!-- Modal: Contacto Comercial -->
-<div id="modal-commercial-contact" 
+<div id="modal-commercial-contact"
      class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] p-4 backdrop-blur-md"
      onclick="if(event.target === this) closeCommercialModal()">
-  <div class="bg-white rounded-none shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-white/10" onclick="event.stopPropagation()">
-    <!-- Header Decorativo con Branding -->
+  <div class="bg-white shadow-2xl max-w-sm w-full overflow-hidden border border-gray-200" onclick="event.stopPropagation()">
     <div class="h-28 relative flex items-center justify-center overflow-hidden" style="background-color: var(--brand-primary)">
-      <!-- Sutil patrón o gradiente -->
-      <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.8),transparent)]"></div>
-      
-      <% if (proposal.logo_url) { %>
-        <div class="absolute top-4 right-6 opacity-20 hover:opacity-40 transition-opacity">
-          <img src="<%= proposal.logo_url %>" alt="<%= proposal.client_name %>" class="h-10 w-auto grayscale brightness-[100] object-contain">
-        </div>
-      <% } %>
-      
-      <p class="relative text-white/40 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Personal Advisor</p>
+      <div class="absolute inset-0 opacity-15 bg-white"></div>
+      <p class="relative text-white/60 text-[10px] font-black uppercase tracking-[0.3em]">Personal Advisor</p>
     </div>
-    
-    <div class="px-8 pb-10 -mt-12 text-center relative z-10">
-      <!-- Avatar con borde animado sutil -->
-      <div class="w-24 h-24 rounded-none border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] mx-auto overflow-hidden bg-white mb-4 transition-transform hover:scale-105 duration-300">
+
+    <div class="px-8 pb-8 -mt-12 text-center relative z-10">
+      <div class="w-24 h-24 border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] mx-auto overflow-hidden bg-white mb-4">
         <% if (proposal.commercial_avatar) { %>
           <img src="<%= proposal.commercial_avatar %>" alt="<%= proposal.commercial_name %>" class="w-full h-full object-cover">
         <% } else { %>
-          <div class="w-full h-full flex items-center justify-center text-gray-200">
+          <div class="w-full h-full flex items-center justify-center text-gray-300">
             <i data-lucide="user" class="w-12 h-12"></i>
           </div>
         <% } %>
@@ -168,22 +155,22 @@
 
       <h3 class="text-2xl font-black text-gray-900 leading-none tracking-tighter mb-1"><%= proposal.commercial_name %></h3>
       <p class="text-[10px] font-black uppercase tracking-widest mb-6 opacity-80" style="color: var(--brand-primary)">
-        Asesor MICE Catering &bull; <%= proposal.client_name %>
+        Asesor MICE Catering · <%= proposal.client_name %>
       </p>
 
       <div class="space-y-3">
         <% if (proposal.commercial_email) { %>
-          <a href="mailto:<%= proposal.commercial_email %>" class="flex items-center justify-between px-6 py-4 bg-gray-50 hover:bg-white hover:shadow-xl hover:shadow-gray-100 rounded-none transition-all group border border-gray-100">
-            <div class="flex items-center gap-3">
+          <a href="mailto:<%= proposal.commercial_email %>" class="flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-white hover:shadow-lg transition-all group border border-gray-100">
+            <div class="flex items-center gap-3 min-w-0">
               <i data-lucide="mail" class="w-5 h-5 text-blue-500 group-hover:scale-110 transition-transform"></i>
-              <span class="text-sm font-bold text-gray-700 font-mono tracking-tighter truncate max-w-[180px]"><%= proposal.commercial_email %></span>
+              <span class="text-sm font-bold text-gray-700 font-mono tracking-tighter truncate"><%= proposal.commercial_email %></span>
             </div>
             <i data-lucide="external-link" class="w-3.5 h-3.5 text-gray-300"></i>
           </a>
         <% } %>
-        
+
         <% if (proposal.commercial_phone) { %>
-          <a href="tel:<%= proposal.commercial_phone %>" class="flex items-center justify-between px-6 py-4 bg-gray-50 hover:bg-white hover:shadow-xl hover:shadow-gray-100 rounded-none transition-all group border border-gray-100">
+          <a href="tel:<%= proposal.commercial_phone %>" class="flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-white hover:shadow-lg transition-all group border border-gray-100">
             <div class="flex items-center gap-3">
               <i data-lucide="phone" class="w-5 h-5 group-hover:scale-110 transition-transform" style="color: var(--brand-primary)"></i>
               <span class="text-sm font-bold text-gray-700"><%= proposal.commercial_phone %></span>
@@ -192,8 +179,8 @@
           </a>
         <% } %>
 
-        <button onclick="closeCommercialModal(); toggleChat(event);" 
-                class="flex items-center justify-center gap-3 w-full py-4 text-white rounded-none transition-all shadow-lg shadow-black/10 hover:shadow-xl active:scale-[0.98] group mt-2"
+        <button onclick="closeCommercialModal(); toggleChat(event);"
+                class="flex items-center justify-center gap-3 w-full py-4 text-white transition-all shadow-lg hover:shadow-xl active:scale-[0.98] group mt-2"
                 style="background-color: var(--brand-primary)">
           <i data-lucide="message-circle" class="w-5 h-5 group-hover:rotate-12 transition-transform"></i>
           <span class="text-sm font-black uppercase tracking-widest">Chat en vivo</span>
@@ -208,6 +195,7 @@
     document.getElementById('modal-commercial-contact').classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
   }
+
   function closeCommercialModal() {
     document.getElementById('modal-commercial-contact').classList.add('hidden');
   }

@@ -41,7 +41,7 @@ El catálogo maestro (venues, platos) es una plantilla. Cuando un comercial crea
 
 Si el comercial edita un plato (precio, nombre, descripción) en el editor de la propuesta, solo se altera esa instancia, nunca el catálogo maestro.
 
-B. Motor Financiero (Financial Engine)
+B. Motor Financiero y Opcionalidad (Financial Engine)
 
 La única fuente de la verdad para el cálculo monetario es el Backend (ProposalService.js).
 
@@ -51,17 +51,25 @@ Descuentos: Se aplican SIEMPRE sobre la base imponible, antes de calcular los im
 
 IVA Dinámico: Servicios de Gastronomía (type: 'gastronomy') aplican un 10%. Servicios de Logística/Personal (type: 'logistics') aplican un 21%.
 
+Servicios Opcionales (is_optional = true): Los servicios marcados como opcionales en la BD (ej. Córners, Recenas) NO cuentan para el total de decisiones pendientes (total_choices). El usuario puede alcanzar el 100% de progreso sin interactuar con ellos.
+
 C. Frontend Cliente (Premium B2B UX)
 
 Acceso Directo: Vía "Magic Link" seguro (/p/:hash).
 
 Branding Dinámico: El backend envía un objeto brandPalette. En header-client.ejs se inyectan variables CSS nativas (ej. --brand-primary: <%= brandPalette.primary %>) que Tailwind CSS lee a través de su configuración de JS en tiempo de ejecución.
 
-Toma de Decisiones Cautiva: - Los servicios multi-opción obligan al cliente a elegir.
+Navegación y UX Fluida (Estilo E-commerce):
 
-La UI oculta visualmente (en escala de grises o escondidas) las opciones descartadas para evitar la fatiga cognitiva.
+Cero Cronogramas Aislados: Queda estrictamente prohibido usar una tabla o sección separada de "Cronograma Estimado". Todos los horarios y días se integran orgánicamente dentro de la sección "Programa y Gastronomía" usando un diseño de Timeline vertical.
 
-Drawer "Mi Selección" y Bloqueo: El botón de "Confirmar Propuesta" está desactivado hasta que el progreso de decisiones es del 100% (todas las opciones resueltas y el Venue elegido).
+Venues en Carrusel: Los espacios propuestos NUNCA se apilan verticalmente si son varios. Se muestran en un carrusel horizontal con scroll (snap-x) para no alargar la página.
+
+Toma de Decisiones Cautiva: Los servicios multi-opción obligan al cliente a elegir. Las opciones descartadas se ocultan visualmente o se atenúan para evitar la fatiga cognitiva.
+
+UI de Servicios Opcionales: Deben mostrarse con un diseño más ligero (fondos atenuados o bordes punteados) y utilizar un "Switch" (interruptor) visual en lugar de botones gigantes de "Elegir", dejando claro que son añadidos voluntarios.
+
+Drawer "Mi Selección" y Bloqueo: Barra inferior flotante que indica el progreso (ej. "1 de 3 selecciones"). Al pulsar, abre un panel lateral. El botón de "Confirmar Propuesta" está desactivado y bloqueado (con un candado) hasta que el progreso de decisiones es del 100%.
 
 Impresión: Se usa Tailwind print:hidden para ocultar menús, botones y el chat, de modo que al imprimir (Ctrl+P) quede un PDF limpio como un contrato.
 

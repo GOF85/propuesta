@@ -944,8 +944,8 @@ VARIOS:
 
       // 2. Insertar nuevo servicio (clon)
       const newServiceResult = await conn.query(
-        `INSERT INTO proposal_services (proposal_id, title, type, start_time, end_time, pax, vat_rate, order_index, is_multichoice, selected_option_index, service_date, duration, comments, location, price_model)
-         SELECT proposal_id, CONCAT(title, ' (Copia)'), type, start_time, end_time, pax, vat_rate, order_index + 1, is_multichoice, NULL, service_date, duration, comments, location, price_model
+        `INSERT INTO proposal_services (proposal_id, title, type, start_time, end_time, pax, vat_rate, order_index, is_multichoice, is_optional, selected_option_index, service_date, duration, comments, location, price_model)
+         SELECT proposal_id, CONCAT(title, ' (Copia)'), type, start_time, end_time, pax, vat_rate, order_index + 1, is_multichoice, is_optional, NULL, service_date, duration, comments, location, price_model
          FROM proposal_services WHERE id = ?`,
         [serviceId]
       );
@@ -1115,8 +1115,8 @@ VARIOS:
 
       for (const service of services) {
         const newService = await conn.query(
-          `INSERT INTO proposal_services (proposal_id, title, type, start_time, end_time, vat_rate, order_index, is_multichoice, selected_option_index, service_date, duration, comments)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO proposal_services (proposal_id, title, type, start_time, end_time, vat_rate, order_index, is_multichoice, is_optional, selected_option_index, service_date, duration, comments)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             newProposalId,
             service.title,
@@ -1126,6 +1126,7 @@ VARIOS:
             service.vat_rate,
             service.order_index,
             service.is_multichoice,
+            service.is_optional || 0,
             null,
             service.service_date,
             service.duration,

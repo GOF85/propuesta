@@ -1079,6 +1079,45 @@ window.handleServiceSelection = function(btn) {
   window.selectServiceOption(proposalHash, serviceId, optionId, isSelected);
 };
 
+window.handleOptionalToggle = async function(checkbox) {
+  const serviceId = checkbox?.dataset?.serviceId;
+  const optionId = checkbox?.dataset?.optionId;
+
+  if (!serviceId || !optionId) {
+    showNotification('No se pudo identificar el servicio opcional', 'error');
+    return;
+  }
+
+  checkbox.disabled = true;
+
+  try {
+    if (checkbox.checked) {
+      await window.selectServiceOption(proposalHash, serviceId, optionId, false);
+      return;
+    }
+
+    const response = await fetch(`/p/${proposalHash}/milestone/${serviceId}/status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'pending' })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'No se pudo actualizar el servicio opcional');
+    }
+
+    await window.refreshProposalState();
+  } catch (err) {
+    checkbox.checked = !checkbox.checked;
+    showNotification('✗ Error: ' + err.message, 'error');
+  } finally {
+    checkbox.disabled = false;
+  }
+};
+
 window.selectServiceOptionEnhanced = selectServiceOption;
 window.selectServiceOption = selectServiceOption;
 window.selectVenue = selectVenue;
@@ -1267,6 +1306,7 @@ function updateProgressUI(data) {
   const headerPendingBadge = document.getElementById('header-pending-badge');
   const headerPendingText = document.getElementById('header-pending-text');
   const pendingCount = (data.choices || []).filter(c => !c.is_completed).length;
+  const brandColor = getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#31713D';
 
   if (bar) bar.style.width = `${data.stats.progress_percentage}%`;
   if (summaryBar) summaryBar.style.width = `${data.stats.progress_percentage}%`;
@@ -1274,21 +1314,14 @@ function updateProgressUI(data) {
   
   if (statusText) {
     const isCompleted = data.stats.all_completed;
-    statusText.textContent = !isCompleted 
-      ? 'ELECCIONES PENDIENTES' 
+    statusText.textContent = !isCompleted
+      ? 'ELECCIONES PENDIENTES'
       : '✓ PROPUESTA COMPLETADA';
-    
-    if (isCompleted) {
-        statusText.classList.remove('text-gray-600', 'text-orange-600');
-        statusText.classList.add('text-green-600');
-        if (bar) bar.style.backgroundColor = '#16a34a'; // bg-green-600
-        if (summaryBar) summaryBar.style.backgroundColor = '#16a34a';
-    } else {
-        statusText.classList.remove('text-green-600', 'text-gray-600');
-        statusText.classList.add('text-orange-600');
-        if (bar) bar.style.backgroundColor = '#ea580c'; // bg-orange-600
-        if (summaryBar) summaryBar.style.backgroundColor = '#ea580c';
-    }
+
+    statusText.classList.remove('text-gray-600', 'text-orange-600', 'text-green-600');
+    statusText.style.color = isCompleted ? '#16a34a' : brandColor;
+    if (bar) bar.style.backgroundColor = isCompleted ? '#16a34a' : brandColor;
+    if (summaryBar) summaryBar.style.backgroundColor = isCompleted ? '#16a34a' : brandColor;
   }
 
   if (headerPendingBadge) {
@@ -1690,15 +1723,16 @@ function updateBodySelections(data) {
     const isCancelled = !isInvalidDecision && numericIdx === -1;
     const isPending = !hasDecision || isInvalidDecision;
     const isAdded = !isPending ? (service.is_multichoice ? numericIdx >= 0 : numericIdx === 0) : false;
+    const isOptional = service.is_optional === true || service.is_optional === 1 || service.is_optional === '1';
     const isLocked = ['Aceptada', 'accepted'].includes(data.proposal.status);
     const pax = data.proposal.pax || 1;
 
     // --- CABECERA (Gastronomía) ---
     if (statusHeader) {
-      if (isAdded) {
+      if (isAdded && !isOptional) {
         const subtotal = (service.price_per_pax || 0) * (service.pax || pax);
         statusHeader.innerHTML = `
-          <div class="bg-white px-8 py-2 rounded-none border border-black shadow-sm flex items-center gap-8 divide-x divide-gray-100 animate-fadeIn">
+          <div class="bg-white px-6 py-3 border border-gray-200 shadow-sm flex items-center gap-6 divide-x divide-gray-100 animate-fadeIn">
             <div class="text-right">
               <span class="text-[9px] font-black text-black uppercase tracking-[0.3em] block mb-0.5 leading-none">${service.pax || pax} ASISTENTES</span>
               <span class="text-xl font-black text-gray-900 tracking-tighter leading-none">
@@ -1707,7 +1741,7 @@ function updateBodySelections(data) {
             </div>
             <div class="pl-8 text-right">
               <span class="text-[9px] font-black text-black uppercase tracking-[0.3em] block mb-0.5 leading-none">SUBTOTAL SERVICIO</span>
-              <span class="text-2xl font-black text-[#31713D] tracking-tighter leading-none">
+              <span class="text-2xl font-black tracking-tighter leading-none" style="color: var(--brand-primary)">
                 ${formatCurrency(subtotal)}
               </span>
             </div>
@@ -1715,7 +1749,7 @@ function updateBodySelections(data) {
           ${!isLocked ? `
             <button type="button"
                     onclick="window.updateMilestoneStatus('${service.id}', 'pending')"
-                    class="ml-3 h-[32px] px-4 border border-black bg-white text-black rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-amber-50 hover:border-amber-600 hover:text-amber-700 transition-all"
+                    class="ml-3 h-[32px] px-4 border border-gray-300 bg-white text-gray-700 rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-gray-50 transition-all"
                     title="Volver a decidir este servicio">
               <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
               <span>Volver a decidir</span>
@@ -1746,43 +1780,54 @@ function updateBodySelections(data) {
           `;
         }
       } else {
-        if (!isLocked && !service.is_multichoice) {
+        if (isOptional) {
           statusHeader.innerHTML = `
-            <div class="flex items-center gap-2 animate-fadeIn">
-              <span class="inline-flex items-center gap-1.5 h-[32px] px-3 border border-amber-200 bg-amber-50 text-amber-800 text-[9px] font-black uppercase tracking-widest">
+            <div class="flex items-center gap-2 flex-wrap animate-fadeIn">
+              <span class="inline-flex items-center gap-1.5 h-[32px] px-3 border border-gray-200 bg-white text-gray-600 text-[9px] font-black uppercase tracking-widest shadow-sm">
+                <i data-lucide="sparkles" class="w-3 h-3"></i>
+                <span>Opcional</span>
+              </span>
+            </div>
+          `;
+        } else if (!isLocked && !service.is_multichoice) {
+          statusHeader.innerHTML = `
+            <div class="flex items-center gap-2 flex-wrap animate-fadeIn">
+              <span class="inline-flex items-center gap-1.5 h-[32px] px-3 border border-gray-200 bg-gray-50 text-gray-700 text-[9px] font-black uppercase tracking-widest">
                 <i data-lucide="alert-circle" class="w-3 h-3"></i>
                 <span>Pendiente de decisión</span>
               </span>
               <button type="button"
                       onclick="window.updateMilestoneStatus('${service.id}', 'added')"
-                      class="h-[32px] px-5 bg-[#31713D] text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-black transition-all shadow-sm">
+                      class="h-[32px] px-5 text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm hover:opacity-90"
+                      style="background-color: var(--brand-primary)">
                 <i data-lucide="plus" class="w-3 h-3"></i>
                 <span>Añadir ahora</span>
               </button>
               <button type="button"
                       onclick="window.updateMilestoneStatus('${service.id}', 'cancelled')"
-                      class="h-[32px] px-4 bg-black text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-gray-900 transition-all"
+                      class="h-[32px] px-4 bg-white border border-gray-300 text-gray-700 rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-gray-50 transition-all"
                       title="Cancelar servicio">
-                <i data-lucide="trash-2" class="w-3 h-3 text-white"></i>
+                <i data-lucide="x" class="w-3 h-3"></i>
                 <span>No añadir</span>
               </button>
             </div>
           `;
         } else {
           statusHeader.innerHTML = `
-            <div class="flex items-center gap-2 animate-fadeIn">
-              <div class="flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-200 rounded-none shadow-inner">
-                <div class="w-8 h-8 rounded-none bg-amber-500/10 flex items-center justify-center">
-                  <i data-lucide="alert-circle" class="w-5 h-5 text-amber-600"></i>
+            <div class="flex items-center gap-2 flex-wrap animate-fadeIn">
+              <div class="flex items-center gap-3 px-5 py-3 bg-gray-50 border border-gray-200 rounded-none shadow-inner">
+                <div class="w-8 h-8 rounded-none bg-gray-200/70 flex items-center justify-center">
+                  <i data-lucide="list-checks" class="w-5 h-5 text-gray-600"></i>
                 </div>
                 <div>
-                  <span class="text-[10px] font-black text-amber-800 uppercase tracking-widest block text-amber-900">Elección pendiente</span>
-                  <span class="text-[9px] text-amber-700 font-bold uppercase tracking-tighter">Debes elegir una opción</span>
+                  <span class="text-[10px] font-black text-gray-700 uppercase tracking-widest block">Elección pendiente</span>
+                  <span class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">Debes elegir una opción</span>
                 </div>
               </div>
               <button type="button"
                       onclick="document.getElementById('service-options-container-${service.id}')?.scrollIntoView({ behavior: 'smooth', block: 'center' })"
-                      class="h-[32px] px-4 bg-[#31713D] text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-black transition-all shadow-sm">
+                      class="h-[32px] px-4 text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm hover:opacity-90"
+                      style="background-color: var(--brand-primary)">
                 <i data-lucide="mouse-pointer-2" class="w-3 h-3"></i>
                 <span>Elegir opción</span>
               </button>
@@ -1798,6 +1843,8 @@ function updateBodySelections(data) {
             statusCell.innerHTML = '<span class="text-[9px] font-black text-white bg-[#31713D] px-2.5 py-1 rounded-none uppercase tracking-widest animate-fadeIn">Añadido</span>';
         } else if (isCancelled) {
             statusCell.innerHTML = '<span class="text-[9px] font-black text-black/50 bg-gray-100 px-2.5 py-1 rounded-none uppercase tracking-widest animate-fadeIn">Cancelado</span>';
+        } else if (isOptional) {
+            statusCell.innerHTML = '<span class="text-[9px] font-black text-gray-600 bg-gray-100 px-2.5 py-1 rounded-none uppercase tracking-widest animate-fadeIn">Opcional</span>';
         } else {
             statusCell.innerHTML = '<span class="text-[9px] font-black text-amber-700 bg-amber-50 px-2.5 py-1 rounded-none uppercase tracking-widest animate-fadeIn">Pendiente</span>';
         }
@@ -1870,12 +1917,15 @@ function updateBodySelections(data) {
     }
 
     if (optionsGrid) {
-        if (service.is_multichoice && isAdded) {
-            optionsGrid.classList.remove('md:grid-cols-2');
-            optionsGrid.classList.add('grid-cols-1');
+        if (isOptional && !service.is_multichoice) {
+            optionsGrid.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'xl:grid-cols-3');
+            optionsGrid.classList.add('space-y-3');
+        } else if (service.is_multichoice && isAdded) {
+            optionsGrid.classList.remove('space-y-3', 'md:grid-cols-2');
+            optionsGrid.classList.add('grid', 'grid-cols-1');
         } else if (service.is_multichoice) {
-            optionsGrid.classList.remove('grid-cols-1');
-            optionsGrid.classList.add('md:grid-cols-2');
+            optionsGrid.classList.remove('space-y-3', 'grid-cols-1');
+            optionsGrid.classList.add('grid', 'md:grid-cols-2');
         }
         
         // Actualizar cada card dentro del grid
@@ -1885,9 +1935,19 @@ function updateBodySelections(data) {
 
             if (card) {
               const cardIsSelected = isAdded && Number(numericIdx) === cardIdx;
-                const shouldHideOther = isAdded && service.is_multichoice && !cardIsSelected;
+                const shouldHideOther = isAdded && service.is_multichoice && !isOptional && !cardIsSelected;
 
-                if (cardIsSelected) {
+                if (isOptional && !service.is_multichoice) {
+                    card.classList.remove('hidden', 'opacity-0', 'scale-95', 'border-[#31713D]', 'bg-white', 'shadow-xl', 'scale-[1.01]', 'border-gray-100', 'bg-gray-50/10');
+                    card.classList.add('border-gray-200');
+                    if (cardIsSelected) {
+                        card.classList.add('bg-white', 'shadow-md');
+                        card.style.borderColor = 'var(--brand-primary)';
+                    } else {
+                        card.classList.add('bg-white');
+                        card.style.borderColor = '';
+                    }
+                } else if (cardIsSelected) {
                     card.classList.remove('hidden', 'opacity-0', 'scale-95', 'border-gray-100', 'bg-gray-50/10');
                     card.classList.add('border-[#31713D]', 'bg-white', 'shadow-xl', 'scale-[1.01]');
                 } else if (shouldHideOther) {
@@ -1895,6 +1955,7 @@ function updateBodySelections(data) {
                 } else {
                     card.classList.remove('hidden', 'opacity-0', 'scale-95', 'border-[#31713D]', 'bg-white', 'shadow-xl', 'scale-[1.01]');
                     card.classList.add('border-gray-100', 'bg-gray-50/10');
+                    card.style.borderColor = '';
                 }
             }
 
@@ -1902,7 +1963,42 @@ function updateBodySelections(data) {
               const cardIsSelected = isAdded && Number(numericIdx) === cardIdx;
                 let actionsHtml = '';
 
-                if (service.is_multichoice) {
+                if (isOptional && !service.is_multichoice) {
+                    if (!isLocked) {
+                        actionsHtml = `
+                          <div class="flex items-center justify-end gap-4 w-full">
+                            <div class="text-right">
+                              <p class="text-[10px] font-black uppercase tracking-widest ${cardIsSelected ? 'brand-text' : 'text-gray-500'}" ${cardIsSelected ? 'style="color: var(--brand-primary)"' : ''}>${cardIsSelected ? 'Añadido' : 'Activar upgrade'}</p>
+                              <p class="text-[11px] text-gray-400">Puedes cambiarlo cuando quieras</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                              <input type="checkbox"
+                                     class="sr-only peer"
+                                     data-service-id="${service.id}"
+                                     data-option-id="${opt.id}"
+                                     onchange="window.handleOptionalToggle(this)"
+                                     ${cardIsSelected ? 'checked' : ''}>
+                              <div class="w-14 h-8 rounded-full border transition-colors duration-200 ${cardIsSelected ? 'brand-bg border-transparent' : 'bg-gray-200 border-gray-300'}"></div>
+                              <div class="pointer-events-none absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform duration-200 ${cardIsSelected ? 'translate-x-6' : ''}"></div>
+                            </label>
+                          </div>
+                        `;
+                    } else if (cardIsSelected) {
+                        actionsHtml = `
+                          <div class="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-none">
+                            <i data-lucide="sparkles" class="w-3 h-3" style="color: var(--brand-primary)"></i>
+                            <span class="text-[9px] font-black uppercase tracking-widest" style="color: var(--brand-primary)">Añadido</span>
+                          </div>
+                        `;
+                    } else {
+                        actionsHtml = `
+                          <div class="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-dashed border-gray-200 rounded-none text-gray-500">
+                            <i data-lucide="circle" class="w-3 h-3"></i>
+                            <span class="text-[9px] font-black uppercase tracking-widest">Disponible</span>
+                          </div>
+                        `;
+                    }
+                } else if (service.is_multichoice) {
                     if (!isLocked) {
                         actionsHtml = `
                           <div class="flex items-center">
@@ -1911,12 +2007,13 @@ function updateBodySelections(data) {
                                     data-option-id="${opt.id}"
                                     data-selected="${cardIsSelected}"
                                     onclick="event.stopPropagation(); window.handleServiceSelection(this)"
-                                    class="${cardIsSelected ? 'bg-white text-gray-900 border-2 border-black hover:border-red-500 hover:text-red-500 hover:bg-red-50' : 'bg-[#31713D] text-white hover:bg-black'} h-[32px] px-6 rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm group">
+                                    class="${cardIsSelected ? 'bg-white text-gray-700 border border-gray-300' : 'text-white border border-transparent'} h-[32px] px-6 rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm group"
+                                    style="${cardIsSelected ? '' : 'background-color: var(--brand-primary);'}">
                               ${cardIsSelected ? `
-                                <i data-lucide="check" class="w-3 h-3 text-brand-primary group-hover:hidden"></i>
+                                <i data-lucide="check" class="w-3 h-3 group-hover:hidden" style="color: var(--brand-primary)"></i>
                                 <i data-lucide="rotate-ccw" class="w-3 h-3 hidden group-hover:block"></i>
-                                <span class="text-brand-primary group-hover:hidden">Seleccionado</span>
-                                <span class="hidden group-hover:block uppercase">Deseleccionar</span>
+                                <span class="group-hover:hidden" style="color: var(--brand-primary)">Seleccionado</span>
+                                <span class="hidden group-hover:block uppercase">Cambiar</span>
                               ` : `
                                 <i data-lucide="mouse-pointer-2" class="w-3 h-3"></i> Elegir
                               `}
@@ -1925,9 +2022,9 @@ function updateBodySelections(data) {
                         `;
                     } else if (cardIsSelected) {
                         actionsHtml = `
-                          <div class="flex items-center gap-2 px-4 py-2 bg-[#31713D]/5 text-[#31713D] border border-[#31713D] rounded-none">
-                            <i data-lucide="check" class="w-3 h-3"></i>
-                            <span class="text-[9px] font-black uppercase tracking-widest">Confirmado</span>
+                          <div class="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-none">
+                            <i data-lucide="check" class="w-3 h-3" style="color: var(--brand-primary)"></i>
+                            <span class="text-[9px] font-black uppercase tracking-widest" style="color: var(--brand-primary)">Confirmado</span>
                           </div>
                         `;
                     }
@@ -1954,7 +2051,7 @@ function updateBodySelections(data) {
                     } else if (!isLocked) {
                         actionsHtml = `
                           <div class="inline-flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-amber-200 bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-widest">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 bg-gray-50 text-gray-600 text-[9px] font-black uppercase tracking-widest">
                               <i data-lucide="arrow-up" class="w-3 h-3"></i>
                               <span>Decide arriba</span>
                             </span>
@@ -2001,11 +2098,12 @@ function updateActionZone(data) {
         html = `
             <div class="space-y-3">
                 <button onclick="showPendingNotification(event, '${data.stats.pending_choices.map(c => c.label).join(', ')}')"
-                        class="w-full bg-orange-600 text-white px-6 py-5 rounded-none font-black uppercase tracking-widest text-[10px] shadow-lg hover:bg-orange-700 transition-all flex items-center justify-center gap-3">
+                        class="w-full text-white px-6 py-5 rounded-none font-black uppercase tracking-widest text-[10px] shadow-lg transition-all flex items-center justify-center gap-3 hover:opacity-90"
+                        style="background-color: var(--brand-primary)">
                   <i data-lucide="alert-circle" class="w-4 h-4 animate-pulse"></i>
                   <span>Pendientes selecciones</span>
                 </button>
-                <p class="text-[9px] text-center font-black text-orange-600 uppercase tracking-widest">
+                <p class="text-[9px] text-center font-black uppercase tracking-widest" style="color: var(--brand-primary)">
                   Falta: ${data.stats.pending_choices.map(c => c.label).join(' y ')}
                 </p>
             </div>
@@ -2015,7 +2113,7 @@ function updateActionZone(data) {
             <button id="btn-accept-main" 
                     onclick="executeProposalAcceptance()"
                     class="w-full text-white px-6 py-5 rounded-none font-black uppercase tracking-widest text-[11px] shadow-lg transition-all transform hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 group"
-                    style="background-color: #31713D">
+                    style="background-color: var(--brand-primary)">
               <i data-lucide="shield-check" class="w-5 h-5"></i>
               <span>Confirmar Propuesta</span>
             </button>

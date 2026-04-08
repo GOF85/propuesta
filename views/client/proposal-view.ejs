@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Propuesta de Catering - MICE</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/professional.css">
     
     <!-- 🎨 INYECCIÓN DINÁMICA DE BRANDING -->
@@ -12,6 +15,24 @@
       html {
         scroll-behavior: smooth;
       }
+
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+
+      section {
+        scroll-margin-top: 140px;
+      }
+
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
       :root {
         /* Colores dinámicos generados desde logo */
         --brand-primary: <%= brandPalette.primary %>;
@@ -123,15 +144,16 @@
         transform: translateY(0);
       }
 
-      /* 🚫 REMOVE ALL ROUNDED CORNERS EXCEPT HERO */
-      *, *::before, *::after {
-        border-radius: 0 !important;
-      }
+      /* Helpers visuales para acercar la UI a la referencia */
       .hero-print {
         border-radius: 0.75rem !important;
       }
       .hero-bg-layer {
         border-radius: 0.75rem !important;
+      }
+      .soft-card {
+        border-radius: 0.75rem !important;
+        overflow: hidden;
       }
 
       .service-item-description {
@@ -152,7 +174,7 @@
       }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 text-gray-800 antialiased pb-32">
     
     <%- include('../partials/header-client') %>
 
@@ -209,163 +231,323 @@
 
     <!-- Hero Header Section -->
     <% 
-      const venueFirstImg = selectedVenue ? parseImages(selectedVenue.images)[0] : null; 
+      const venueFirstImg = selectedVenue ? parseImages(selectedVenue.images)[0] : null;
+      const initialGastroServices = (proposal.services || []).filter(s => s.type === 'gastronomy');
+      const initialPendingServices = initialGastroServices.filter(s => s.is_multichoice && (s.selected_option_index === null || s.selected_option_index === undefined || s.selected_option_index === ''));
+      const initialSelectedServices = initialGastroServices.filter(s => {
+        const idx = Number(s.selected_option_index);
+        return s.options && !Number.isNaN(idx) && idx >= 0 && s.options[idx];
+      });
+      const requiredChoicesCount = 1 + initialGastroServices.filter(s => s.is_multichoice).length;
+      const pendingChoicesCount = (selectedVenue ? 0 : 1) + initialPendingServices.length;
+      const initialProgressPercent = requiredChoicesCount > 0
+        ? Math.max(0, Math.min(100, Math.round(((requiredChoicesCount - pendingChoicesCount) / requiredChoicesCount) * 100)))
+        : 100;
     %>
-    <div class="mb-8 bg-gray-900 overflow-hidden relative min-h-[380px] flex items-center rounded-xl border border-black shadow-2xl hero-print reveal-wow">
-      <!-- Background Image with more focus -->
-      <div class="absolute inset-0 z-0 text-white/10 uppercase font-black text-[12vw] flex items-center justify-center opacity-10 pointer-events-none select-none hero-bg-layer">
-        MICE CATERING
-      </div>
-      <div class="absolute inset-0 z-0 hero-bg-layer">
+    <section id="inicio" class="mb-8">
+      <div class="relative h-[280px] md:h-[360px] w-full overflow-hidden border border-gray-200 shadow-sm hero-print reveal-wow">
         <% if (venueFirstImg) { %>
-          <img src="<%= venueFirstImg %>" class="w-full h-full object-cover opacity-80 hero-bg-layer" alt="">
+          <img src="<%= venueFirstImg %>" class="absolute inset-0 w-full h-full object-cover hero-bg-layer" alt="">
+        <% } else { %>
+          <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black hero-bg-layer"></div>
         <% } %>
-        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent hero-bg-layer"></div>
+        <div class="absolute inset-0 bg-gray-900/65 hero-bg-layer"></div>
+
+        <div class="absolute top-5 left-5 md:top-6 md:left-6 z-20 bg-white px-4 py-3 shadow-sm border border-gray-200">
+          <img src="/logomice.png" alt="MICE Catering" class="h-8 md:h-10 w-auto object-contain">
+        </div>
+
+        <div class="absolute top-5 right-5 md:top-6 md:right-6 z-20 flex flex-wrap items-center justify-end gap-2 print:hidden">
+          <button id="btn-download-pdf" class="hidden md:inline-flex items-center gap-2 bg-white/95 hover:bg-white text-gray-800 text-[11px] font-bold px-4 py-2 border border-white/60 shadow-sm transition-colors">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Descargar PDF</span>
+          </button>
+          <% if (!isLocked) { %>
+            <button id="btn-modifications" class="inline-flex items-center gap-2 bg-black/65 hover:bg-black text-white text-[11px] font-bold px-4 py-2 border border-white/20 backdrop-blur-sm shadow-sm transition-colors">
+              <i data-lucide="pen-square" class="w-4 h-4"></i>
+              <span>Solicitar cambios</span>
+            </button>
+          <% } %>
+        </div>
+
+        <% if (proposal.status === 'Aceptada' || proposal.status === 'accepted') { %>
+          <div class="absolute left-5 md:left-6 top-24 md:top-28 z-20 flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-2 border-l-4 border-[#31713D] shadow-lg">
+            <div class="w-8 h-8 bg-[#31713D] text-white flex items-center justify-center">
+              <i data-lucide="check" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <p class="text-[10px] font-black text-gray-900 uppercase tracking-widest leading-none">Propuesta Confirmada</p>
+              <p class="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mt-1">Estado bloqueado</p>
+            </div>
+          </div>
+        <% } %>
+
+        <div class="absolute inset-x-0 bottom-0 z-10 p-6 md:p-10">
+          <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <div>
+              <h1 class="text-3xl md:text-5xl font-bold text-white tracking-tight mb-3 drop-shadow-lg">
+                <%= proposal.client_name %>
+              </h1>
+              <div class="flex flex-wrap items-center gap-4 text-gray-200 text-sm font-medium">
+                <span class="flex items-center gap-1.5"><i data-lucide="users" class="w-4 h-4"></i> <%= proposal.pax %> asistentes</span>
+                <span class="flex items-center gap-1.5"><i data-lucide="calendar" class="w-4 h-4"></i> <%= proposal.event_date ? dayjs(proposal.event_date).format('D [de] MMMM, YYYY') : 'Fecha por confirmar' %></span>
+                <% if (selectedVenue) { %>
+                  <span class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-4 h-4"></i> <%= selectedVenue.name %></span>
+                <% } %>
+              </div>
+            </div>
+
+            <div class="bg-white/95 backdrop-blur-sm border border-white/60 px-5 py-4 shadow-lg min-w-[220px]">
+              <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1">Base actual</p>
+              <div id="header-total" class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-none"><%= formatCurrency(proposal.totals?.total_base_after_discount || 0) %></div>
+              <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-2">Ref: <%= proposal.custom_ref || 'OF-' + proposal.unique_hash.substring(0,8).toUpperCase() %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white border border-gray-200 shadow-sm overflow-hidden mb-8 print:hidden scroll-reveal soft-card">
+      <div class="px-4 md:px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-gray-600">
+          <a href="#venues-section" class="px-3 py-1.5 bg-white border border-gray-200 hover:text-[#31713D] transition-colors">Espacios</a>
+          <a href="#programa" class="px-3 py-1.5 bg-white border border-gray-200 hover:text-[#31713D] transition-colors">Programa</a>
+          <a href="#gastronomia-section" class="px-3 py-1.5 bg-white border border-gray-200 hover:text-[#31713D] transition-colors">Gastronomía</a>
+          <a href="#total-budget" class="px-3 py-1.5 bg-white border border-gray-200 hover:text-[#31713D] transition-colors">Presupuesto</a>
+          <button onclick="toggleSidebar()" class="ml-auto px-3 py-1.5 bg-black text-white hover:bg-gray-800 transition-colors flex items-center gap-2">
+            <i data-lucide="list-checks" class="w-4 h-4"></i>
+            <span>Mi selección</span>
+          </button>
+        </div>
       </div>
 
-      <div class="relative z-10 w-full px-10 py-8 flex flex-col justify-between min-h-[380px]">
-        
-        <!-- Logo Empresa & Status (Top Left) -->
-        <div class="absolute top-8 left-8 z-30 flex flex-col items-start gap-4">
-          <!-- Logo Mi Empresa -->
-          <div class="bg-white p-4 border border-black shadow-xl reveal-text">
-            <img src="/logomice.png" alt="MICE Catering" class="h-10 w-auto object-contain">
+      <div class="grid lg:grid-cols-[0.95fr_1.05fr] gap-6 p-4 md:p-6">
+        <div class="space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1">Estado de decisión</p>
+              <h2 id="choices-status" class="text-lg md:text-xl font-bold text-gray-900 tracking-tight">
+                <%= pendingChoicesCount > 0 ? 'ELECCIONES PENDIENTES' : '✓ PROPUESTA COMPLETADA' %>
+              </h2>
+            </div>
+            <span id="progress-percent" class="text-xl font-bold text-[#31713D]"><%= initialProgressPercent %>%</span>
           </div>
 
-          <!-- Badge Presupuesto Aprobado (Current style) -->
-          <% if (proposal.status === 'Aceptada' || proposal.status === 'accepted') { %>
-            <div class="flex items-center gap-3 bg-white/95 backdrop-blur-md px-5 py-2.5 border-l-4 border-[#31713D] shadow-2xl animate-in fade-in slide-in-from-left duration-700">
-               <div class="w-8 h-8 bg-[#31713D] text-white rounded-none flex items-center justify-center shadow-lg">
-                 <i data-lucide="check" class="w-5 h-5"></i>
-               </div>
-               <div>
-                 <h2 class="text-[12px] font-black text-gray-900 tracking-tight leading-none uppercase">Presupuesto Aprobado</h2>
-                 <p class="text-[8px] font-bold text-black uppercase tracking-widest mt-0.5">ESTADO: CONFIRMADO</p>
-               </div>
-            </div>
-          <% } %>
-        </div>
-
-        <!-- Top Right: Client Logo (Kept as is for branding) -->
-        <div class="absolute top-8 right-8 z-20">
-          <% if (proposal.logo_url) { %>
-            <div class="bg-white p-4 border border-black shadow-xl reveal-text">
-              <img src="<%= proposal.logo_url %>" alt="<%= proposal.client_name %>" 
-                  class="max-h-12 md:max-h-16 w-auto object-contain">
-            </div>
-          <% } %>
-        </div>
-
-        <!-- Bottom Section (Name & Ref Left) -->
-        <div class="flex justify-start items-end w-full mt-auto">
           <div class="space-y-2">
-            <h1 class="text-5xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] m-0 filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.6)]">
-              <%= proposal.client_name %>
-            </h1>
-            <p class="text-[10px] text-white font-black flex items-center gap-2 uppercase tracking-[0.3em] drop-shadow-md opacity-90">
-              <i data-lucide="hash" class="w-3.5 h-3.5 text-white"></i>
-              REF: <%= proposal.custom_ref || 'OF-' + proposal.unique_hash.substring(0,8).toUpperCase() %>
-            </p>
+            <div class="h-2 w-full bg-gray-200 overflow-hidden">
+              <div id="summary-progress-bar" data-initial-progress="<%= initialProgressPercent %>" class="h-2 bg-[#31713D] transition-all duration-500" style="width: 0%;"></div>
+            </div>
+            <p class="text-[10px] text-gray-500 font-medium">Tu propuesta se desbloquea al completar todas las elecciones obligatorias.</p>
+          </div>
+
+          <div id="pending-choices-list" class="flex flex-wrap gap-2">
+            <% if (!selectedVenue) { %>
+              <a href="#venues-section" class="flex-shrink-0 bg-orange-50 text-orange-600 border border-orange-200 px-3 py-1 text-[9px] font-black uppercase tracking-tighter hover:bg-orange-100 transition-all flex items-center gap-1 group">
+                <i data-lucide="alert-circle" class="w-2.5 h-2.5"></i>
+                <span>Elegir espacio</span>
+              </a>
+            <% } %>
+            <% initialPendingServices.forEach(service => { %>
+              <a href="#service-card-<%= service.id %>" class="flex-shrink-0 bg-orange-50 text-orange-600 border border-orange-200 px-3 py-1 text-[9px] font-black uppercase tracking-tighter hover:bg-orange-100 transition-all flex items-center gap-1 group">
+                <i data-lucide="alert-circle" class="w-2.5 h-2.5"></i>
+                <span><%= service.title %></span>
+              </a>
+            <% }) %>
+            <% if (selectedVenue && initialPendingServices.length === 0) { %>
+              <span class="flex-shrink-0 bg-green-50 text-[#31713D] border border-green-200 px-3 py-1 text-[9px] font-black uppercase tracking-tighter flex items-center gap-1">
+                <i data-lucide="check-circle" class="w-2.5 h-2.5"></i>
+                <span>Todo revisado</span>
+              </span>
+            <% } %>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1">Mi selección</p>
+              <h3 class="text-lg font-bold text-gray-900 tracking-tight">Resumen actual</h3>
+            </div>
+          </div>
+
+          <div id="summary-choices-grid" class="grid sm:grid-cols-2 gap-3">
+            <% if (selectedVenue) { %>
+              <div class="bg-white border border-gray-200 p-4 shadow-sm">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-gray-50 flex items-center justify-center border border-gray-200">
+                    <i data-lucide="map-pin" class="w-4 h-4 text-[#31713D]"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Espacio</p>
+                    <p class="text-sm font-bold text-gray-900 truncate"><%= selectedVenue.name %></p>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+
+            <% initialSelectedServices.forEach(service => { %>
+              <% const selectedOpt = service.options[Number(service.selected_option_index)]; %>
+              <% if (selectedOpt) { %>
+                <div class="bg-white border border-gray-200 p-4 shadow-sm">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gray-50 flex items-center justify-center border border-gray-200">
+                      <i data-lucide="utensils" class="w-4 h-4 text-[#31713D]"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1"><%= service.title %></p>
+                      <p class="text-sm font-bold text-gray-900 truncate"><%= selectedOpt.name %></p>
+                    </div>
+                  </div>
+                </div>
+              <% } %>
+            <% }) %>
+
+            <% if (!selectedVenue && initialSelectedServices.length === 0) { %>
+              <div class="sm:col-span-2 bg-gray-50 border border-dashed border-gray-300 p-4 text-sm text-gray-500 font-medium">
+                Aún no hay selecciones confirmadas. Usa esta guía para avanzar paso a paso.
+              </div>
+            <% } %>
           </div>
         </div>
       </div>
-
-      <!-- Bottom Right: Venue Name (Mirroring REF style) -->
-      <% if (selectedVenue) { %>
-        <div class="absolute bottom-0 right-0 z-20 p-6 md:p-8 text-right">
-          <p class="text-[10px] text-white font-black flex items-center justify-end gap-2 uppercase tracking-[0.3em] drop-shadow-md opacity-90 leading-none">
-            <%= selectedVenue.name %>
-            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-white"></i>
-          </p>
-        </div>
-      <% } %>
-    </div>
+    </section>
 
     <!-- Main Content (Single Column) -->
     <div class="space-y-6 pb-8">
 
-        <!-- Venues Section (Only shown if NO venue is selected) -->
+        <!-- Venue Selected View -->
         <% const anyVenueSelected = proposal.venues && proposal.venues.some(v => v.is_selected || v.is_selected === 1 || v.is_selected === "1"); %>
-        <% if (!anyVenueSelected) { %>
-          <div class="card overflow-hidden p-0 border-none shadow-none" id="venues-section" data-any-venue-selected="<%= anyVenueSelected ? 'true' : 'false' %>">
-            <div class="brand-bg px-8 py-5 flex items-center justify-between cursor-pointer group" onclick="toggleVenuesSection()">
-              <h2 class="font-black uppercase tracking-widest text-[11px] flex items-center">
-                <span class="bg-white px-4 py-2 flex items-center gap-2 shadow-sm">
-                  <i data-lucide="map" class="text-[#31713D] w-4 h-4"></i> 
-                  <span class="text-black">Espacios Propuestos</span>
-                </span>
-              </h2>
-              <div class="flex items-center gap-4">
-                <% if (proposal.venues && proposal.venues.length > 0) { %>
-                  <span class="bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[9px] font-bold px-3 py-1 rounded-none border uppercase tracking-tighter">
-                    <%= proposal.venues.length %> Opciones
-                  </span>
+        <% if (selectedVenue) { %>
+          <% const confirmedVenueImages = parseImages(selectedVenue.images); %>
+          <section id="venue-confirmed-view" class="bg-white border border-gray-200 shadow-sm overflow-hidden scroll-reveal soft-card">
+            <div class="flex items-center justify-between px-4 md:px-6 py-4 bg-gray-50 border-b border-gray-200">
+              <div class="flex items-center gap-3">
+                <i data-lucide="building" class="w-5 h-5 text-[#31713D]"></i>
+                <h2 class="text-xl font-bold text-gray-900">Ubicación del Evento</h2>
+              </div>
+              <span class="inline-flex items-center gap-2 bg-green-50 text-[#31713D] border border-green-200 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                Confirmado
+              </span>
+            </div>
+
+            <div class="grid md:grid-cols-[320px_1fr] gap-0" data-venue='<%- JSON.stringify(selectedVenue).replace(/'/g, "&#39;") %>'>
+              <div class="h-56 md:h-full bg-gray-100 border-b md:border-b-0 md:border-r border-gray-200 overflow-hidden">
+                <% if (confirmedVenueImages[0]) { %>
+                  <img src="<%= confirmedVenueImages[0] %>" class="w-full h-full object-cover" alt="<%= selectedVenue.name %>">
+                <% } else { %>
+                  <div class="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
+                    <i data-lucide="image-off" class="w-10 h-10"></i>
+                  </div>
                 <% } %>
-                <i data-lucide="chevron-down" id="venues-toggle-icon" class="w-4 h-4 transition-transform duration-300 rotate-180 text-white/40 group-hover:text-white"></i>
+              </div>
+
+              <div class="p-6 md:p-8">
+                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                  <div>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2">Espacio seleccionado</p>
+                    <h3 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight mb-2"><%= selectedVenue.name %></h3>
+                    <p class="text-sm text-gray-600 leading-relaxed max-w-2xl"><%= selectedVenue.description || 'Este espacio ha sido priorizado para tu evento y queda reflejado en la propuesta actual.' %></p>
+                  </div>
+                  <% if (otherVenues && otherVenues.length > 0) { %>
+                    <span class="inline-flex items-center gap-2 bg-white border border-gray-200 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">
+                      <i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i>
+                      <%= otherVenues.length %> alternativa<%= otherVenues.length > 1 ? 's' : '' %>
+                    </span>
+                  <% } %>
+                </div>
+
+                <div class="flex flex-wrap gap-3 mt-6">
+                  <button onclick="openVenueModal(this.closest('[data-venue]').dataset.venue)" class="bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold px-5 py-2.5 border border-gray-300 transition-colors flex items-center gap-2">
+                    <i data-lucide="map" class="w-4 h-4"></i>
+                    <span>Ver detalles</span>
+                  </button>
+                  <% if (!isLocked) { %>
+                    <button data-venue-name="<%= selectedVenue.name || '' %>" onclick="window.confirmSelectVenue(null, this.dataset.venueName, true)" class="bg-gray-900 hover:bg-black text-white text-sm font-semibold px-5 py-2.5 transition-colors flex items-center gap-2">
+                      <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                      <span>Cambiar espacio</span>
+                    </button>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </section>
+        <% } %>
+
+        <!-- Venue Selection View -->
+        <section id="venues-section" class="bg-white border border-gray-200 shadow-sm overflow-hidden scroll-reveal soft-card <%= anyVenueSelected ? 'hidden' : '' %>" data-any-venue-selected="<%= anyVenueSelected ? 'true' : 'false' %>">
+          <div class="flex items-center justify-between px-4 md:px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <div class="flex items-center gap-3">
+              <i data-lucide="building" class="w-5 h-5 text-[#31713D]"></i>
+              <h2 class="text-xl font-bold text-gray-900">Ubicación del Evento</h2>
+            </div>
+            <div id="venue-controls" class="hidden md:flex items-center gap-2">
+              <button onclick="scrollCarousel('venue-carousel', -1)" class="p-1.5 border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+              <button onclick="scrollCarousel('venue-carousel', 1)" class="p-1.5 border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+
+          <div id="venue-selection-view" class="block p-4 md:p-6">
+            <div class="bg-orange-50 border border-orange-200 p-3 mb-6 flex items-start gap-3">
+              <i data-lucide="alert-circle" class="w-4 h-4 text-orange-600 shrink-0 mt-0.5"></i>
+              <div>
+                <p class="text-sm font-bold text-orange-700">Acción requerida</p>
+                <p class="text-sm text-orange-700/80">Selecciona uno de los espacios propuestos para tu evento.</p>
               </div>
             </div>
 
-            <div id="venues-container" class="p-6">
-              <% if (proposal.venues && proposal.venues.length > 0) { %>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <% proposal.venues.forEach((venue, idx) => { %>
-                    <div class="group relative bg-white border border-black rounded-none overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer"
-                         data-venue='<%- JSON.stringify(venue).replace(/'/g, "&#39;") %>'
-                         onclick="openVenueModal(this.dataset.venue)">
-
-                      <div class="p-6">
-                        <h3 class="text-2xl font-black text-gray-900 mb-6 group-hover:brand-text transition-colors leading-tight">
-                          <%= venue.name %>
-                        </h3>
-
-                        <!-- Miniaturas (5) -->
-                        <% const venueImages = parseImages(venue.images); %>
-                        <div class="flex gap-2">
-                          <% for(let i=0; i < 5; i++) { %>
-                            <div class="flex-1 aspect-square bg-gray-100 overflow-hidden border border-black italic text-[8px] text-gray-300 flex items-center justify-center">
-                              <% if (venueImages[i]) { %>
-                                <img src="<%= venueImages[i] %>" class="w-full h-full object-cover" alt="Vista <%= i+1 %>">
-                              <% } else { %>
-                                <i data-lucide="image" class="w-4 h-4 opacity-20"></i>
-                              <% } %>
-                            </div>
-                          <% } %>
+            <% if (proposal.venues && proposal.venues.length > 0) { %>
+              <div id="venue-carousel" class="flex overflow-x-auto pb-6 gap-5 snap-x snap-mandatory hide-scrollbar scroll-smooth">
+                <% proposal.venues.forEach((venue, idx) => { %>
+                  <% const venueImages = parseImages(venue.images); %>
+                  <div class="min-w-[280px] md:min-w-[320px] snap-center bg-white border border-gray-200 shadow-sm flex flex-col cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md"
+                       data-venue='<%- JSON.stringify(venue).replace(/'/g, "&#39;") %>'
+                       onclick="openVenueModal(this.dataset.venue)">
+                    <div class="h-40 relative border-b border-gray-100 bg-gray-100 overflow-hidden">
+                      <% if (venueImages[0]) { %>
+                        <img src="<%= venueImages[0] %>" class="w-full h-full object-cover" alt="<%= venue.name %>">
+                      <% } else { %>
+                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                          <i data-lucide="image-off" class="w-8 h-8"></i>
                         </div>
+                      <% } %>
+                    </div>
+
+                    <div class="p-5 flex-1 flex flex-col">
+                      <h3 class="text-base font-bold text-gray-900 mb-1"><%= venue.name %></h3>
+                      <p class="text-sm text-gray-500 mb-4 line-clamp-2 flex-1"><%= venue.description || 'Consulta la ficha detallada del espacio y sus opciones de montaje.' %></p>
+                      <div class="flex gap-2 mt-auto">
+                        <button onclick="event.stopPropagation(); openVenueModal(this.closest('[data-venue]').dataset.venue)" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2 border border-gray-300 transition-colors flex items-center justify-center gap-1">
+                          <i data-lucide="info" class="w-4 h-4"></i>
+                          <span>Info</span>
+                        </button>
+                        <% if (!isLocked) { %>
+                          <button data-venue-id="<%= venue.venue_id || venue.id %>" data-venue-name="<%= venue.name || '' %>" onclick="event.stopPropagation(); window.confirmSelectVenue(this.dataset.venueId, this.dataset.venueName)" class="flex-1 bg-[#31713D] hover:bg-black text-white text-sm font-semibold py-2 transition-colors">
+                            Elegir
+                          </button>
+                        <% } else { %>
+                          <span class="flex-1 bg-gray-100 text-gray-400 text-sm font-semibold py-2 flex items-center justify-center border border-gray-200">Bloqueado</span>
+                        <% } %>
                       </div>
                     </div>
-                  <% }); %>
-                </div>
-              <% } else { %>
-                <div class="text-center py-12 bg-gray-50 rounded-none border-2 border-dashed border-black">
-                  <i data-lucide="building-2" class="w-12 h-12 text-gray-300 mx-auto mb-3"></i>
-                  <p class="text-black font-medium">No hay espacios específicos asignados a esta propuesta</p>
-                </div>
-              <% } %>
-            </div>
+                  </div>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <div class="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300">
+                <i data-lucide="building-2" class="w-12 h-12 text-gray-300 mx-auto mb-3"></i>
+                <p class="text-black font-medium">No hay espacios específicos asignados a esta propuesta</p>
+              </div>
+            <% } %>
           </div>
-        <% } %>
+        </section>
 
         <script>
-          function toggleVenuesSection() {
-            const container = document.getElementById('venues-container');
-            const icon = document.getElementById('venues-toggle-icon');
-            const section = document.getElementById('venues-section');
-            const isVenueSelected = section ? section.getAttribute('data-any-venue-selected') === 'true' : false;
-            
-            if (container.classList.contains('hidden')) {
-              container.classList.remove('hidden');
-              container.classList.add('p-6');
-              icon.classList.add('rotate-180');
-              section.classList.remove('opacity-70', 'scale-[0.99]');
-            } else {
-              container.classList.add('hidden');
-              container.classList.remove('p-6');
-              icon.classList.remove('rotate-180');
-              // Solo añadimos el efecto de "menos foco" si hay un venue seleccionado
-              if (isVenueSelected) {
-                section.classList.add('opacity-70', 'scale-[0.99]');
-              }
-            }
+          function scrollCarousel(id, direction) {
+            const container = document.getElementById(id);
+            if (!container) return;
+            const scrollAmount = container.clientWidth * 0.8;
+            container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
           }
         </script>
 
@@ -384,435 +566,348 @@
           </div>
         <% } %>
 
-        <% if (proposal.services && proposal.services.some(s => s.start_time)) { %>
-          <div class="card overflow-hidden p-0 border-none shadow-none scroll-reveal" id="timeline-section">
-            <div class="brand-bg px-8 py-5 flex items-center justify-between cursor-pointer group" onclick="toggleTimelineSection()">
-              <h2 class="font-black uppercase tracking-widest text-[11px] flex items-center">
-                <span class="bg-white px-4 py-2 flex items-center gap-2 shadow-sm">
-                  <i data-lucide="clock" class="text-[#31713D] w-4 h-4"></i> 
-                  <span class="text-black">Cronograma Estimado</span>
-                </span>
-              </h2>
-              <i data-lucide="chevron-down" id="timeline-toggle-icon" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- SECCIÓN: OFERTA GASTRONÓMICA (MOSAICO) -->
+        <!-- ════════════════════════════════════════════════════════ -->
+        <% const gastroServices = (proposal.services || []).filter(s => s.type === 'gastronomy'); %>
+
+        <% if (gastroServices.length > 0) { %>
+          <section id="programa" class="card overflow-hidden p-0 mb-0 border border-gray-200 shadow-sm bg-white scroll-reveal soft-card">
+            <div class="px-5 md:px-8 py-5 bg-white border-b border-gray-200 flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-1.5 h-8 shrink-0 brand-bg"></span>
+                <div>
+                  <h2 class="text-lg md:text-xl font-black text-gray-900 tracking-tight">Programa y Gastronomía</h2>
+                  <p class="text-xs text-gray-500">Todas las elecciones del evento se resuelven aquí, con un flujo premium, limpio y natural.</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-widest bg-gray-50 border border-gray-200 px-3 py-1.5">Timeline de elección</span>
+              </div>
             </div>
 
-            <div id="timeline-container" class="hidden p-6 md:p-8 bg-white/60 border-t border-black/5">
-              <div class="relative pl-6 border-l-2 border-[#31713D]/40 space-y-3 md:space-y-4">
-                <% 
-                  const sortedTimelineServices = [...proposal.services].sort((a, b) => {
-                    const dateA = a.service_date ? new Date(a.service_date) : new Date(0);
-                    const dateB = b.service_date ? new Date(b.service_date) : new Date(0);
-                    if (dateA - dateB !== 0) return dateA - dateB;
-                    return (a.start_time || '').localeCompare(b.start_time || '');
-                  });
-                %>
-                <% sortedTimelineServices.forEach((s, idx) => { %>
-                  <div class="relative bg-white border border-black/10 shadow-sm px-4 py-3 md:px-6 md:py-4 hover:shadow-md transition-all min-h-[96px]">
-                    <div class="absolute -left-[34px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-none bg-white border-4 border-[#31713D] shadow-sm z-10"></div>
-                    <div class="grid grid-cols-1 md:grid-cols-[180px_1fr_190px] gap-4 md:gap-5 md:items-stretch">
-                      <div class="w-full md:w-full flex-shrink-0 bg-gray-50 border border-black/10 px-3 py-2 min-h-[86px] flex flex-col justify-center">
-                        <div class="text-[10px] font-black uppercase tracking-widest text-[#31713D] leading-none mb-2">
-                          <%= dayjs(s.service_date || proposal.event_date).format('DD MMM').toUpperCase() %>
-                        </div>
-                        <div class="text-xl font-black text-gray-900 tracking-tighter leading-none">
-                          <%= s.start_time ? s.start_time.substring(0, 5) : '--:--' %>
-                        </div>
-                        <% if (s.start_time && s.duration > 0) { 
-                           const [h, m] = s.start_time.split(':').map(Number);
-                           const d = new Date();
-                           d.setHours(h, m + s.duration);
-                        %>
-                          <div class="text-[9px] text-black/70 font-black uppercase tracking-widest mt-1 leading-none">
-                            ↳ <%= String(d.getHours()).padStart(2, '0') %>:<%= String(d.getMinutes()).padStart(2, '0') %>
+            <div id="timeline-section" class="p-4 md:p-6 bg-gray-50/70">
+              <div id="gastronomia-section" class="relative border-l-2 border-gray-200 ml-4 space-y-10 pb-4">
+                <% gastroServices.forEach(service => { %>
+                  <%
+                    const rawSelectedIndex = service.selected_option_index;
+                    const hasDecision = !(rawSelectedIndex === null || rawSelectedIndex === undefined || rawSelectedIndex === '');
+                    const selectedIndex = hasDecision ? Number(rawSelectedIndex) : null;
+                    const isInvalidDecision = hasDecision && Number.isNaN(selectedIndex);
+                    const isCancelled = !isInvalidDecision && selectedIndex === -1;
+                    const isPending = !hasDecision || isInvalidDecision;
+                    const isAdded = !isPending && (service.is_multichoice ? selectedIndex >= 0 : selectedIndex === 0);
+                    const isOptional = service.is_optional === true || service.is_optional === 1 || service.is_optional === '1';
+                    const showHeaderEconomics = isAdded && !isOptional;
+                    const servicePax = service.pax || proposal.pax;
+                    const serviceSubtotal = (service.price_per_pax || 0) * servicePax;
+                    const optionsSorted = Array.isArray(service.options)
+                      ? [...service.options].sort((a, b) => Number(a.id) - Number(b.id))
+                      : [];
+                  %>
+
+                  <div class="relative pl-6 md:pl-10">
+                    <div class="absolute -left-[9px] top-4 w-4 h-4 rounded-full <%= isCancelled ? 'bg-gray-300 ring-4 ring-gray-50' : (isAdded ? 'brand-bg ring-4 ring-green-50' : 'bg-gray-400 ring-4 ring-gray-50') %>"></div>
+
+                    <div id="service-card-<%= service.id %>" class="bg-white overflow-hidden border shadow-sm transition-all hover:shadow-md <%= isCancelled ? 'border-gray-200 opacity-90' : (isAdded ? 'brand-border' : 'border-gray-200') %>">
+                      <div class="<%= isCancelled ? 'px-6 py-3' : 'px-6 py-4' %> border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-5 <%= isCancelled ? 'bg-gray-50' : 'bg-white' %>">
+                        <div class="space-y-2">
+                          <div class="flex items-center gap-3 flex-wrap">
+                            <span class="w-1.5 h-6 rounded-none <%= isCancelled ? 'bg-gray-300' : 'brand-bg' %>"></span>
+                            <h3 class="text-2xl font-black <%= isCancelled ? 'text-gray-400 opacity-60' : 'text-gray-900' %> tracking-tight uppercase leading-none m-0"><%= service.title %></h3>
+
+                            <div class="flex items-center gap-1.5 px-3 py-1 bg-white border border-black/10 rounded-none shadow-sm <%= isCancelled ? 'opacity-40 grayscale' : '' %>">
+                              <i data-lucide="calendar" class="w-3.5 h-3.5 text-gray-600"></i>
+                              <span class="text-[10px] font-black uppercase tracking-widest text-gray-700"><%= dayjs(service.service_date || proposal.event_date).format('DD MMM') %></span>
+                            </div>
+
+                            <% if (service.location) { %>
+                              <div class="flex items-center gap-1.5 px-3 py-1 bg-white border border-black/10 rounded-none shadow-sm <%= isCancelled ? 'opacity-40 grayscale' : '' %>">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-600"></i>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-blue-600"><%= service.location %></span>
+                              </div>
+                            <% } %>
+
+                            <% if (!isCancelled && !showHeaderEconomics) { %>
+                              <div class="px-3 py-1 bg-white border border-gray-200 rounded-none shadow-sm flex items-center gap-2">
+                                <span class="text-[9px] font-black uppercase tracking-widest text-gray-600">Subtotal servicio</span>
+                                <span class="text-sm font-black tracking-tight leading-none" style="color: var(--brand-primary)"><%= formatCurrency(serviceSubtotal) %></span>
+                                <span class="text-[9px] font-black uppercase tracking-widest text-black/40">(<%= servicePax %> pax)</span>
+                              </div>
+                            <% } %>
+
+                            <% if (service.start_time && !isCancelled) { %>
+                              <div class="flex items-center gap-2 px-3 py-0.5 bg-white border border-black rounded-none w-fit">
+                                <i data-lucide="clock" class="w-3.5 h-3.5 text-black"></i>
+                                <span class="text-[10px] font-black text-black uppercase tracking-widest leading-none"><%= service.start_time.substring(0, 5) %>h</span>
+                              </div>
+                            <% } %>
                           </div>
-                        <% } %>
-                      </div>
-                      <div class="min-w-0 md:self-center md:min-h-[86px] flex flex-col justify-center">
-                        <div class="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 class="text-lg md:text-xl font-black text-gray-900 uppercase tracking-tight leading-none"><%= s.title %></h3>
-                          <% 
-                            let localizedType = s.type;
-                            if(s.type === 'gastronomy') localizedType = 'Gastronomía';
-                            else if(s.type === 'logistics') localizedType = 'Logística';
-                            else if(s.type === 'staff') localizedType = 'Personal';
-                            else localizedType = 'Extras';
-                          %>
-                          <span class="md:hidden text-[8px] font-black text-black border border-black/80 px-2 py-0.5 rounded-none uppercase tracking-tighter bg-white">
-                            <%= localizedType %>
-                          </span>
                         </div>
-                        <p class="text-[11px] text-black/70 font-medium leading-tight italic min-h-[16px]"><%= s.comments || '' %></p>
+
+                        <div class="flex items-center gap-4 flex-wrap justify-end">
+                          <% if (showHeaderEconomics) { %>
+                            <div id="service-header-status-<%= service.id %>" class="flex items-center gap-3 flex-wrap">
+                              <div class="bg-white px-6 py-3 border border-gray-200 shadow-sm flex items-center gap-6 divide-x divide-gray-100">
+                                <div class="text-right">
+                                  <span class="text-[9px] font-black text-black uppercase tracking-[0.3em] block mb-0.5 leading-none"><%= servicePax %> ASISTENTES</span>
+                                  <span class="text-xl font-black text-gray-900 tracking-tighter leading-none"><%= formatCurrency(service.price_per_pax || 0) %> <small class="text-[10px] text-black font-bold">/u</small></span>
+                                </div>
+                                <div class="pl-8 text-right">
+                                  <span class="text-[9px] font-black text-black uppercase tracking-[0.3em] block mb-0.5 leading-none">SUBTOTAL SERVICIO</span>
+                                  <span class="text-2xl font-black tracking-tighter leading-none" style="color: var(--brand-primary)"><%= formatCurrency(serviceSubtotal) %></span>
+                                </div>
+                              </div>
+
+                              <% if (!isLocked) { %>
+                                <button type="button"
+                                        onclick="window.updateMilestoneStatus('<%= service.id %>', 'pending')"
+                                        class="h-[32px] px-4 border border-gray-300 bg-white text-gray-700 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-gray-50 transition-all"
+                                        title="Volver a decidir este servicio">
+                                  <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                                  <span>Volver a decidir</span>
+                                </button>
+                              <% } %>
+                            </div>
+                          <% } else { %>
+                            <div id="service-header-status-<%= service.id %>" class="flex items-center gap-2 flex-wrap">
+                              <% if (isCancelled) { %>
+                                <% if (!isLocked) { %>
+                                  <button type="button"
+                                          onclick="window.updateMilestoneStatus('<%= service.id %>', 'pending')"
+                                          class="flex items-center gap-4 px-6 py-2.5 bg-white border border-gray-300 rounded-none shadow-sm hover:bg-gray-50 transition-all group">
+                                    <i data-lucide="rotate-ccw" class="w-5 h-5 group-hover:rotate-[-45deg] transition-transform" style="color: var(--brand-primary)"></i>
+                                    <div class="text-left">
+                                      <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">SERVICIO CANCELADO</span>
+                                      <span class="text-xs font-black tracking-tight uppercase" style="color: var(--brand-primary)">RECUPERAR ESTE SERVICIO</span>
+                                    </div>
+                                  </button>
+                                <% } else { %>
+                                  <div class="flex items-center gap-4 px-6 py-2.5 bg-gray-50 border border-gray-200 rounded-none shadow-inner opacity-60">
+                                    <i data-lucide="x-circle" class="w-5 h-5 text-gray-400"></i>
+                                    <div class="text-left">
+                                      <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">CANCELADO</span>
+                                      <span class="text-xs font-black text-gray-500 tracking-tight uppercase">No disponible</span>
+                                    </div>
+                                  </div>
+                                <% } %>
+                              <% } else if (isOptional) { %>
+                                <span class="inline-flex items-center gap-1.5 h-[32px] px-3 border border-gray-200 bg-white text-gray-600 text-[9px] font-black uppercase tracking-widest shadow-sm">
+                                  <i data-lucide="sparkles" class="w-3 h-3"></i>
+                                  <span>Opcional</span>
+                                </span>
+                              <% } else if (!isLocked && !service.is_multichoice) { %>
+                                <span class="inline-flex items-center gap-1.5 h-[32px] px-3 border border-gray-200 bg-gray-50 text-gray-700 text-[9px] font-black uppercase tracking-widest">
+                                  <i data-lucide="alert-circle" class="w-3 h-3"></i>
+                                  <span>Pendiente de decisión</span>
+                                </span>
+                                <button type="button"
+                                        onclick="window.updateMilestoneStatus('<%= service.id %>', 'added')"
+                                        class="h-[32px] px-5 text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm hover:opacity-90"
+                                        style="background-color: var(--brand-primary)">
+                                  <i data-lucide="plus" class="w-3 h-3"></i>
+                                  <span>Añadir ahora</span>
+                                </button>
+                                <button type="button"
+                                        onclick="window.updateMilestoneStatus('<%= service.id %>', 'cancelled')"
+                                        class="h-[32px] px-4 bg-white border border-gray-300 text-gray-700 rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-gray-50 transition-all"
+                                        title="Cancelar servicio">
+                                  <i data-lucide="x" class="w-3 h-3"></i>
+                                  <span>No añadir</span>
+                                </button>
+                              <% } else if (!isOptional) { %>
+                                <div class="flex items-center gap-3 px-5 py-3 bg-gray-50 border border-gray-200 rounded-none shadow-inner">
+                                  <div class="w-8 h-8 rounded-none bg-gray-200/70 flex items-center justify-center">
+                                    <i data-lucide="list-checks" class="w-5 h-5 text-gray-600"></i>
+                                  </div>
+                                  <div>
+                                    <span class="text-[10px] font-black text-gray-700 uppercase tracking-widest block">Elección pendiente</span>
+                                    <span class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">Debes elegir una opción</span>
+                                  </div>
+                                </div>
+                                <button type="button"
+                                        onclick="document.getElementById('service-options-container-<%= service.id %>')?.scrollIntoView({ behavior: 'smooth', block: 'center' })"
+                                        class="h-[32px] px-4 text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm hover:opacity-90"
+                                        style="background-color: var(--brand-primary)">
+                                  <i data-lucide="mouse-pointer-2" class="w-3 h-3"></i>
+                                  <span>Elegir opción</span>
+                                </button>
+                              <% } %>
+                            </div>
+                          <% } %>
+                        </div>
                       </div>
 
-                      <div class="hidden md:flex md:self-stretch">
-                        <span class="w-full h-full min-h-[86px] flex items-center justify-center text-[11px] font-black text-black border border-black/80 px-3 py-2 rounded-none uppercase tracking-wider bg-white text-center leading-tight">
-                          <%= localizedType %>
-                        </span>
+                      <div id="service-options-container-<%= service.id %>" class="<%= isCancelled ? 'hidden' : 'p-6 md:px-10 md:pt-3 md:pb-8' %>">
+                        <% if (optionsSorted.length > 0) { %>
+                          <div id="service-options-grid-<%= service.id %>" class="<%= (isOptional && !service.is_multichoice) ? 'space-y-3' : (service.is_multichoice ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'space-y-6') %> gap-4">
+                            <% optionsSorted.forEach((opt, idx) => { %>
+                              <%
+                                const isSelected = isAdded && selectedIndex === idx;
+                                let menuImg = null;
+                                try {
+                                  const parsedImages = Array.isArray(opt.images)
+                                    ? opt.images
+                                    : (typeof opt.images === 'string' ? JSON.parse(opt.images) : []);
+                                  if (parsedImages && parsedImages.length > 0) menuImg = parsedImages[0];
+                                } catch (e) {}
+                                if (!menuImg && opt.items && opt.items.length > 0 && opt.items[0].image_url) {
+                                  menuImg = opt.items[0].image_url;
+                                }
+                                const optPax = service.pax || proposal.pax;
+                                const optSubtotal = (opt.price_pax || 0) * optPax;
+                              %>
+
+                              <div id="option-card-<%= opt.id %>"
+                                   class="menu-option-card transition-all duration-300 p-5 border shadow-sm <%= isOptional && !service.is_multichoice ? (isSelected ? 'brand-border bg-white shadow-md' : 'border-gray-200 bg-white hover:border-gray-300') : (isSelected ? 'border-2 brand-border brand-bg-light shadow-md' : 'border-gray-200 bg-white hover:shadow-md hover:border-gray-300') %> <%= (service.is_multichoice && isAdded && !isSelected) ? 'hidden opacity-0 scale-95' : '' %>"
+                                   onclick="openMenuModal(this)"
+                                   data-menu='<%- JSON.stringify(opt).replace(/'/g, "&#39;") %>'
+                                   data-service-title="<%= service.title %>"
+                                   data-service-date="<%= dayjs(service.service_date || proposal.event_date).format('DD/MM/YYYY') %>"
+                                   data-service-pax="<%= service.pax || proposal.pax %>"
+                                   data-service-price-pax="<%= service.price_per_pax || 0 %>">
+
+                                <% if (isOptional && !service.is_multichoice) { %>
+                                  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                    <div class="min-w-0 flex-1">
+                                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 border border-gray-200 bg-white text-gray-500 text-[8px] font-black uppercase tracking-widest mb-2">
+                                        <i data-lucide="sparkles" class="w-3 h-3"></i>
+                                        <span>Upgrade opcional</span>
+                                      </span>
+                                      <h5 class="text-lg md:text-xl font-black text-gray-900 tracking-tight leading-none"><%= opt.name %></h5>
+                                      <p class="mt-2 text-sm text-gray-500 leading-relaxed max-w-2xl"><%= opt.description || 'Puedes añadir este servicio de forma voluntaria para enriquecer la experiencia del evento.' %></p>
+                                      <div class="mt-3 flex items-center gap-2">
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Desde</span>
+                                        <span class="text-lg md:text-xl font-black" style="color: var(--brand-primary)"><%= formatCurrency(opt.price_pax || 0) %></span>
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">/ pax</span>
+                                      </div>
+                                    </div>
+
+                                    <div id="option-actions-<%= opt.id %>" class="flex items-center justify-between md:justify-end gap-4 md:min-w-[220px]">
+                                      <% if (!isLocked) { %>
+                                        <div class="text-right">
+                                          <p class="text-[10px] font-black uppercase tracking-widest <%= isSelected ? 'brand-text' : 'text-gray-500' %>"><%= isSelected ? 'Añadido' : 'Activar upgrade' %></p>
+                                          <p class="text-[11px] text-gray-400">Puedes cambiarlo cuando quieras</p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                                          <input type="checkbox"
+                                                 class="sr-only peer"
+                                                 data-service-id="<%= service.id %>"
+                                                 data-option-id="<%= opt.id %>"
+                                                 onchange="window.handleOptionalToggle(this)"
+                                                 <%= isSelected ? 'checked' : '' %>>
+                                          <div class="w-14 h-8 rounded-full border transition-colors duration-200 <%= isSelected ? 'brand-bg border-transparent' : 'bg-gray-200 border-gray-300' %>"></div>
+                                          <div class="pointer-events-none absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform duration-200 <%= isSelected ? 'translate-x-6' : '' %>"></div>
+                                        </label>
+                                      <% } else { %>
+                                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-none">
+                                          <i data-lucide="sparkles" class="w-3 h-3 text-gray-500"></i>
+                                          <span class="text-[9px] font-black uppercase tracking-widest text-gray-500"><%= isSelected ? 'Añadido' : 'Disponible' %></span>
+                                        </div>
+                                      <% } %>
+                                    </div>
+                                  </div>
+                                <% } else { %>
+                                  <div class="flex items-start gap-6">
+                                    <div class="flex flex-col gap-2">
+                                      <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 overflow-hidden border border-gray-200 shadow-sm relative group bg-gray-50">
+                                        <% if (menuImg) { %>
+                                          <img src="<%= menuImg %>" class="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110">
+                                        <% } else { %>
+                                          <div class="w-full h-full flex items-center justify-center text-gray-200">
+                                            <i data-lucide="utensils" class="w-8 h-8 opacity-20"></i>
+                                          </div>
+                                        <% } %>
+                                      </div>
+                                      <div class="bg-gray-50 text-gray-700 px-3 py-1 text-center border border-gray-200">
+                                        <span class="text-[12px] font-black tracking-tighter leading-none" style="color: var(--brand-primary)"><%= formatCurrency(opt.price_pax || 0) %> <small class="text-[8px] uppercase opacity-60 text-gray-500">/u</small></span>
+                                      </div>
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                      <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                        <div class="flex flex-col">
+                                          <h5 class="text-xl md:text-2xl font-black text-gray-900 tracking-tighter leading-none uppercase italic serif truncate"><%= opt.name %></h5>
+                                          <div class="mt-1 flex items-center gap-2 px-2 py-0.5 bg-gray-50 border border-gray-200 rounded-none w-fit">
+                                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-600">Subtotal menú</span>
+                                            <span class="text-base font-black tracking-tight leading-none" style="color: var(--brand-primary)"><%= formatCurrency(optSubtotal) %></span>
+                                            <span class="text-[9px] font-black uppercase tracking-widest text-black/40">(<%= optPax %> pax)</span>
+                                          </div>
+                                        </div>
+
+                                        <div id="option-actions-<%= opt.id %>" class="flex flex-wrap items-center gap-2">
+                                          <% if (service.is_multichoice) { %>
+                                            <% if (!isLocked) { %>
+                                              <button type="button"
+                                                      data-service-id="<%= service.id %>"
+                                                      data-option-id="<%= opt.id %>"
+                                                      data-selected="<%= isSelected %>"
+                                                      onclick="event.stopPropagation(); window.handleServiceSelection(this)"
+                                                      class="<%= isSelected ? 'bg-white text-gray-700 border border-gray-300' : 'brand-bg text-white border border-transparent' %> h-[34px] px-5 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm group">
+                                                <% if (isSelected) { %>
+                                                  <i data-lucide="check" class="w-3 h-3 group-hover:hidden" style="color: var(--brand-primary)"></i>
+                                                  <i data-lucide="rotate-ccw" class="w-3 h-3 hidden group-hover:block"></i>
+                                                  <span class="group-hover:hidden" style="color: var(--brand-primary)">Seleccionado</span>
+                                                  <span class="hidden group-hover:block uppercase">Cambiar</span>
+                                                <% } else { %>
+                                                  <i data-lucide="mouse-pointer-2" class="w-3 h-3"></i>
+                                                  <span>Elegir</span>
+                                                <% } %>
+                                              </button>
+                                            <% } else if (isSelected) { %>
+                                              <div class="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-none">
+                                                <i data-lucide="check" class="w-3 h-3" style="color: var(--brand-primary)"></i>
+                                                <span class="text-[9px] font-black uppercase tracking-widest" style="color: var(--brand-primary)">Confirmado</span>
+                                              </div>
+                                            <% } %>
+                                          <% } else { %>
+                                            <% if (isAdded) { %>
+                                              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-green-200 bg-green-50 text-[9px] font-black uppercase tracking-widest" style="color: var(--brand-primary)">
+                                                <i data-lucide="check" class="w-3 h-3"></i>
+                                                <span>Añadido</span>
+                                              </span>
+                                            <% } else if (isCancelled) { %>
+                                              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 bg-gray-100 text-gray-600 text-[9px] font-black uppercase tracking-widest">
+                                                <i data-lucide="x" class="w-3 h-3"></i>
+                                                <span>No añadido</span>
+                                              </span>
+                                            <% } else if (!isLocked) { %>
+                                              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 bg-gray-50 text-gray-600 text-[9px] font-black uppercase tracking-widest">
+                                                <i data-lucide="arrow-up" class="w-3 h-3"></i>
+                                                <span>Decide arriba</span>
+                                              </span>
+                                            <% } %>
+                                          <% } %>
+                                        </div>
+                                      </div>
+
+                                      <% if (opt.badges && opt.badges.length > 0) { %>
+                                        <div class="flex items-center gap-1.5 flex-wrap mt-3">
+                                          <% opt.badges.forEach(b => { %>
+                                            <span class="bg-gray-100 text-gray-600 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border border-gray-200"><%= b %></span>
+                                          <% }); %>
+                                        </div>
+                                      <% } %>
+
+                                      <% if (opt.description) { %>
+                                        <div class="mt-3 pt-3 border-t border-black/5">
+                                          <p class="text-[12px] md:text-[13px] text-black/70 font-medium leading-relaxed italic whitespace-pre-line mb-1"><%= opt.description %></p>
+                                        </div>
+                                      <% } %>
+                                    </div>
+                                  </div>
+                                <% } %>
+                              </div>
+                            <% }); %>
+                          </div>
+                        <% } %>
                       </div>
                     </div>
                   </div>
                 <% }); %>
               </div>
             </div>
-          </div>
-
-          <script>
-            function toggleTimelineSection() {
-              const container = document.getElementById('timeline-container');
-              const icon = document.getElementById('timeline-toggle-icon');
-              if (container.classList.contains('hidden')) {
-                container.classList.remove('hidden');
-                icon.classList.add('rotate-180');
-              } else {
-                container.classList.add('hidden');
-                icon.classList.remove('rotate-180');
-              }
-            }
-          </script>
-        <% } %>
-
-        <!-- ════════════════════════════════════════════════════════ -->
-        <!-- SECCIÓN: OFERTA GASTRONÓMICA (MOSAICO) -->
-        <!-- ════════════════════════════════════════════════════════ -->
-        <% 
-          const gastroServices = (proposal.services || []).filter(s => s.type === 'gastronomy');
-        %>
-
-        <% if (gastroServices.length > 0) { %>
-          <div class="card overflow-hidden p-0 mb-0 border-none shadow-none bg-transparent scroll-reveal" id="gastronomia-section">
-            <div class="brand-bg px-8 py-5 flex items-center justify-between group">
-              <div class="flex items-center gap-4">
-                <h2 class="font-black uppercase tracking-widest text-[11px] flex items-center">
-                  <span class="bg-white px-4 py-2 flex items-center gap-2 shadow-sm">
-                    <i data-lucide="utensils" class="text-[#31713D] w-4 h-4"></i> 
-                    <span class="text-black">Oferta Gastronómica</span>
-                  </span>
-                </h2>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-[8px] font-bold text-white/40 uppercase tracking-widest">Mosaico de opciones</span>
-              </div>
-            </div>
-
-            <div class="space-y-8">
-              <% gastroServices.forEach(service => { %>
-                <% 
-                  const rawSelectedIndex = service.selected_option_index;
-                  const hasDecision = !(rawSelectedIndex === null || rawSelectedIndex === undefined || rawSelectedIndex === '');
-                  const selectedIndex = hasDecision ? Number(rawSelectedIndex) : null;
-                  const isInvalidDecision = hasDecision && Number.isNaN(selectedIndex);
-                  const isCancelled = !isInvalidDecision && selectedIndex === -1;
-                  const isPending = !hasDecision || isInvalidDecision;
-                  const isAdded = !isPending && (service.is_multichoice ? selectedIndex >= 0 : selectedIndex === 0);
-                  const showHeaderEconomics = isAdded;
-                  const servicePax = service.pax || proposal.pax;
-                  const serviceSubtotal = (service.price_per_pax || 0) * servicePax;
-                %>
-                <div id="service-card-<%= service.id %>" class="bg-white rounded-none shadow-xl overflow-hidden border transition-all hover:shadow-2xl <%= isCancelled ? 'border-gray-200' : 'border-black' %>">
-                  <!-- Service Header -->
-                  <div class="<%= isCancelled ? 'px-10 py-2' : 'px-10 py-3' %> border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6 <%= isCancelled ? 'bg-gray-50' : 'bg-gradient-to-r from-gray-50 to-white' %>">
-                    <div class="space-y-1">
-                      <div class="flex items-center gap-3 flex-wrap">
-                        <span class="w-1.5 h-6 <%= isCancelled ? 'bg-gray-300' : 'bg-[#31713D]' %> rounded-none"></span>
-                        <h3 class="text-2xl font-black <%= isCancelled ? 'text-gray-400 opacity-60' : 'text-gray-900' %> tracking-tight uppercase leading-none m-0"><%= service.title %></h3>
-
-                        <% if (!isCancelled && !showHeaderEconomics && !service.is_multichoice) { %>
-                          <div class="ml-2 px-3 py-1 bg-white border border-[#31713D]/30 rounded-none shadow-sm flex items-center gap-2">
-                            <span class="text-[9px] font-black uppercase tracking-widest text-[#31713D]">Subtotal servicio</span>
-                            <span class="text-sm font-black text-[#31713D] tracking-tight leading-none"><%= formatCurrency(serviceSubtotal) %></span>
-                          </div>
-                        <% } %>
-                        
-                        <!-- FECHA DEL HITO -->
-                        <div class="flex items-center gap-1.5 px-3 py-1 bg-white border border-black/10 rounded-none shadow-sm ml-2 <%= isCancelled ? 'opacity-40 grayscale' : '' %>">
-                          <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#31713D]"></i>
-                          <span class="text-[10px] font-black uppercase tracking-widest text-[#31713D]">
-                            <%= dayjs(service.service_date || proposal.event_date).format('DD MMM') %>
-                          </span>
-                        </div>
-
-                        <% if (service.location) { %>
-                          <div class="flex items-center gap-1.5 px-3 py-1 bg-white border border-black/10 rounded-none shadow-sm ml-2 <%= isCancelled ? 'opacity-40 grayscale' : '' %>">
-                            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-600"></i>
-                            <span class="text-[10px] font-black uppercase tracking-widest text-blue-600"><%= service.location %></span>
-                          </div>
-                        <% } %>
-
-                        <!-- 📍 LOCALIZACIÓN HITO (UX UPGRADE) -->
-                        <% if (service.location && !isCancelled) { %>
-                          <div class="flex items-center gap-1.5 px-3 py-1 bg-white border border-black/10 rounded-none shadow-sm ml-2 animate-fadeIn">
-                             <i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-500"></i>
-                             <span class="text-[10px] font-black uppercase tracking-widest text-gray-600"><%= service.location %></span>
-                          </div>
-                        <% } %>
-
-                        <% if (isCancelled) { %>
-                          <!-- Mini Card for Cancelled Service -->
-                          <div class="flex items-center gap-2 px-3 py-1 bg-white border border-gray-200 rounded-none shadow-sm ml-4 grayscale opacity-60">
-                            <% 
-                              let cancelImg = '/img/placeholder.png';
-                              if (service.options && service.options.length > 0 && service.options[0].images) {
-                                try {
-                                  let imgs = typeof service.options[0].images === 'string' ? JSON.parse(service.options[0].images) : service.options[0].images;
-                                  if (imgs && imgs.length > 0) cancelImg = imgs[0];
-                                } catch(e) {}
-                              }
-                            %>
-                            <img src="<%= cancelImg %>" class="w-5 h-5 object-cover rounded-none shadow-inner" alt="">
-                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">SERVICIO CANCELADO</span>
-                          </div>
-                        <% } %>
-                      </div>
-
-                      <% if (!isCancelled && !showHeaderEconomics && service.is_multichoice) { %>
-                        <div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#31713D]/30 rounded-none shadow-sm w-fit">
-                          <span class="text-[9px] font-black uppercase tracking-widest text-[#31713D]">Subtotal servicio</span>
-                          <span class="text-base font-black text-[#31713D] tracking-tight leading-none"><%= formatCurrency(serviceSubtotal) %></span>
-                          <span class="text-[9px] font-black uppercase tracking-widest text-black/40">(<%= servicePax %> pax)</span>
-                        </div>
-                      <% } %>
-
-                      <% if (service.start_time && !isCancelled) { %>
-                        <div class="flex items-center gap-2 px-3 py-0.5 bg-white border border-black rounded-none w-fit">
-                          <i data-lucide="clock" class="w-3.5 h-3.5 text-black"></i>
-                          <span class="text-[10px] font-black text-black uppercase tracking-widest leading-none"><%= service.start_time.substring(0,5) %>h <span class="mx-1 text-gray-200">|</span> ESTIMADO</span>
-                        </div>
-                      <% } %>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                      <% if (!isCancelled && !isLocked && service.is_multichoice) { %>
-                        <button type="button" 
-                                onclick="updateMilestoneStatus('<%= service.id %>', 'cancelled')"
-                                class="h-[32px] px-4 border border-black text-white bg-black rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:bg-gray-900 mr-2"
-                                title="Cancelar hito completo">
-                          <i data-lucide="trash-2" class="w-3 h-3 text-white"></i>
-                          <span>Cancelar Servicio</span>
-                        </button>
-                      <% } %>
-
-                      <div id="service-header-status-<%= service.id %>" class="flex items-center">
-                        <% if (showHeaderEconomics) { %>
-                          <div class="bg-white px-8 py-2 rounded-none border border-black shadow-sm flex items-center gap-8 divide-x divide-gray-100 animate-fadeIn">
-                            <div class="text-right">
-                              <span class="text-[9px] font-black text-black uppercase tracking-[0.3em] block mb-0.5 leading-none"><%= service.pax || proposal.pax %> ASISTENTES</span>
-                              <span class="text-xl font-black text-gray-900 tracking-tighter leading-none">
-                                <%= formatCurrency(service.price_per_pax || 0) %> <small class="text-[10px] text-black font-bold">/u</small>
-                              </span>
-                            </div>
-                            <div class="pl-8 text-right">
-                              <span class="text-[9px] font-black text-black uppercase tracking-[0.3em] block mb-0.5 leading-none">SUBTOTAL SERVICIO</span>
-                              <span class="text-2xl font-black text-[#31713D] tracking-tighter leading-none">
-                                <%= formatCurrency(serviceSubtotal) %>
-                              </span>
-                            </div>
-                          </div>
-                          <% if (!isLocked) { %>
-                            <button type="button"
-                                    onclick="window.updateMilestoneStatus('<%= service.id %>', 'pending')"
-                                    class="ml-3 h-[32px] px-4 border border-black bg-white text-black rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-amber-50 hover:border-amber-600 hover:text-amber-700 transition-all"
-                                    title="Volver a decidir este servicio">
-                              <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
-                              <span>Volver a decidir</span>
-                            </button>
-                          <% } %>
-                        <% } else { %>
-                          <% if (isCancelled) { %>
-                            <% if (!isLocked) { %>
-                            <button onclick="window.updateMilestoneStatus('<%= service.id %>', 'pending')" 
-                                    class="flex items-center gap-4 px-6 py-2.5 bg-white border border-[#31713D] rounded-none shadow-sm hover:bg-[#31713D]/5 transition-all group">
-                              <i data-lucide="rotate-ccw" class="w-5 h-5 text-[#31713D] group-hover:rotate-[-45deg] transition-transform"></i>
-                              <div class="text-left">
-                                <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">SERVICIO CANCELADO</span>
-                                <span class="text-xs font-black text-[#31713D] tracking-tight uppercase">RECUPERAR ESTE SERVICIO</span>
-                              </div>
-                            </button>
-                            <% } else { %>
-                              <div class="flex items-center gap-4 px-6 py-2.5 bg-gray-50 border border-gray-200 rounded-none shadow-inner opacity-60">
-                                <i data-lucide="x-circle" class="w-5 h-5 text-gray-400"></i>
-                                <div class="text-left">
-                                  <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">CANCELADO</span>
-                                  <span class="text-xs font-black text-gray-500 tracking-tight uppercase">No disponible</span>
-                                </div>
-                              </div>
-                            <% } %>
-                          <% } else { %>
-                            <% if (!isLocked && !service.is_multichoice) { %>
-                              <div class="flex items-center gap-2">
-                                <span class="inline-flex items-center gap-1.5 h-[32px] px-3 border border-amber-200 bg-amber-50 text-amber-800 text-[9px] font-black uppercase tracking-widest">
-                                  <i data-lucide="alert-circle" class="w-3 h-3"></i>
-                                  <span>Pendiente de decisión</span>
-                                </span>
-                                <button type="button"
-                                        onclick="window.updateMilestoneStatus('<%= service.id %>', 'added')"
-                                        class="h-[32px] px-5 bg-[#31713D] text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-black transition-all shadow-sm">
-                                  <i data-lucide="plus" class="w-3 h-3"></i>
-                                  <span>Añadir ahora</span>
-                                </button>
-                                <button type="button"
-                                        onclick="window.updateMilestoneStatus('<%= service.id %>', 'cancelled')"
-                                        class="h-[32px] px-4 bg-black text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-gray-900 transition-all"
-                                        title="Cancelar servicio">
-                                  <i data-lucide="trash-2" class="w-3 h-3 text-white"></i>
-                                  <span>No añadir</span>
-                                </button>
-                              </div>
-                            <% } else { %>
-                              <div class="flex items-center gap-2">
-                                <div class="flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-200 rounded-none shadow-inner">
-                                  <div class="w-8 h-8 rounded-none bg-amber-500/10 flex items-center justify-center">
-                                    <i data-lucide="alert-circle" class="w-5 h-5 text-amber-600"></i>
-                                  </div>
-                                  <div>
-                                    <span class="text-[10px] font-black text-amber-800 uppercase tracking-widest block text-amber-900">Elección pendiente</span>
-                                    <span class="text-[9px] text-amber-700 font-bold uppercase tracking-tighter">Debes elegir una opción</span>
-                                  </div>
-                                </div>
-                                <button type="button"
-                                        onclick="document.getElementById('service-options-container-<%= service.id %>')?.scrollIntoView({ behavior: 'smooth', block: 'center' })"
-                                        class="h-[32px] px-4 bg-[#31713D] text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-black transition-all shadow-sm">
-                                  <i data-lucide="mouse-pointer-2" class="w-3 h-3"></i>
-                                  <span>Elegir opción</span>
-                                </button>
-                              </div>
-                            <% } %>
-                          <% } %>
-                        <% } %>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div id="service-options-container-<%= service.id %>" class="<%= isCancelled ? 'hidden' : 'p-6 md:px-10 md:pt-3 md:pb-8' %>">
-                    <% if (service.options && service.options.length > 0) { %>
-                      <% 
-                        const optionsSorted = [...service.options].sort((a,b) => a.id - b.id);
-                      %>
-                      <div id="service-options-grid-<%= service.id %>" class="<%= (service.is_multichoice && isAdded) ? 'grid grid-cols-1' : (service.is_multichoice ? 'grid grid-cols-1 md:grid-cols-2' : 'space-y-10') %> gap-6">
-                      <% optionsSorted.forEach((opt, idx) => { %>
-                        <% const isSelected = isAdded && selectedIndex === idx; %>
-                        <div class="menu-option-card transition-all duration-700 rounded-none p-6 border shadow-sm <%= isSelected ? 'border-[#31713D] bg-white shadow-xl scale-[1.01]' : (isAdded && service.is_multichoice ? 'hidden opacity-0 scale-95' : 'border-gray-100 bg-gray-50/10 cursor-pointer hover:shadow-lg transition-all') %>"
-                             id="option-card-<%= opt.id %>"
-                             onclick="openMenuModal(this)"
-                             data-menu='<%- JSON.stringify(opt).replace(/'/g, "&#39;") %>'
-                             data-service-title="<%= service.title %>"
-                             data-service-date="<%= dayjs(service.service_date || proposal.event_date).format('DD/MM/YYYY') %>"
-                             data-service-pax="<%= service.pax || proposal.pax %>"
-                             data-service-price-pax="<%= service.price_per_pax || 0 %>">
-                          
-                          <!-- PRESENTACIÓN DE MENÚ (DISEÑO COMPACTO Y HORIZONTAL) -->
-                          <div class="flex items-start gap-6">
-                            <% 
-                              let menuImg = null;
-                              if (opt.images && opt.images.length > 0) menuImg = opt.images[0];
-                              else if (opt.items && opt.items.length > 0 && opt.items[0].image_url) menuImg = opt.items[0].image_url;
-                            %>
-                            <div class="flex flex-col gap-2">
-                              <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 overflow-hidden rounded-none border border-black/10 shadow-md relative group bg-gray-50">
-                                <% if (menuImg) { %>
-                                  <img src="<%= menuImg %>" class="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110">
-                                <% } else { %>
-                                  <div class="w-full h-full flex items-center justify-center text-gray-200">
-                                    <i data-lucide="utensils" class="w-8 h-8 opacity-20"></i>
-                                  </div>
-                                <% } %>
-                              </div>
-                              <div class="bg-black text-white px-3 py-1 text-center rounded-none">
-                                <span class="text-[12px] font-black tracking-tighter leading-none">
-                                  <%= formatCurrency(opt.price_pax || 0) %> <small class="text-[8px] uppercase opacity-60">/u</small>
-                                </span>
-                              </div>
-                            </div>
-
-                            <div class="flex-1 min-w-0">
-                              <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                                                                                                <div class="flex flex-col">
-                                                                                                  <h5 class="text-xl md:text-2xl font-black text-gray-900 tracking-tighter leading-none uppercase italic serif truncate">
-                                                                                                    <%= opt.name %>
-                                                                                                  </h5>
-                                                                                                  <%
-                                                                                                    const pax = service.pax || proposal.pax;
-                                                                                                    const subtotal = (opt.price_pax || 0) * pax;
-                                                                                                  %>
-                                                                                                  <div class="mt-1 flex items-center gap-2 px-2 py-0.5 bg-[#31713D]/5 border border-[#31713D]/10 rounded-none w-fit">
-                                                                                                    <span class="text-[10px] font-black uppercase tracking-widest text-[#31713D]">Subtotal menú</span>
-                                                                                                    <span class="text-base font-black text-[#31713D] tracking-tight leading-none"><%= formatCurrency(subtotal) %></span>
-                                                                                                    <span class="text-[9px] font-black uppercase tracking-widest text-black/40">(<%= pax %> pax)</span>
-                                                                                                  </div>
-                                                                                                </div>                                <div class="flex flex-wrap items-center gap-2" id="option-actions-<%= opt.id %>">
-                                  <% if (service.is_multichoice) { %>
-                                    <% if (proposal.status === 'Pipe' || proposal.status === 'draft' || proposal.status === 'sent') { %>
-                                      <div class="flex items-center">
-                                        <button type="button" 
-                                                data-service-id="<%= service.id %>"
-                                                data-option-id="<%= opt.id %>"
-                                                data-selected="<%= isSelected %>"
-                                                onclick="event.stopPropagation(); window.handleServiceSelection(this)"
-                                                class="<%= isSelected ? 'bg-white text-gray-900 border-2 border-black hover:border-red-500 hover:text-red-500 hover:bg-red-50' : 'bg-[#31713D] text-white hover:bg-black' %> h-[32px] px-6 rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm group">
-                                          <% if (isSelected) { %>
-                                            <i data-lucide="check" class="w-3 h-3 text-brand-primary group-hover:hidden"></i>
-                                            <i data-lucide="rotate-ccw" class="w-3 h-3 hidden group-hover:block"></i>
-                                            <span class="text-brand-primary group-hover:hidden">Seleccionado</span>
-                                            <span class="hidden group-hover:block uppercase">Deseleccionar</span>
-                                          <% } else { %>
-                                            <i data-lucide="mouse-pointer-2" class="w-3 h-3"></i> Elegir
-                                          <% } %>
-                                        </button>
-                                      </div>
-                                    <% } else if (isSelected) { %>
-                                      <div class="flex items-center gap-2 px-4 py-2 bg-[#31713D]/5 text-[#31713D] border border-[#31713D] rounded-none">
-                                        <i data-lucide="check" class="w-3 h-3"></i>
-                                        <span class="text-[9px] font-black uppercase tracking-widest">Confirmado</span>
-                                      </div>
-                                    <% } %>
-                                  <% } else { %>
-                                    <div class="inline-flex items-center gap-2">
-                                      <% if (isAdded) { %>
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-green-200 bg-green-50 text-[#31713D] text-[9px] font-black uppercase tracking-widest">
-                                          <i data-lucide="check" class="w-3 h-3"></i>
-                                          <span>Añadido</span>
-                                        </span>
-                                      <% } else if (isCancelled) { %>
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 bg-gray-100 text-gray-600 text-[9px] font-black uppercase tracking-widest">
-                                          <i data-lucide="x" class="w-3 h-3"></i>
-                                          <span>No añadido</span>
-                                        </span>
-                                      <% } else if (!isLocked) { %>
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-amber-200 bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-widest">
-                                          <i data-lucide="arrow-up" class="w-3 h-3"></i>
-                                          <span>Decide arriba</span>
-                                        </span>
-                                      <% } %>
-                                    </div>
-                                  <% } %>
-                                </div>
-                              </div>
-
-                              <% if (opt.badges && opt.badges.length > 0) { %>
-                                <div class="flex items-center gap-1.5 flex-wrap mt-2">
-                                  <% opt.badges.forEach(b => { %>
-                                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border border-gray-200"><%= b %></span>
-                                  <% }) %>
-                                </div>
-                              <% } %>
-
-                              <% if (opt.description) { %>
-                                <div class="mt-2 pt-2 border-t border-black/5">
-                                  <p class="text-[12px] md:text-[13px] text-black/70 font-medium leading-relaxed italic whitespace-pre-line mb-1">
-                                    <%= opt.description %>
-                                  </p>
-                                </div>
-                              <% } %>
-                            </div>
-                          </div>
-
-                        </div>
-                      <% }); %>
-                    </div>
-                  <% } %>
-                </div>
-              <% }); %>
-            </div>
-          </div>
+          </section>
         <% } %>
 
         <!-- Standard Contract Conditions (Institutional) -->
@@ -1055,7 +1150,7 @@
         </div>
 
         <!-- Budget Total Card (At bottom) -->
-        <div id="total-budget" class="card overflow-hidden shadow-none border-none bg-white p-0 print:border-none print:shadow-none rounded-none !mt-0 mb-4 scroll-reveal">
+        <div id="total-budget" class="card overflow-hidden shadow-sm border border-gray-200 bg-white p-0 print:border-none print:shadow-none !mt-0 mb-4 scroll-reveal soft-card">
           <% 
             const pendingGastro = (proposal.services || []).filter(s => 
               s.type === 'gastronomy' && s.is_multichoice && (s.selected_option_index === null || s.selected_option_index === undefined)
@@ -1075,7 +1170,7 @@
               <!-- Financial breakdown: Only Base Imponible (remove Inversión Final card) -->
               <div onclick="toggleBudgetBreakdown()" class="flex-1 grid grid-cols-12 gap-8 items-stretch cursor-pointer group">
                 <!-- 1. BASE IMPONIBLE (MASTER CARD - EQUAL WIDTH) -->
-                <div class="col-span-12 p-10 rounded-none bg-white border-[3.5px] border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,0.06)] group-hover:shadow-[12px_12px_0px_0px_rgba(49,113,61,0.2)] transition-all transform group-hover:-translate-y-1.5 flex flex-col justify-between min-h-[260px] relative">
+                <div class="col-span-12 p-6 md:p-8 bg-white border border-gray-200 shadow-sm group-hover:shadow-md transition-all flex flex-col justify-between min-h-[240px] relative">
                   <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
                     <span class="text-[12px] font-black text-black uppercase tracking-[0.4em] flex items-center gap-2">
                         <span class="w-2 h-6 bg-black"></span> Base Imponible
@@ -1084,7 +1179,7 @@
                         <div class="flex flex-col items-end gap-2">
                             <% if (proposal.totals?.discounts && proposal.totals.discounts.length > 0) { %>
                                 <% proposal.totals.discounts.forEach((disc, idx) => { %>
-                                    <div class="bg-black text-[#4ade80] px-4 py-2 rounded-none flex items-center gap-3 shadow-sm border border-black transform <%= idx % 2 === 0 ? '-rotate-1' : 'rotate-1' %>">
+                                    <div class="bg-green-50 text-[#31713D] px-4 py-2 flex items-center gap-3 shadow-sm border border-green-200">
                                         <i data-lucide="gift" class="w-4 h-4"></i>
                                         <div class="flex flex-col">
                                             <span class="text-[10px] font-black uppercase tracking-widest">Descuento aplicado</span>
@@ -1093,7 +1188,7 @@
                                     </div>
                                 <% }) %>
                             <% } else { %>
-                                <div class="bg-black text-[#4ade80] px-4 py-2 rounded-none flex items-center gap-3 shadow-sm border border-black transform -rotate-1">
+                                <div class="bg-green-50 text-[#31713D] px-4 py-2 flex items-center gap-3 shadow-sm border border-green-200">
                                     <i data-lucide="gift" class="w-4 h-4"></i>
                                     <div class="flex flex-col">
                                         <span class="text-[10px] font-black uppercase tracking-widest">Descuento aplicado</span>
@@ -1113,7 +1208,7 @@
                       </div>
                     <% } %>
                     <div class="flex items-baseline flex-wrap gap-x-2">
-                      <span class="text-4xl md:text-6xl lg:text-7xl font-black text-[#31713D] tracking-tighter leading-none break-all">
+                      <span id="final-base-after-discount" class="text-4xl md:text-6xl lg:text-7xl font-black text-[#31713D] tracking-tighter leading-none break-all">
                         <%= Math.floor(proposal.totals?.total_base_after_discount || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") %><span class="text-xl md:text-2xl text-[#31713D]">,<%= ((proposal.totals?.total_base_after_discount % 1).toFixed(2).split('.')[1]) || '00' %></span><span class="ml-1 text-2xl md:text-3xl">€</span>
                       </span>
                       <span class="ml-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Pulsa para desglose</span>
@@ -1121,11 +1216,11 @@
                     <div class="flex flex-col md:flex-row gap-4 mt-4">
                       <div class="flex-1 flex flex-col items-start">
                         <span class="text-[10px] font-black uppercase tracking-widest text-black">Impuestos (IVA)</span>
-                        <span class="text-2xl font-black text-amber-600"><%= (proposal.totals?.total_vat || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".") %> €</span>
+                        <span id="final-vat" class="text-2xl font-black text-amber-600"><%= (proposal.totals?.total_vat || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".") %> €</span>
                       </div>
                       <div class="flex-1 flex flex-col items-start">
                         <span class="text-[10px] font-black uppercase tracking-widest text-black">Total + IVA</span>
-                        <span class="text-2xl font-black text-green-700"><%= (proposal.totals?.total_final || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".") %> €</span>
+                        <span id="final-total" class="text-2xl font-black text-green-700"><%= (proposal.totals?.total_final || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".") %> €</span>
                       </div>
                     </div>
                   </div>
@@ -1135,7 +1230,7 @@
               <!-- Action Zone -->
               <div id="economics-action-zone" class="lg:w-[260px] shrink-0 flex flex-col gap-3 print:hidden">
                 <% if (proposal.status === 'Aceptada') { %>
-                  <div class="bg-green-50 px-6 py-5 rounded-none border border-black flex items-center gap-4">
+                  <div class="bg-green-50 px-6 py-5 border border-green-200 flex items-center gap-4">
                     <div class="w-10 h-10 rounded-none bg-[#31713D] text-white flex items-center justify-center shrink-0 shadow-sm">
                       <i data-lucide="check" class="w-5 h-5"></i>
                     </div>
@@ -1146,7 +1241,7 @@
                   </div>
                   
                   <!-- Chat always available -->
-                  <button onclick="toggleChat(event)" class="w-full bg-white hover:bg-green-50 text-black border border-black py-3 rounded-none font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 transition-all">
+                  <button onclick="toggleChat(event)" class="w-full bg-white hover:bg-green-50 text-gray-800 border border-gray-300 py-3 font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 transition-all">
                     <i data-lucide="message-square" class="w-3.5 h-3.5 text-[#31713D]"></i> Chat con Comercial
                   </button>
                 <% } else if (proposal.status === 'cancelled') { %>
@@ -1175,12 +1270,16 @@
                     <% } %>
 
                     <!-- Secondary Actions -->
-                    <div class="grid grid-cols-2 gap-2">
-                      <button onclick="toggleChat(event)" class="bg-white hover:bg-green-50 text-black border border-black py-3 rounded-none font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 transition-all">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <button onclick="toggleChat(event)" class="bg-white hover:bg-green-50 text-gray-800 border border-gray-300 py-3 font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 transition-all">
                         <i data-lucide="message-square" class="w-3.5 h-3.5 text-[#31713D]"></i> Chat
                       </button>
 
-                      <button onclick="document.getElementById('modal-reject').classList.remove('hidden')" class="bg-white hover:bg-red-50 text-black border border-black py-3 rounded-none font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 transition-all">
+                      <button type="button" onclick="document.getElementById('modal-modifications').classList.remove('hidden')" class="bg-white hover:bg-amber-50 text-gray-800 border border-gray-300 py-3 font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 transition-all">
+                        <i data-lucide="pen-square" class="w-3.5 h-3.5 text-amber-600"></i> Cambios
+                      </button>
+
+                      <button id="btn-reject" type="button" onclick="document.getElementById('modal-reject').classList.remove('hidden')" class="bg-white hover:bg-red-50 text-gray-800 border border-gray-300 py-3 font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 transition-all">
                         <i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i> Rechazar
                       </button>
                     </div>
@@ -1196,11 +1295,11 @@
               <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                   <thead>
-                    <tr class="bg-black text-white">
-                      <th class="py-4 text-[9px] font-black uppercase tracking-[0.2em] px-6 border-r border-white/10">Concepto / Servicio</th>
-                      <th class="py-4 text-[9px] font-black uppercase tracking-[0.2em] text-right px-6 border-r border-white/10">Base Imponible</th>
-                      <th class="py-4 text-[9px] font-black uppercase tracking-[0.2em] text-right px-6 border-r border-white/10">IVA %</th>
-                      <th class="py-4 text-[9px] font-black uppercase tracking-[0.2em] text-right px-6 border-r border-white/10">Cuota IVA</th>
+                    <tr class="bg-gray-100 text-gray-700">
+                      <th class="py-4 text-[9px] font-black uppercase tracking-[0.2em] px-6 border-r border-gray-200">Concepto / Servicio</th>
+                      <th class="py-4 text-[9px] font-black uppercase tracking-[0.2em] text-right px-6 border-r border-gray-200">Base Imponible</th>
+                      <th class="py-4 text-[9px] font-black uppercase tracking-[0.2em] text-right px-6 border-r border-gray-200">IVA %</th>
+                      <th class="py-4 text-[9px] font-black uppercase tracking-[0.2em] text-right px-6 border-r border-gray-200">Cuota IVA</th>
                       <th class="py-4 text-[9px] font-black uppercase tracking-[0.2em] text-right px-6">Precio Total</th>
                     </tr>
                   </thead>
@@ -1258,17 +1357,17 @@
                       <% }) %>
                     <% } %>
                   </tbody>
-                  <tfoot class="bg-black text-white border-t border-white/20">
+                  <tfoot class="bg-gray-50 text-gray-900 border-t border-gray-200">
                     <tr>
                       <td class="py-6 px-6 text-[10px] font-black uppercase tracking-widest">INVERSIÓN FINAL</td>
-                      <td class="py-6 px-6 text-right font-mono text-sm text-[#A3E635]">
+                      <td class="py-6 px-6 text-right font-mono text-sm text-[#31713D]">
                          <%= (proposal.totals?.total_base_after_discount || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".") %> €
                       </td>
                       <td class="py-6 px-6"></td>
                       <td class="py-6 px-6 text-right font-mono text-sm">
                          <%= (proposal.totals?.total_vat || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".") %> €
                       </td>
-                      <td class="py-6 px-6 text-right font-mono text-xl font-black text-[#A3E635]">
+                      <td class="py-6 px-6 text-right font-mono text-xl font-black text-[#31713D]">
                          <%= (proposal.totals?.total_final || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ".") %> €
                       </td>
                     </tr>
@@ -1335,7 +1434,7 @@
       </div>
 
       <div class="grid grid-cols-2 gap-3 w-full mt-8 relative z-10">
-        <button onclick="document.getElementById('modal-modifications').classList.add('hidden')" class="py-4 text-black font-bold uppercase tracking-widest text-[10px] hover:text-gray-600 transition-colors">
+        <button id="btn-cancel-modifications" onclick="document.getElementById('modal-modifications').classList.add('hidden')" class="py-4 text-black font-bold uppercase tracking-widest text-[10px] hover:text-gray-600 transition-colors">
           Cancelar
         </button>
         <button id="btn-send-modifications" 
@@ -1372,7 +1471,7 @@
         <button id="btn-confirm-reject" class="w-full py-4 bg-red-600 text-white font-black uppercase tracking-widest rounded-none hover:bg-red-700 transition-all shadow-lg shadow-red-200">
           CONFIRMAR RECHAZO
         </button>
-        <button onclick="document.getElementById('modal-reject').classList.add('hidden')" class="w-full py-3 text-black font-bold text-[10px] uppercase tracking-widest hover:text-gray-600 transition-colors">
+        <button id="btn-cancel-reject" onclick="document.getElementById('modal-reject').classList.add('hidden')" class="w-full py-3 text-black font-bold text-[10px] uppercase tracking-widest hover:text-gray-600 transition-colors">
           VOLVER ATRÁS
         </button>
       </div>
@@ -2136,6 +2235,18 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+
+    const summaryProgress = document.getElementById('summary-progress-bar');
+    const floatingProgress = document.getElementById('progress-bar-fill');
+    const initialProgress = Number(summaryProgress?.dataset.initialProgress || floatingProgress?.dataset.initialProgress || 0);
+
+    if (summaryProgress) {
+      summaryProgress.style.width = `${initialProgress}%`;
+    }
+
+    if (floatingProgress) {
+      floatingProgress.style.width = `${initialProgress}%`;
+    }
     
     // Lucide Icons refresh
     if (typeof lucide !== 'undefined') {
@@ -2493,23 +2604,32 @@
 
 <!-- 🏁 FLOATING CONFIRMATION BAR (UX UPGRADE) -->
 <div id="floating-confirm-bar" class="fixed bottom-0 inset-x-0 z-[60] bg-white border-t-2 border-black transform translate-y-full transition-transform duration-500 shadow-[0_-10px_30px_rgba(0,0,0,0.18)] print:hidden">
-  <div class="max-w-7xl mx-auto px-6 py-3 grid grid-cols-1 md:grid-cols-[1fr_auto] items-center gap-3 md:gap-6">
-    <div class="flex items-center gap-3 md:gap-4 min-w-0">
-      <span class="inline-flex items-center h-[34px] px-3 border border-green-200 bg-green-50 text-[#31713D] text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
-        Base imponible
-      </span>
-      <span id="floating-total" class="text-2xl md:text-3xl font-black text-[#31713D] tracking-tighter leading-none whitespace-nowrap"><%= formatCurrency(proposal.totals?.total_base_after_discount || 0) %></span>
-      <span class="hidden md:inline text-[9px] font-black uppercase tracking-widest text-gray-400">(descuentos aplicados)</span>
+  <div class="max-w-7xl mx-auto px-6 py-3 space-y-3">
+    <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] items-center gap-3 md:gap-6">
+      <div class="flex items-center gap-3 md:gap-4 min-w-0">
+        <span class="inline-flex items-center h-[34px] px-3 border border-green-200 bg-green-50 text-[#31713D] text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+          Base imponible
+        </span>
+        <span id="floating-total" class="text-2xl md:text-3xl font-black text-[#31713D] tracking-tighter leading-none whitespace-nowrap"><%= formatCurrency(proposal.totals?.total_base_after_discount || 0) %></span>
+        <span class="hidden md:inline text-[9px] font-black uppercase tracking-widest text-gray-400">(descuentos aplicados)</span>
+      </div>
+      <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto justify-end">
+        <button onclick="toggleSidebar()" class="flex-1 md:flex-none h-[42px] px-4 md:px-6 border border-black/20 text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
+          <i data-lucide="eye" class="w-4 h-4 text-[#31713D]"></i>
+          <span>Revisar Elecciones</span>
+        </button>
+        <button id="btn-floating-accept" class="flex-1 md:flex-none h-[42px] px-5 md:px-8 bg-white text-black text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] shadow-2xl hover:bg-green-50 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 border-2 border-transparent hover:border-black">
+          <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+          <span>Confirmar mi Propuesta</span>
+        </button>
+      </div>
     </div>
-    <div class="flex items-center gap-2 md:gap-3 w-full md:w-auto justify-end">
-      <button onclick="toggleSidebar()" class="flex-1 md:flex-none h-[42px] px-4 md:px-6 border border-black/20 text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
-        <i data-lucide="eye" class="w-4 h-4 text-[#31713D]"></i>
-        <span>Revisar Elecciones</span>
-      </button>
-      <button id="btn-floating-accept" class="flex-1 md:flex-none h-[42px] px-5 md:px-8 bg-white text-black text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] shadow-2xl hover:bg-green-50 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 border-2 border-transparent hover:border-black">
-        <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
-        <span>Confirmar mi Propuesta</span>
-      </button>
+
+    <div class="flex items-center gap-3">
+      <div class="flex-1 bg-gray-200 h-1.5 overflow-hidden">
+        <div id="progress-bar-fill" data-initial-progress="<%= initialProgressPercent %>" class="bg-amber-500 h-1.5 transition-all duration-500" style="width: 0%;"></div>
+      </div>
+      <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest whitespace-nowrap">Seguimiento</span>
     </div>
   </div>
 </div>
